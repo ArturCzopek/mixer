@@ -1,5 +1,5 @@
 {
-  "$comment": "Real mix for the backtest (T-1). Nicknames as the owner wrote them; steamIds in the same order (matched to Steam profile names 2026-09-24; Jawor = jawOla.exe by elimination, to confirm). Team A is the owner's team.",
+  "$comment": "Real mix for the backtest (T-1). Nicknames as the owner wrote them; steamIds in the same order (matched to Steam profile names 2026-09-24; Jawor = jawOla.exe, confirmed by the owner). Team A is the owner's team.",
   "date": "2026-09-20",
   "playedOn": "valve-private-matchmaking",
   "teamA": {

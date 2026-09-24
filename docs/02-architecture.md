@@ -53,11 +53,13 @@ flowchart LR
 2. `GET /api/auth/steam/callback` verifies the assertion server-side (`openid.mode=check_authentication`
    back to Steam), then extracts the SteamID64 from `openid.claimed_id`.
 3. Upsert `players` by `steam_id` (claims an admin-created record if it exists), set a signed,
-   httpOnly session cookie (`jose` JWT: `player_id`, `steam_id`, `is_admin`, 30-day expiry).
-4. The `is_admin` flag lives in the DB; the bootstrap admin comes from the env var `ADMIN_STEAM_IDS`.
+   httpOnly session cookie (`jose` JWT: `player_id`, `steam_id`, `is_site_admin`, 30-day expiry).
+4. `players.is_site_admin` lives in the DB; the bootstrap site admin comes from the env var `ADMIN_STEAM_IDS`.
+   Group roles (`group_members.role`: `admin` / `member`) are read per request, not stored in the cookie,
+   so promotions and removals apply immediately.
 
-Players not on the roster can log in but only get guest rights until an admin approves them
-(or join is open, configurable).
+Players who are not members of a group can log in but only get guest rights in that group until a
+group admin adds them (or the group has an open join link, later).
 
 ## Data access pattern
 

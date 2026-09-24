@@ -6,13 +6,17 @@ Migrations: `db/migrations/` (how they are applied: [lib/db/README.md](../lib/db
 
 Integrity enforced in the database (Phase 1):
 - **Hard cap 10** per mix: `before insert` trigger on `mix_participants` locks the mix row, then counts (safe under concurrent joins).
+- **Only active group members join a mix:** the same trigger copies the mix's `group_id` and rejects players whose membership is closed; the composite fks make a participant from another group impossible.
 - **Votes:** `(mix_id, voter_id)` references `mix_participants` (only participants vote); `(variant_id, mix_id)` references `variants (id, mix_id)` (only a variant of the same mix). Same composite key pins `mixes.chosen_variant_id` to the mix.
-- **RLS:** enabled on all tables, one `select` policy for `anon`/`authenticated`, write grants revoked; the secret key (service role) bypasses RLS.
+- **RLS:** enabled on all tables (incl. `groups`, `group_members`), one `select` policy for `anon`/`authenticated`, write grants revoked; the secret key (service role) bypasses RLS.
 - **Realtime publication:** `mixes`, `mix_participants`, `variants`, `votes`.
 
 ```mermaid
 erDiagram
-  players ||--o{ mix_participants : joins
+  groups ||--o{ group_members : has
+  players ||--o{ group_members : "member of"
+  groups ||--o{ mixes : organizes
+  group_members ||--o{ mix_participants : joins
   mixes ||--o{ mix_participants : has
   mixes ||--o{ variants : proposes
   variants ||--o{ variant_players : contains
@@ -25,25 +29,50 @@ erDiagram
   players ||--o{ match_player_stats : "played in"
 ```
 
-## players
+## groups
+A friend group using the app (D18). Everything mix-related belongs to one group.
 | column | type | notes |
 |---|---|---|
 | id | uuid pk | |
-| steam_id | text unique not null | SteamID64 |
+| slug | text unique | URL part, `a-z0-9-`, 3–40 chars |
+| name | text | 2–60 chars |
+| faceit_club_url | text null | FACEIT Club where the group plays (D17); must start with `https://(www.)faceit.com/` |
+| faceit_club_id | text null | parsed from the link / Data API, to list club matches (M2-2) and exclude them from form F |
+| discord_guild_id | text unique null | Discord server linked to the group (Phase 5) |
+| discord_settings | jsonb | bot settings: lobby / team A / team B voice channel ids, notification channel |
+| created_by | uuid fk players | becomes the first group admin |
+
+## group_members
+| column | type | notes |
+|---|---|---|
+| group_id | uuid fk | pk (group_id, player_id) |
+| player_id | uuid fk | |
+| role | text | `admin` · `member` |
+| manual_skill_override | int null | group admin's fallback ELO if FACEIT data is missing |
+| added_by | uuid fk players null | |
+| joined_at | timestamptz | |
+| left_at | timestamptz null | set instead of deleting, so past mixes still resolve; only `left_at is null` members can join mixes |
+
+## players
+One Steam identity across the whole app (can be in several groups).
+| column | type | notes |
+|---|---|---|
+| id | uuid pk | |
+| steam_id | text unique not null | SteamID64 (17 digits, checked) |
 | display_name | text | from Steam, refreshable |
 | avatar_url | text | |
-| faceit_player_id | text null | resolved from SteamID via FACEIT API |
+| faceit_player_id | text unique null | resolved from SteamID via FACEIT API |
 | faceit_nickname | text null | |
+| discord_user_id | text unique null | linked via Discord OAuth (Phase 5) |
 | preferred_role | text check in ('awp','rifle','any') | default `any` |
-| is_admin | bool default false | |
-| is_active | bool default true | hide people who left the group |
-| manual_skill_override | int null | admin fallback ELO if FACEIT data is missing |
-| last_login_at | timestamptz null | null = added by admin, never logged in |
+| is_site_admin | bool default false | platform admin (bootstrap: `ADMIN_STEAM_IDS`) |
+| last_login_at | timestamptz null | null = added by an admin, never logged in |
 
 ## mixes
 | column | type | notes |
 |---|---|---|
 | id | uuid pk | |
+| group_id | uuid fk groups | |
 | title | text | e.g. "Mix #12 — Friday" |
 | scheduled_at | timestamptz null | |
 | status | text | `open` · `balancing` · `voting` · `locked` · `played` · `cancelled` |
@@ -56,6 +85,7 @@ erDiagram
 |---|---|---|
 | mix_id | uuid fk | pk (mix_id, player_id) |
 | player_id | uuid fk | |
+| group_id | uuid | copied from the mix by the insert trigger; fks to `mixes (id, group_id)` and `group_members (group_id, player_id)` |
 | added_by | uuid fk players | self or admin |
 | skill_snapshot | jsonb | inputs at balancing time: FACEIT ELO, form, mix rating, final score |
 

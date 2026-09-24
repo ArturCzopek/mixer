@@ -36,7 +36,8 @@ all statuses, headers and field paths: `lib/external/__fixtures__/spike-report.j
 - **Stat values are strings** (`"104.2"`, `"18"`); parse with Zod `z.coerce.number()`. Only
   `Match Finished At` (games stats) and `started_at`/`finished_at` (history, match) are numbers.
 - **Rate limit:** `RateLimit-Limit: 20, 20;w=1` → **20 requests per second** per key (header name
-  `gateway-open-faceit-ratelimit`). No hourly quota was visible in headers. A balancing run for 10
+  `gateway-open-faceit-ratelimit`). No hourly quota was visible in headers; a 10 000/hour limit
+  (429 until the next full hour) is reported by FACEIT's developer forum (D20). A balancing run for 10
   players is ~30 calls, so no batching tricks are needed; keep a 10 min cache anyway.
 - **Time units differ:** `/history` takes `from`/`to` in **seconds**; `/games/cs2/stats` takes
   `from`/`to` in **milliseconds** (seconds silently return 0 items). Both paginate with `offset` +
@@ -95,6 +96,18 @@ Consequences for the design:
 - Leetify numbers are never an input to our stored `skill_snapshot` and never mixed with our Mixer Rating.
 - Profile "FACEIT" and "Premier" tabs render Leetify data as-is in a clearly labelled section.
 - Our own mix stats use our own metric names (Mixer Rating, ADR, KAST…) and never reuse Leetify metric names for different calculations.
+
+## Discord (Phase 5, D19)
+
+One site-wide bot. Env: `DISCORD_BOT_TOKEN`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`.
+
+| Purpose | Endpoint |
+|---|---|
+| Link a player | OAuth2 `identify` → `GET https://discord.com/api/users/@me` → `players.discord_user_id` |
+| Add bot to a group's server | `https://discord.com/oauth2/authorize?client_id=…&scope=bot&permissions=…` (Move Members + Send Messages) |
+| List voice channels | `GET /guilds/{guild_id}/channels` (type 2 = voice) |
+| Move a player | `PATCH /guilds/{guild_id}/members/{user_id}` `{ "channel_id": "…" }` (only if already in voice) |
+| Post a message | `POST /channels/{channel_id}/messages` |
 
 ## Caching
 

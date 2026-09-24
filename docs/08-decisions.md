@@ -88,3 +88,30 @@ Everyone has FACEIT; it brings anti-cheat, map veto and a demo + stats API for e
 - Still to verify in S5: club matches vs main FACEIT ELO (matters for form F: exclude club matches
   from F if they show up in history), and club match stats via the Data API.
 See [demo pipeline](05-demo-pipeline.md#path-c-faceit-club-queue-chosen-d17).
+
+## D18. Several groups in one app, Accepted (2026-09-24)
+Built for our group first, but other friend groups may use it. Modelled now, while the tables are
+empty, instead of retrofitting `group_id` later.
+- `groups` (name, slug, FACEIT Club link, Discord server) and `group_members` (`admin` / `member`).
+  Mixes belong to a group; only **active** members of that group can join (DB-enforced).
+- A player is one Steam identity across groups. `players.is_site_admin` is the platform admin;
+  group roles are checked per request in server code (not stored in the session cookie).
+- Membership is closed (`left_at`), never deleted, so history keeps resolving. The fallback ELO
+  (`manual_skill_override`) is per group.
+- Everything stays publicly readable (D2). Private groups would need per-player Supabase JWTs or
+  server-proxied realtime: not planned.
+
+## D19. Discord: one site-wide bot, per-group server link, REST-only voice moves, Accepted (2026-09-24)
+Owner wants players moved to team voice channels when a match starts and back to the lobby when it
+ends. Discord's REST API can move a member who is already in voice (`PATCH /guilds/{guild}/members/{user}`
+with `channel_id`, permission Move Members), so no always-on gateway process is needed (fits D1).
+Players link their Discord account once (OAuth2 `identify`). Triggers: admin buttons always;
+automatic via FACEIT webhooks only if club match events are available (spike S6).
+
+## D20. FACEIT Data API terms, Accepted with a caveat (2026-09-24)
+The FACEIT developer terms page (docs.faceit.com) is not reachable from the sandbox; web search found
+no clause against storing data. Known limits: 20 requests/s per key (response headers, S3) and a
+reported 10 000 requests/hour (429 until the next full hour). What we store is small and derived:
+the ELO/form snapshot at balancing time and per-map stats of our own mixes, fetched by a server key
+that only reads public data. Short caches (minutes) for everything else. If FACEIT terms or FACEIT
+support object, we can drop stored FACEIT stats and keep only our own results (manual fallback, M2-3).

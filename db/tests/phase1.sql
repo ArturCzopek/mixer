@@ -4,6 +4,9 @@ do $$
 declare
   admin_id uuid;
   outsider_id uuid;
+  former_id uuid;
+  grp uuid;
+  other_grp uuid;
   mix1 uuid;
   mix2 uuid;
   var1 uuid;
@@ -12,24 +15,64 @@ declare
   i int;
   failed boolean;
 begin
-  insert into public.players (steam_id, is_admin) values ('70000000000000000', true) returning id into admin_id;
+  insert into public.players (steam_id) values ('70000000000000000') returning id into admin_id;
   insert into public.players (steam_id) values ('70000000000000099') returning id into outsider_id;
-  insert into public.mixes (title, created_by) values ('verify 1', admin_id) returning id into mix1;
-  insert into public.mixes (title, created_by) values ('verify 2', admin_id) returning id into mix2;
+  insert into public.players (steam_id) values ('70000000000000098') returning id into former_id;
+  insert into public.groups (slug, name, faceit_club_url, created_by)
+    values ('verify-group', 'Verify', 'https://www.faceit.com/en/club/00000000-0000-0000-0000-000000000000', admin_id)
+    returning id into grp;
+  insert into public.groups (slug, name, created_by) values ('verify-other', 'Other', admin_id) returning id into other_grp;
+  insert into public.group_members (group_id, player_id, role) values (grp, admin_id, 'admin');
+  insert into public.group_members (group_id, player_id, left_at) values (grp, former_id, now());
+  insert into public.group_members (group_id, player_id) values (other_grp, outsider_id);
+  insert into public.mixes (group_id, title, created_by) values (grp, 'verify 1', admin_id) returning id into mix1;
+  insert into public.mixes (group_id, title, created_by) values (grp, 'verify 2', admin_id) returning id into mix2;
 
-  -- 10 participants fit
+  -- only active members of the mix's group can join
+  failed := false;
+  begin
+    insert into public.mix_participants (mix_id, player_id, added_by) values (mix1, outsider_id, admin_id);
+  exception when foreign_key_violation then failed := true;
+  end;
+  if not failed then raise exception 'ASSERT: member of another group joined the mix'; end if;
+  failed := false;
+  begin
+    insert into public.mix_participants (mix_id, player_id, added_by) values (mix1, former_id, admin_id);
+  exception when foreign_key_violation then failed := true;
+  end;
+  if not failed then raise exception 'ASSERT: former member joined the mix'; end if;
+
+  -- 10 participants fit (group_id is filled from the mix)
   for i in 1..10 loop
     insert into public.players (steam_id) values (lpad(i::text, 17, '7')) returning id into p;
+    insert into public.group_members (group_id, player_id) values (grp, p);
     insert into public.mix_participants (mix_id, player_id, added_by) values (mix1, p, admin_id);
   end loop;
+  if (select count(*) from public.mix_participants where mix_id = mix1 and group_id = grp) <> 10 then
+    raise exception 'ASSERT: participants did not get the group of the mix';
+  end if;
 
   -- the 11th is rejected
   failed := false;
   begin
-    insert into public.mix_participants (mix_id, player_id, added_by) values (mix1, outsider_id, admin_id);
+    insert into public.mix_participants (mix_id, player_id, added_by) values (mix1, admin_id, admin_id);
   exception when check_violation then failed := true;
   end;
   if not failed then raise exception 'ASSERT: 11th participant was accepted'; end if;
+
+  -- invalid group slug / FACEIT link
+  failed := false;
+  begin
+    insert into public.groups (slug, name, created_by) values ('Bad Slug', 'x y', admin_id);
+  exception when check_violation then failed := true;
+  end;
+  if not failed then raise exception 'ASSERT: invalid group slug was accepted'; end if;
+  failed := false;
+  begin
+    insert into public.groups (slug, name, faceit_club_url, created_by) values ('ok-slug', 'Ok', 'https://evil.example/', admin_id);
+  exception when check_violation then failed := true;
+  end;
+  if not failed then raise exception 'ASSERT: non-FACEIT club link was accepted'; end if;
 
   insert into public.variants (mix_id, number, team_a_score, team_b_score, win_prob_a)
     values (mix1, 1, 1500, 1490, 0.51) returning id into var1;
@@ -82,10 +125,10 @@ declare
   failed boolean := false;
 begin
   begin
-    insert into public.players (steam_id) values ('70000000000000098');
+    insert into public.groups (slug, name, created_by) select 'anon-group', 'Anon', id from public.players limit 1;
   exception when insufficient_privilege then failed := true;
   end;
-  if not failed then raise exception 'ASSERT: anon could insert into players'; end if;
+  if not failed then raise exception 'ASSERT: anon could insert into groups'; end if;
 end;
 $$;
 reset role;

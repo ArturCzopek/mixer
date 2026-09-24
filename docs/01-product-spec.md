@@ -22,20 +22,30 @@
 - Map veto / side pick (done by the FACEIT Club queue).
 - Running or orchestrating game servers in v1 (considered as an optional later path, see
   [demo pipeline](05-demo-pipeline.md#path-b--own-server-dathost--matchzy)).
-- Public product for other groups. It is built for one group; no multi-tenancy.
+- Paid / hosted product features (billing, quotas, private groups). The app is built for our group first,
+  but the data model supports **several groups** (D18) so other friend groups can use the same instance.
 
 ## Users & roles
 
 | Role | Who | Can |
 |---|---|---|
-| **Admin** | Group owner + 1–2 trusted people (bootstrapped via `ADMIN_STEAM_IDS`) | Manage roster, create/close mixes, add/remove participants, cast/override on behalf of absent players, lock lineup, enter results, delete uploads |
-| **Member** | Anyone on the roster who logged in with Steam | Join a mix, vote, upload demos, view everything |
-| **Guest** | Anyone with the link, not logged in (or logged in but not on the roster) | Read-only view of mixes, match pages and profiles. The site is public. |
+| **Site admin** | App owner (bootstrapped via `ADMIN_STEAM_IDS`) | Everything, in every group; moderation |
+| **Group admin** | Group creator + trusted people they promote (per group) | Manage the group (name, FACEIT Club link, Discord), roster, create/close mixes, add/remove participants, cast/override on behalf of absent players, lock lineup, enter results, delete uploads |
+| **Member** | Active member of a group who logged in with Steam | Join that group's mixes, vote, upload demos, view everything |
+| **Guest** | Anyone with the link, not logged in (or not a member of the group) | Read-only view of groups, mixes, match pages and profiles. The site is public. |
 
-A roster player may exist **before** they ever log in (admin adds them by SteamID). Their first
-Steam login claims that record automatically (matched on SteamID64).
+A player is one Steam identity across the whole app and can be in several groups. A group member may
+exist **before** they ever log in (a group admin adds them by SteamID). Their first Steam login claims
+that record automatically (matched on SteamID64). Any logged-in player can create a group and becomes its admin.
 
 ## Features
+
+### F0. Groups
+- A group has a name, a URL slug, its **FACEIT Club link** (where its mixes are played, D17; asked for
+  when the group is created) and optionally its **Discord server** (bot integration, Phase 5).
+- Group admins add/remove members and promote/demote admins. Leaving keeps the history (membership is closed, not deleted).
+- Mixes, roster, leaderboards and balancing settings are per group; player profiles are global
+  (with a per-group filter).
 
 ### F1. Roster
 - List of group players: Steam name, avatar, FACEIT nickname/level/ELO, preferred role (AWP / rifle).

@@ -1,6 +1,6 @@
 # mixer: project notes for Claude
 
-CS2 10-man mix organizer for a ~15-person friend group. Owner talks in Polish; **UI, code and docs are in English**.
+CS2 10-man mix organizer for a ~15-person friend group; multi-group data model (groups, group admins, D18). Owner talks in Polish; **UI, code and docs are in English**.
 
 **Work plan: `docs/07-roadmap.md`.** Owner actions and the next-session starting point: `TODO.md` (keep it updated). Pick the next unblocked task by ID, meet its "Done when", tick it off in the roadmap in the same PR.
 Read `docs/` before making design changes. The decision log (`docs/08-decisions.md`) explains the constraints.
