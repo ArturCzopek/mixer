@@ -19,8 +19,7 @@ Task IDs refer to [docs/07-roadmap.md](docs/07-roadmap.md).
 
 - [x] Cloud environment: network access for FACEIT, Steam, Supabase, Leetify, Google Drive
 - [x] Keys in GitHub Actions secrets (all names match `.env.example`)
-- [ ] **Leetify key returns 401** on `/api-key/validate`: re-copy it from leetify.com/app/developer into the
-      `LEETIFY_API_KEY` secret (no quotes / newline), then ask Claude to re-run `API spike`. Needed from M3-2.
+- [x] Leetify key valid (use header `_leetify_key`; `Authorization: Bearer` returns 401)
 - [ ] FACEIT developer terms: glance at the Developer Portal terms (docs.faceit.com is blocked for Claude)
       for anything against storing derived stats (ELO/form snapshot, per-map stats of our mixes).
 - [x] Vercel project created

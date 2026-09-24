@@ -1,0 +1,31 @@
+name: DB migrate
+
+# Applies db/migrations to Supabase with the repo secrets, then verifies the schema and RLS.
+# Runs on every push to main that touches migrations/tests, or manually.
+on:
+  push:
+    branches: [main]
+    paths: ["db/migrations/**", "db/tests/**", "scripts/db-migrate.mjs"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: db-migrate
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply migrations and verify
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+        run: node scripts/db-migrate.mjs --verify

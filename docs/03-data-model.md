@@ -2,6 +2,13 @@
 
 Postgres (Supabase). IDs are `uuid` unless noted; all tables have `created_at timestamptz default now()`.
 SteamIDs are stored as `text` (SteamID64 exceeds JS safe integers).
+Migrations: `db/migrations/` (how they are applied: [lib/db/README.md](../lib/db/README.md)).
+
+Integrity enforced in the database (Phase 1):
+- **Hard cap 10** per mix: `before insert` trigger on `mix_participants` locks the mix row, then counts (safe under concurrent joins).
+- **Votes:** `(mix_id, voter_id)` references `mix_participants` (only participants vote); `(variant_id, mix_id)` references `variants (id, mix_id)` (only a variant of the same mix). Same composite key pins `mixes.chosen_variant_id` to the mix.
+- **RLS:** enabled on all tables, one `select` policy for `anon`/`authenticated`, write grants revoked; the secret key (service role) bypasses RLS.
+- **Realtime publication:** `mixes`, `mix_participants`, `variants`, `votes`.
 
 ```mermaid
 erDiagram

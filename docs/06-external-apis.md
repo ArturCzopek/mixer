@@ -68,7 +68,8 @@ Why FACEIT directly and not via Leetify: Leetify's terms forbid storing or recal
 ## Leetify Public API: display only
 
 - Docs: https://api-public-docs.cs-prod.leetify.com/ · Base URL `https://api-public.cs-prod.leetify.com`
-- Header `Authorization: Bearer <LEETIFY_API_KEY>` (or `_leetify_key`). Key: https://leetify.com/app/developer
+- Header **`_leetify_key: <LEETIFY_API_KEY>`**. Key: https://leetify.com/app/developer
+  (S3, 2026-09-24: our key validates with `_leetify_key` (200) but `Authorization: Bearer` returns 401.)
 - Validate key: `GET /api-key/validate`
 
 | Endpoint | Returns |
