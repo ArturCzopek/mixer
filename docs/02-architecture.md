@@ -103,8 +103,8 @@ Details: [external APIs](06-external-apis.md).
 
 ```
 NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=   # sb_publishable_… (new-style, replaces anon)
+SUPABASE_SECRET_KEY=                    # sb_secret_… (new-style, replaces service_role), server only
 SESSION_SECRET=
 APP_URL=                 # used for the Steam OpenID return URL
 STEAM_WEB_API_KEY=

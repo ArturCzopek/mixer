@@ -1,0 +1,19 @@
+{
+  "$comment": "Real mix for the backtest (T-1). Nicknames as the owner wrote them; map them to SteamID64s once the Steam/FACEIT APIs are reachable. Team A is the owner's team.",
+  "date": "2026-09-20",
+  "faceitMatchId": "1-1cb5b18b-6856-42a9-bf3c-561c0737b52f",
+  "teamA": {
+    "players": ["katusiksde", "Nefcio", "Stan", "13hp", "Jawor"],
+    "steamIds": ["76561197993187687"]
+  },
+  "teamB": {
+    "players": ["Profesor", "sexy ya", "Windxore", "Majkz", "Chelmut"],
+    "steamIds": []
+  },
+  "maps": [
+    { "map": "de_ancient", "scoreA": 4, "scoreB": 13 },
+    { "map": "de_dust2", "scoreA": 9, "scoreB": 13 },
+    { "map": "de_cache", "scoreA": 10, "scoreB": 13 },
+    { "map": "de_anubis", "scoreA": 13, "scoreB": 11 }
+  ]
+}

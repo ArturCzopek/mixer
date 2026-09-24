@@ -29,7 +29,7 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done
 | [ ] **M1-1** | Steam OpenID login + session cookie (`jose`), logout, `ADMIN_STEAM_IDS` bootstrap, `getSession()` helper, admin guard | P0-3 | Log in with Steam on a preview deploy; admin flag correct; forged OpenID assertion rejected (unit test on verifier) |
 | [ ] **M1-2** | External clients: `lib/external/steam.ts` (summaries, vanity), `faceit.ts` (player by SteamID, ELO, 30-day matches, lifetime) with caching | S3 | Unit tests against fixtures; typed with Zod |
 | [ ] **M1-3** | Roster: admin adds player by SteamID64 / profile URL / vanity; auto-fill Steam name+avatar and FACEIT link; manual ELO override; deactivate player; first login claims record | M1-1, M1-2 | Adding by each input form works; a pre-added player logging in sees their own record, no duplicate |
-| [ ] **M1-4** | Balancing engine `lib/balance` (pure TS): skill score E+F(+M=0), win prob, 126-split enumeration, hard/soft pair rules, cost, diverse top-3 selection, re-roll exclusion, config defaults | – *(can start right after P0-1)* | Unit tests cover: 40 candidates with both hard rules, distance function, tie handling, determinism, shrinkage examples from [docs/04](04-team-balancing.md) |
+| [x] **M1-4** | Balancing engine `lib/balance` (pure TS): skill score E+F(+M=0), win prob, 126-split enumeration, hard/soft pair rules, cost, diverse top-3 selection, re-roll exclusion, config defaults | – *(can start right after P0-1)* | Unit tests cover: 40 candidates with both hard rules, distance function, tie handling, determinism, shrinkage examples from [docs/04](04-team-balancing.md) |
 | [ ] **M1-5** | Mix lobby: create mix, join/leave, admin add/remove, hard cap 10 (DB-enforced), status machine `open→balancing→voting→locked→played/cancelled`, realtime participant list | M1-3 | Two browsers see joins live; 11th join is rejected even under race (DB constraint/transaction) |
 | [ ] **M1-6** | Variant generation: server action fetches FACEIT data, computes S, stores `skill_snapshot`, creates 3 variants; admin preview, re-roll, publish; per-variant UI (lineups, S breakdown, win %, badges) | M1-4, M1-5 | Generating for 10 real players shows 3 distinct variants; snapshot stored; re-roll never repeats a shown split |
 | [ ] **M1-7** | Voting: participants only, change vote until close, live counts, admin proxy vote (`cast_by`), auto-lock at 10/10, admin close, tie-break rule, locked lineup card | M1-6 | Realtime counts in two browsers; non-participant vote rejected; tie-break unit-tested; lock sets `chosen_variant_id` |
@@ -77,7 +77,7 @@ P0-2 → S3 → M1-2 → M1-3
 S4 → S1 → M2-3 → M2-4 → M2-5 (stats)
 ```
 
-**Unblocked right now (no owner input needed):** M1-4.
+**Unblocked right now (no owner input needed):** nothing big; next steps need network access + keys (P0-2).
 **Owner inputs that unblock the rest:** P0-2 (accounts & keys), demo files for S4/S1, backtest data for T-1.
 
 ## Resolved questions (2026-09-24)
@@ -90,7 +90,10 @@ S4 → S1 → M2-3 → M2-4 → M2-5 (stats)
 | More than 10 players | Hard cap 10, no waitlist; admin can remove people |
 | Demo source | We record ourselves (POV); one recorder, optional backup |
 | Leetify | Read-only display, never stored; balancing on FACEIT |
+| Discord | Yes, the group has a Discord server; integrate later (E4) |
+| Initial roster | 12 SteamID64s in `db/seed/roster.json` (2026-09-24) |
 
 ## Open questions
 
-1. Is there a group Discord worth posting to (M4-2)?
+1. ~~Is there a group Discord worth posting to (M4-2)?~~ Yes.
+2. The 2026-09-20 mix has a FACEIT match room (`1-1cb5b18b-…`). Are mixes played on FACEIT rather than Valve PM? If so, the FACEIT match stats API could replace most demo parsing (Phase 2).
