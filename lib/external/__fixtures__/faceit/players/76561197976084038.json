@@ -1,0 +1,86 @@
+{
+  "player_id": "9fa8bf0e-0ecd-4324-adc3-33eb09de0d7d",
+  "nickname": "stannn",
+  "avatar": "https://distribution.faceit-cdn.net/images/2a57f5b9-c860-4849-bfb0-0db9ae4a79c2.jpg",
+  "country": "pl",
+  "cover_image": "",
+  "platforms": {
+    "steam": "STEAM_1:0:7909155"
+  },
+  "games": {
+    "cs2": {
+      "region": "EU",
+      "game_player_id": "76561197976084038",
+      "skill_level": 7,
+      "faceit_elo": 1449,
+      "game_player_name": "stan",
+      "skill_level_label": "",
+      "regions": {},
+      "game_profile_id": ""
+    },
+    "csgo": {
+      "region": "EU",
+      "game_player_id": "76561197976084038",
+      "skill_level": 4,
+      "faceit_elo": 1106,
+      "game_player_name": "stan",
+      "skill_level_label": "",
+      "regions": {},
+      "game_profile_id": ""
+    },
+    "wot_EU": {
+      "region": "EU",
+      "game_player_id": "500954660",
+      "skill_level": 3,
+      "faceit_elo": 1000,
+      "game_player_name": "szpadyzoRRRd",
+      "skill_level_label": "",
+      "regions": {},
+      "game_profile_id": ""
+    }
+  },
+  "settings": {
+    "language": "pl"
+  },
+  "friends_ids": [
+    "9f812b61-6ded-4d4b-a367-51cf9b63d861",
+    "b0aa2447-7dc0-47eb-8453-13f866d44fc1",
+    "65163ec2-80f9-40d8-98b7-e748cf87d7d2",
+    "17fc967d-5b7c-4502-9183-1a11064e94c8",
+    "c4972843-c299-4ca2-bef0-b62f450cc1de",
+    "e463db0b-af9b-4032-9379-4e94ecb8fcdf",
+    "f4567771-69df-4d0a-8c13-6e14e0e2eaa5",
+    "387df54e-d299-46e7-a08c-30349b867aab",
+    "63750778-2da8-4b98-a01d-8c0e4adcdabb",
+    "f323144b-64ea-456b-b246-32abec61cbe0",
+    "cb766755-c068-48a7-a046-910150f09d6b",
+    "da9f50c0-e3b1-4ab4-8b74-904787903599",
+    "6b13524f-6799-424d-a03a-e1c87904eb7c",
+    "271a9b40-ea26-4c2e-93ce-6f9fddd155da",
+    "9d484d95-2eae-4697-bed3-57947881c0d2",
+    "c249dd51-999e-4e62-b331-95685cda0011",
+    "67b51e9c-5b85-4ab4-ac05-64032bfaed30",
+    "e881bc29-4d6a-43de-af4d-4a6994130c2d",
+    "2bc2cb3d-da29-447d-9434-25a007882fad",
+    "b8dafbba-fc21-4d76-a3f4-e2edac158e30",
+    "18aa05b5-d409-4072-9e9d-6fc2193e0145",
+    "4bc8b5af-7c42-4745-9db8-2081a61a09af",
+    "c37344a8-16d4-4d0b-aebd-953a3f56b0bc",
+    "961593f2-c696-4afe-8ee7-ac5d95e661a1",
+    "5cfba6a7-bb8a-434f-bb19-f739dff23511",
+    "3fb9104d-2208-49d3-ad6d-bc867825ca2f",
+    "213e5c20-80ee-444a-890c-6ef9d0826091"
+  ],
+  "new_steam_id": "[U:1:15818310]",
+  "steam_id_64": "76561197976084038",
+  "steam_nickname": "stan",
+  "memberships": [
+    "super_match_token"
+  ],
+  "faceit_url": "https://www.faceit.com/{lang}/players/stannn",
+  "membership_type": "",
+  "cover_featured_image": "",
+  "infractions": {},
+  "verified": false,
+  "activated_at": "2015-06-11T19:50:11.121Z"
+}

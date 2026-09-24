@@ -1,0 +1,296 @@
+{
+  "items": [
+    {
+      "match_id": "1-13355e85-3808-45a5-a566-b4cc2154dabb",
+      "game_id": "cs2",
+      "region": "EU",
+      "match_type": "",
+      "game_mode": "5v5",
+      "max_players": 10,
+      "teams_size": 5,
+      "teams": {
+        "faction1": {
+          "team_id": "0d29c2a6-2114-4b31-ac0a-d78e02f841a1",
+          "nickname": "team_czopo",
+          "avatar": "https://distribution.faceit-cdn.net/images/917b327c-e1e1-4ac3-a8fb-8d2a5e44b975.jpeg",
+          "type": "",
+          "players": [
+            {
+              "player_id": "e881bc29-4d6a-43de-af4d-4a6994130c2d",
+              "nickname": "czopo",
+              "avatar": "",
+              "skill_level": 9,
+              "game_player_id": "76561197993187687",
+              "game_player_name": "katus `iksdel0l~",
+              "faceit_url": "https://www.faceit.com/{lang}/players/czopo"
+            },
+            {
+              "player_id": "c37344a8-16d4-4d0b-aebd-953a3f56b0bc",
+              "nickname": "fontek385",
+              "avatar": "https://distribution.faceit-cdn.net/images/1c69d51f-4432-447c-b05d-f38636abb664.jpeg",
+              "skill_level": 0,
+              "game_player_id": "76561197960551471",
+              "game_player_name": ":O",
+              "faceit_url": "https://www.faceit.com/{lang}/players/fontek385"
+            },
+            {
+              "player_id": "9fa8bf0e-0ecd-4324-adc3-33eb09de0d7d",
+              "nickname": "stannn",
+              "avatar": "https://distribution.faceit-cdn.net/images/2a57f5b9-c860-4849-bfb0-0db9ae4a79c2.jpg",
+              "skill_level": 6,
+              "game_player_id": "76561197976084038",
+              "game_player_name": "stan",
+              "faceit_url": "https://www.faceit.com/{lang}/players/stannn"
+            },
+            {
+              "player_id": "271a9b40-ea26-4c2e-93ce-6f9fddd155da",
+              "nickname": "J4neX",
+              "avatar": "https://distribution.faceit-cdn.net/images/917b327c-e1e1-4ac3-a8fb-8d2a5e44b975.jpeg",
+              "skill_level": 7,
+              "game_player_id": "76561197990797581",
+              "game_player_name": "13hp",
+              "faceit_url": "https://www.faceit.com/{lang}/players/J4neX"
+            },
+            {
+              "player_id": "2bc2cb3d-da29-447d-9434-25a007882fad",
+              "nickname": "roevs",
+              "avatar": "",
+              "skill_level": 6,
+              "game_player_id": "76561198063581077",
+              "game_player_name": "Majkz",
+              "faceit_url": "https://www.faceit.com/{lang}/players/roevs"
+            }
+          ]
+        },
+        "faction2": {
+          "team_id": "8693e302-dd38-4737-b3ca-a4f4417fb31f",
+          "nickname": "team_lubokerp",
+          "avatar": "https://assets.faceit-cdn.net/avatars/2fa50f79-2856-4375-a90b-bee791a8b964_1620914780985.jpg",
+          "type": "",
+          "players": [
+            {
+              "player_id": "2fa50f79-2856-4375-a90b-bee791a8b964",
+              "nickname": "lubokerp",
+              "avatar": "https://assets.faceit-cdn.net/avatars/2fa50f79-2856-4375-a90b-bee791a8b964_1620914780985.jpg",
+              "skill_level": 10,
+              "game_player_id": "76561199006294479",
+              "game_player_name": "(っ◔◡◔)っ ⓁⓊⒷⓄ",
+              "faceit_url": "https://www.faceit.com/{lang}/players/lubokerp"
+            },
+            {
+              "player_id": "b32a3b8a-9f3c-4505-8eac-483bed684e5c",
+              "nickname": "Noviseekk",
+              "avatar": "https://distribution.faceit-cdn.net/images/59595667-1009-4dda-98d7-7d556eb39242.jpg",
+              "skill_level": 8,
+              "game_player_id": "76561198298872066",
+              "game_player_name": "Ghaleb Hangamah",
+              "faceit_url": "https://www.faceit.com/{lang}/players/Noviseekk"
+            },
+            {
+              "player_id": "6434c165-dfdf-4473-bd45-1813dd555e60",
+              "nickname": "T0mk0_",
+              "avatar": "https://distribution.faceit-cdn.net/images/3170bfe1-db94-4b70-b459-86947a0e907d.jpg",
+              "skill_level": 6,
+              "game_player_id": "76561199861449129",
+              "game_player_name": "T0mk0",
+              "faceit_url": "https://www.faceit.com/{lang}/players/T0mk0_"
+            },
+            {
+              "player_id": "2ba90040-57f4-47ea-93ab-596b2237850e",
+              "nickname": "Daxteer_7",
+              "avatar": "https://distribution.faceit-cdn.net/images/5c430fed-6ed8-410e-8432-9b2e6fe9a191.jpg",
+              "skill_level": 8,
+              "game_player_id": "76561199134546747",
+              "game_player_name": "✞ 𝕯𝖆𝖝𝖙𝖊𝖊𝖗",
+              "faceit_url": "https://www.faceit.com/{lang}/players/Daxteer_7"
+            },
+            {
+              "player_id": "408e29cc-03da-4117-92d9-977fda8dc691",
+              "nickname": "sattys",
+              "avatar": "https://distribution.faceit-cdn.net/images/9582a458-ce3c-4587-8ecc-d82814e38008.jpg",
+              "skill_level": 6,
+              "game_player_id": "76561198916781750",
+              "game_player_name": "satty",
+              "faceit_url": "https://www.faceit.com/{lang}/players/sattys"
+            }
+          ]
+        }
+      },
+      "playing_players": [
+        "e881bc29-4d6a-43de-af4d-4a6994130c2d",
+        "c37344a8-16d4-4d0b-aebd-953a3f56b0bc",
+        "9fa8bf0e-0ecd-4324-adc3-33eb09de0d7d",
+        "271a9b40-ea26-4c2e-93ce-6f9fddd155da",
+        "2bc2cb3d-da29-447d-9434-25a007882fad",
+        "2fa50f79-2856-4375-a90b-bee791a8b964",
+        "b32a3b8a-9f3c-4505-8eac-483bed684e5c",
+        "6434c165-dfdf-4473-bd45-1813dd555e60",
+        "2ba90040-57f4-47ea-93ab-596b2237850e",
+        "408e29cc-03da-4117-92d9-977fda8dc691"
+      ],
+      "competition_id": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "competition_name": "Europe 5v5 Queue",
+      "competition_type": "matchmaking",
+      "organizer_id": "faceit",
+      "status": "finished",
+      "started_at": 1789416053,
+      "finished_at": 1789418485,
+      "results": {
+        "winner": "faction2",
+        "score": {
+          "faction1": 9,
+          "faction2": 13
+        }
+      },
+      "faceit_url": "https://www.faceit.com/{lang}/cs2/room/1-13355e85-3808-45a5-a566-b4cc2154dabb"
+    },
+    {
+      "match_id": "1-63a19345-d35f-4f72-b4cb-ffb1547181bb",
+      "game_id": "cs2",
+      "region": "EU",
+      "match_type": "",
+      "game_mode": "5v5",
+      "max_players": 10,
+      "teams_size": 5,
+      "teams": {
+        "faction1": {
+          "team_id": "ae951c13-aecb-47d2-85f8-8172c1c1274f",
+          "nickname": "team_bes1k",
+          "avatar": "https://distribution.faceit-cdn.net/images/3022eeee-0c5c-4340-b5fa-77f54f4fe975.jpg",
+          "type": "",
+          "players": [
+            {
+              "player_id": "ae951c13-aecb-47d2-85f8-8172c1c1274f",
+              "nickname": "bes1k",
+              "avatar": "https://distribution.faceit-cdn.net/images/3022eeee-0c5c-4340-b5fa-77f54f4fe975.jpg",
+              "skill_level": 7,
+              "game_player_id": "76561197995377023",
+              "game_player_name": "BESiK",
+              "faceit_url": "https://www.faceit.com/{lang}/players/bes1k"
+            },
+            {
+              "player_id": "f233af90-afb5-4551-b05e-dce6d474fe8e",
+              "nickname": "pun1s7er",
+              "avatar": "https://distribution.faceit-cdn.net/images/084dfb50-8e9c-4ecd-9bc4-7bf4a5a2b9b3.jpeg",
+              "skill_level": 10,
+              "game_player_id": "76561198422476044",
+              "game_player_name": "punisheeer",
+              "faceit_url": "https://www.faceit.com/{lang}/players/pun1s7er"
+            },
+            {
+              "player_id": "c6c16f5b-927a-4e6f-b1f4-e1aff9a1c835",
+              "nickname": "LerXX",
+              "avatar": "https://distribution.faceit-cdn.net/images/b4c883e2-db76-4de6-81df-cfc86cf08393.jpg",
+              "skill_level": 6,
+              "game_player_id": "76561198050221279",
+              "game_player_name": "LerX",
+              "faceit_url": "https://www.faceit.com/{lang}/players/LerXX"
+            },
+            {
+              "player_id": "da3c82d2-4a77-4cfa-acaa-d7d48e900df3",
+              "nickname": "rencista67",
+              "avatar": "",
+              "skill_level": 6,
+              "game_player_id": "76561198726767269",
+              "game_player_name": "Belmondziak",
+              "faceit_url": "https://www.faceit.com/{lang}/players/rencista67"
+            },
+            {
+              "player_id": "09526bc0-260c-4704-a1e5-abd1343da460",
+              "nickname": "Aty1u",
+              "avatar": "https://distribution.faceit-cdn.net/images/3aa59efb-12aa-450e-af05-d174a3b60ae8.jpg",
+              "skill_level": 10,
+              "game_player_id": "76561199790899437",
+              "game_player_name": "Atyiu",
+              "faceit_url": "https://www.faceit.com/{lang}/players/Aty1u"
+            }
+          ]
+        },
+        "faction2": {
+          "team_id": "fdd10387-8aa5-4562-95d5-6e850c162814",
+          "nickname": "team_-QYLA",
+          "avatar": "https://distribution.faceit-cdn.net/images/45ab6ad7-7520-4886-8012-c98260b51d4f.jpeg",
+          "type": "",
+          "players": [
+            {
+              "player_id": "c37344a8-16d4-4d0b-aebd-953a3f56b0bc",
+              "nickname": "fontek385",
+              "avatar": "https://distribution.faceit-cdn.net/images/1c69d51f-4432-447c-b05d-f38636abb664.jpeg",
+              "skill_level": 0,
+              "game_player_id": "76561197960551471",
+              "game_player_name": ":O",
+              "faceit_url": "https://www.faceit.com/{lang}/players/fontek385"
+            },
+            {
+              "player_id": "9fa8bf0e-0ecd-4324-adc3-33eb09de0d7d",
+              "nickname": "stannn",
+              "avatar": "https://distribution.faceit-cdn.net/images/2a57f5b9-c860-4849-bfb0-0db9ae4a79c2.jpg",
+              "skill_level": 6,
+              "game_player_id": "76561197976084038",
+              "game_player_name": "stan",
+              "faceit_url": "https://www.faceit.com/{lang}/players/stannn"
+            },
+            {
+              "player_id": "fdd10387-8aa5-4562-95d5-6e850c162814",
+              "nickname": "-QYLA",
+              "avatar": "https://distribution.faceit-cdn.net/images/45ab6ad7-7520-4886-8012-c98260b51d4f.jpeg",
+              "skill_level": 8,
+              "game_player_id": "76561199230790972",
+              "game_player_name": "QYLA",
+              "faceit_url": "https://www.faceit.com/{lang}/players/-QYLA"
+            },
+            {
+              "player_id": "acb32a2c-8831-4a6b-9f25-89083d8c15f9",
+              "nickname": "Arbn0r-",
+              "avatar": "https://distribution.faceit-cdn.net/images/734aed0f-fc69-4646-98be-7918174b7dc3.jpg",
+              "skill_level": 5,
+              "game_player_id": "76561199506956517",
+              "game_player_name": "Arbn0r.",
+              "faceit_url": "https://www.faceit.com/{lang}/players/Arbn0r-"
+            },
+            {
+              "player_id": "49bc9590-e77e-4951-becb-c4b63340e9d2",
+              "nickname": "mirmrama",
+              "avatar": "https://distribution.faceit-cdn.net/images/49a8cdf7-df63-4728-b7b9-f1d2e95fa9e5.jpeg",
+              "skill_level": 9,
+              "game_player_id": "76561199471029881",
+              "game_player_name": "altinb016",
+              "faceit_url": "https://www.faceit.com/{lang}/players/mirmrama"
+            }
+          ]
+        }
+      },
+      "playing_players": [
+        "ae951c13-aecb-47d2-85f8-8172c1c1274f",
+        "f233af90-afb5-4551-b05e-dce6d474fe8e",
+        "c6c16f5b-927a-4e6f-b1f4-e1aff9a1c835",
+        "da3c82d2-4a77-4cfa-acaa-d7d48e900df3",
+        "09526bc0-260c-4704-a1e5-abd1343da460",
+        "c37344a8-16d4-4d0b-aebd-953a3f56b0bc",
+        "9fa8bf0e-0ecd-4324-adc3-33eb09de0d7d",
+        "fdd10387-8aa5-4562-95d5-6e850c162814",
+        "acb32a2c-8831-4a6b-9f25-89083d8c15f9",
+        "49bc9590-e77e-4951-becb-c4b63340e9d2"
+      ],
+      "competition_id": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "competition_name": "Europe 5v5 Queue",
+      "competition_type": "matchmaking",
+      "organizer_id": "faceit",
+      "status": "finished",
+      "started_at": 1788801768,
+      "finished_at": 1788803934,
+      "results": {
+        "winner": "faction1",
+        "score": {
+          "faction1": 13,
+          "faction2": 8
+        }
+      },
+      "faceit_url": "https://www.faceit.com/{lang}/cs2/room/1-63a19345-d35f-4f72-b4cb-ffb1547181bb"
+    }
+  ],
+  "start": 0,
+  "end": 100,
+  "from": 1787677443,
+  "to": 1790269443
+}

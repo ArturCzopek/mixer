@@ -1,0 +1,67 @@
+{
+  "player_id": "4bc8b5af-7c42-4745-9db8-2081a61a09af",
+  "nickname": "Profesor88",
+  "avatar": "https://distribution.faceit-cdn.net/images/af9d1ae3-1d04-4ce2-9250-82ac2ffae9d5.jpeg",
+  "country": "pl",
+  "cover_image": "",
+  "platforms": {
+    "steam": "STEAM_0:0:26043569"
+  },
+  "games": {
+    "csgo": {
+      "region": "EU",
+      "game_player_id": "76561198012352866",
+      "skill_level": 1,
+      "faceit_elo": 753,
+      "game_player_name": "Profesor",
+      "skill_level_label": "",
+      "regions": {},
+      "game_profile_id": ""
+    },
+    "cs2": {
+      "region": "EU",
+      "game_player_id": "76561198012352866",
+      "skill_level": 4,
+      "faceit_elo": 1011,
+      "game_player_name": "Profesor",
+      "skill_level_label": "",
+      "regions": {},
+      "game_profile_id": ""
+    }
+  },
+  "settings": {
+    "language": "pl"
+  },
+  "friends_ids": [
+    "9d484d95-2eae-4697-bed3-57947881c0d2",
+    "6b13524f-6799-424d-a03a-e1c87904eb7c",
+    "67b51e9c-5b85-4ab4-ac05-64032bfaed30",
+    "c249dd51-999e-4e62-b331-95685cda0011",
+    "271a9b40-ea26-4c2e-93ce-6f9fddd155da",
+    "cb5c83cf-38ef-40e5-8e78-b585fe58fc85",
+    "dcc7c6e0-ce20-4e18-9d53-a830d0416466",
+    "4351ed8f-ea1b-44a8-94c3-96b243000504",
+    "b11809be-40e3-4ad9-94af-77d9761528ed",
+    "9fa8bf0e-0ecd-4324-adc3-33eb09de0d7d",
+    "42ee2281-fbac-4e22-a723-083312280d30",
+    "9ba06159-30a9-4342-ab07-1a0c800c481c",
+    "71c53a90-1bd5-4284-929b-32e4fa8e00ee",
+    "bade63ef-efdb-457b-9b62-77e438aa7ae4",
+    "3a9fe324-579d-4819-89e8-36da332bf0e8",
+    "91e83142-1912-4cc8-9aab-3e603d5be56e",
+    "e881bc29-4d6a-43de-af4d-4a6994130c2d",
+    "32e40203-2698-4808-a414-3d7c56dbe803"
+  ],
+  "new_steam_id": "[U:1:52087138]",
+  "steam_id_64": "76561198012352866",
+  "steam_nickname": "Profesor",
+  "memberships": [
+    "free"
+  ],
+  "faceit_url": "https://www.faceit.com/{lang}/players/Profesor88",
+  "membership_type": "",
+  "cover_featured_image": "",
+  "infractions": {},
+  "verified": false,
+  "activated_at": "2021-12-05T14:20:02.832Z"
+}

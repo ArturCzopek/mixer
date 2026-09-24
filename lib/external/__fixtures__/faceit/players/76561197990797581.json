@@ -1,0 +1,78 @@
+{
+  "player_id": "271a9b40-ea26-4c2e-93ce-6f9fddd155da",
+  "nickname": "J4neX",
+  "avatar": "https://distribution.faceit-cdn.net/images/917b327c-e1e1-4ac3-a8fb-8d2a5e44b975.jpeg",
+  "country": "pl",
+  "cover_image": "",
+  "platforms": {
+    "steam": "STEAM_0:1:15265926"
+  },
+  "games": {
+    "cs2": {
+      "region": "EU",
+      "game_player_id": "76561197990797581",
+      "skill_level": 7,
+      "faceit_elo": 1492,
+      "game_player_name": "13hp",
+      "skill_level_label": "",
+      "regions": {},
+      "game_profile_id": ""
+    },
+    "csgo": {
+      "region": "EU",
+      "game_player_id": "76561197990797581",
+      "skill_level": 1,
+      "faceit_elo": 792,
+      "game_player_name": "13hp",
+      "skill_level_label": "",
+      "regions": {},
+      "game_profile_id": ""
+    }
+  },
+  "settings": {
+    "language": "pl"
+  },
+  "friends_ids": [
+    "8a6ddc04-8dac-43c9-99bb-f794558c1c1a",
+    "67b51e9c-5b85-4ab4-ac05-64032bfaed30",
+    "6b13524f-6799-424d-a03a-e1c87904eb7c",
+    "9d484d95-2eae-4697-bed3-57947881c0d2",
+    "4bc8b5af-7c42-4745-9db8-2081a61a09af",
+    "c249dd51-999e-4e62-b331-95685cda0011",
+    "cb5c83cf-38ef-40e5-8e78-b585fe58fc85",
+    "e881bc29-4d6a-43de-af4d-4a6994130c2d",
+    "9fa8bf0e-0ecd-4324-adc3-33eb09de0d7d",
+    "313d3048-aff4-46ee-88cb-1cd1874a5b19",
+    "3f5494d5-3c8b-45c4-ae7f-b6c43055a152",
+    "5eb36596-ccfe-45a5-a317-f2059b0ce581",
+    "487bedcc-aff1-40f6-a170-4ef3fcb1e81d",
+    "f8c90594-4d75-4c37-a501-701c3e6feb1e",
+    "467388cf-8417-46c3-89e9-5b5891167c25",
+    "d2c93e21-8afa-4ffd-8956-78b214c4f6c0",
+    "2bc2cb3d-da29-447d-9434-25a007882fad",
+    "eb50a125-e347-4b82-a478-c33edd209798",
+    "b8dafbba-fc21-4d76-a3f4-e2edac158e30",
+    "b2e59f76-e4d0-4ed5-abc3-9c8d0e2e203d",
+    "b858617a-3de4-40df-a556-7b2a5b9eae3f",
+    "5e7f2ca3-fce6-4c6f-810a-1069b61e5d9e",
+    "c37344a8-16d4-4d0b-aebd-953a3f56b0bc",
+    "c12fe40c-1a06-4f7a-8315-4058f4f35840",
+    "f4567771-69df-4d0a-8c13-6e14e0e2eaa5",
+    "659fe3ea-535a-4d46-af8a-da6485f55b48",
+    "213e5c20-80ee-444a-890c-6ef9d0826091",
+    "3fb9104d-2208-49d3-ad6d-bc867825ca2f",
+    "52759544-d3c7-41bf-a1ee-e959851b6bb1"
+  ],
+  "new_steam_id": "[U:1:30531853]",
+  "steam_id_64": "76561197990797581",
+  "steam_nickname": "13hp",
+  "memberships": [
+    "super_match_token"
+  ],
+  "faceit_url": "https://www.faceit.com/{lang}/players/J4neX",
+  "membership_type": "",
+  "cover_featured_image": "",
+  "infractions": {},
+  "verified": false,
+  "activated_at": "2021-09-12T19:28:47.571Z"
+}

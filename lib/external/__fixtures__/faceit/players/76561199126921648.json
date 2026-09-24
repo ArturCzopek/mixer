@@ -1,0 +1,69 @@
+{
+  "player_id": "467388cf-8417-46c3-89e9-5b5891167c25",
+  "nickname": "mrhsmrcyg",
+  "avatar": "https://distribution.faceit-cdn.net/images/e51b7c5e-bc35-41d9-a5a5-4706c570a90e.jpeg",
+  "country": "pl",
+  "cover_image": "",
+  "platforms": {
+    "steam": "STEAM_0:0:583327960"
+  },
+  "games": {
+    "csgo": {
+      "region": "EU",
+      "game_player_id": "76561199126921648",
+      "skill_level": 3,
+      "faceit_elo": 1007,
+      "game_player_name": "MRWHO",
+      "skill_level_label": "",
+      "regions": {},
+      "game_profile_id": ""
+    },
+    "cs2": {
+      "region": "EU",
+      "game_player_id": "76561199126921648",
+      "skill_level": 5,
+      "faceit_elo": 1126,
+      "game_player_name": "MRWHO",
+      "skill_level_label": "",
+      "regions": {},
+      "game_profile_id": ""
+    }
+  },
+  "settings": {
+    "language": "pl"
+  },
+  "friends_ids": [
+    "f3ad76aa-3faa-417a-9213-9c85aac653a5",
+    "bd4a6841-9c84-4eed-bda4-cc2b91cfcc32",
+    "94f1ac65-a9ff-44d6-a0c4-0cd185772e11",
+    "1035fae0-e1d4-4528-abae-f0e15375c395",
+    "e881bc29-4d6a-43de-af4d-4a6994130c2d",
+    "d2c93e21-8afa-4ffd-8956-78b214c4f6c0",
+    "93df0d34-c50e-4ead-a097-11b364fce071",
+    "9bb6eacb-ea10-4318-b94e-0444110bfccc",
+    "271a9b40-ea26-4c2e-93ce-6f9fddd155da",
+    "6b13524f-6799-424d-a03a-e1c87904eb7c",
+    "76d8265e-3a12-42c9-a9fa-3e4a6717c607",
+    "04748733-c49f-46cf-97e0-cb39dc4b614b",
+    "5e98bee4-4189-4f86-aebc-17eec72932fd",
+    "2bc2cb3d-da29-447d-9434-25a007882fad",
+    "b8dafbba-fc21-4d76-a3f4-e2edac158e30",
+    "eb50a125-e347-4b82-a478-c33edd209798",
+    "1d6b8702-0cbb-470a-a6a4-54155749c716",
+    "89d36d87-8f6b-49b9-8aeb-93938df6ba4e",
+    "f9edcdc5-7b8f-4315-95de-d848f2a6fad6",
+    "c812dd9d-53b4-4012-80f7-236ba4db114d"
+  ],
+  "new_steam_id": "[U:1:1166655920]",
+  "steam_id_64": "76561199126921648",
+  "steam_nickname": "CoMa",
+  "memberships": [
+    "free"
+  ],
+  "faceit_url": "https://www.faceit.com/{lang}/players/mrhsmrcyg",
+  "membership_type": "",
+  "cover_featured_image": "",
+  "infractions": {},
+  "verified": false,
+  "activated_at": "2021-01-08T22:55:21.137Z"
+}

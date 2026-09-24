@@ -1,0 +1,58 @@
+{
+  "player_id": "b2e59f76-e4d0-4ed5-abc3-9c8d0e2e203d",
+  "nickname": "Nefcio",
+  "avatar": "",
+  "country": "pl",
+  "cover_image": "",
+  "platforms": {
+    "steam": "STEAM_0:1:91993987"
+  },
+  "games": {
+    "cs2": {
+      "region": "EU",
+      "game_player_id": "76561198144253703",
+      "skill_level": 4,
+      "faceit_elo": 938,
+      "game_player_name": "Nefcio",
+      "skill_level_label": "",
+      "regions": {},
+      "game_profile_id": ""
+    },
+    "csgo": {
+      "region": "EU",
+      "game_player_id": "76561198144253703",
+      "skill_level": 3,
+      "faceit_elo": 0,
+      "game_player_name": "Nefcio",
+      "skill_level_label": "",
+      "regions": {},
+      "game_profile_id": ""
+    }
+  },
+  "settings": {
+    "language": "en"
+  },
+  "friends_ids": [
+    "a9732419-a159-41cd-b237-c20fff0df1cb",
+    "842bb80f-9e9a-4095-bff0-a733d95541fc",
+    "e881bc29-4d6a-43de-af4d-4a6994130c2d",
+    "2bc2cb3d-da29-447d-9434-25a007882fad",
+    "b8dafbba-fc21-4d76-a3f4-e2edac158e30",
+    "271a9b40-ea26-4c2e-93ce-6f9fddd155da",
+    "6b13524f-6799-424d-a03a-e1c87904eb7c",
+    "d2c93e21-8afa-4ffd-8956-78b214c4f6c0",
+    "c37344a8-16d4-4d0b-aebd-953a3f56b0bc"
+  ],
+  "new_steam_id": "[U:1:183987975]",
+  "steam_id_64": "76561198144253703",
+  "steam_nickname": "Nefcio",
+  "memberships": [
+    "free"
+  ],
+  "faceit_url": "https://www.faceit.com/{lang}/players/Nefcio",
+  "membership_type": "",
+  "cover_featured_image": "",
+  "infractions": {},
+  "verified": false,
+  "activated_at": "2015-05-22T17:00:46.407Z"
+}

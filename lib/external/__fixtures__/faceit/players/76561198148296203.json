@@ -1,0 +1,66 @@
+{
+  "player_id": "b8dafbba-fc21-4d76-a3f4-e2edac158e30",
+  "nickname": "botjacek",
+  "avatar": "",
+  "country": "pl",
+  "cover_image": "",
+  "platforms": {
+    "steam": "STEAM_1:1:94015237"
+  },
+  "games": {
+    "csgo": {
+      "region": "EU",
+      "game_player_id": "76561198148296203",
+      "skill_level": 3,
+      "faceit_elo": 1056,
+      "game_player_name": "volvoplx",
+      "skill_level_label": "",
+      "regions": {},
+      "game_profile_id": ""
+    },
+    "cs2": {
+      "region": "EU",
+      "game_player_id": "76561198148296203",
+      "skill_level": 7,
+      "faceit_elo": 1484,
+      "game_player_name": "CHELMÜT",
+      "skill_level_label": "",
+      "regions": {},
+      "game_profile_id": ""
+    }
+  },
+  "settings": {
+    "language": "en"
+  },
+  "friends_ids": [
+    "a9732419-a159-41cd-b237-c20fff0df1cb",
+    "440e252e-146c-45a8-af75-fa2d06855001",
+    "8c246c28-5f18-420c-b688-9a27e6e78af2",
+    "6190d7a8-aa3d-40c6-a08d-a97e0527b9f7",
+    "2d2d1eda-3d05-44d1-bf6d-50e984e18371",
+    "62016085-bd04-4f43-af92-ebb31139c73e",
+    "e881bc29-4d6a-43de-af4d-4a6994130c2d",
+    "2bc2cb3d-da29-447d-9434-25a007882fad",
+    "467388cf-8417-46c3-89e9-5b5891167c25",
+    "b2e59f76-e4d0-4ed5-abc3-9c8d0e2e203d",
+    "b858617a-3de4-40df-a556-7b2a5b9eae3f",
+    "271a9b40-ea26-4c2e-93ce-6f9fddd155da",
+    "9fa8bf0e-0ecd-4324-adc3-33eb09de0d7d",
+    "6b13524f-6799-424d-a03a-e1c87904eb7c",
+    "c37344a8-16d4-4d0b-aebd-953a3f56b0bc",
+    "3fb9104d-2208-49d3-ad6d-bc867825ca2f",
+    "213e5c20-80ee-444a-890c-6ef9d0826091"
+  ],
+  "new_steam_id": "[U:1:188030475]",
+  "steam_id_64": "76561198148296203",
+  "steam_nickname": "volvoplx",
+  "memberships": [
+    "free"
+  ],
+  "faceit_url": "https://www.faceit.com/{lang}/players/botjacek",
+  "membership_type": "",
+  "cover_featured_image": "",
+  "infractions": {},
+  "verified": false,
+  "activated_at": "2014-11-27T17:20:39.914Z"
+}

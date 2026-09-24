@@ -1,0 +1,102 @@
+{
+  "player_id": "c37344a8-16d4-4d0b-aebd-953a3f56b0bc",
+  "nickname": "fontek385",
+  "avatar": "https://distribution.faceit-cdn.net/images/1c69d51f-4432-447c-b05d-f38636abb664.jpeg",
+  "country": "pl",
+  "cover_image": "",
+  "platforms": {
+    "steam": "STEAM_0:1:142871"
+  },
+  "games": {
+    "cs2": {
+      "region": "EU",
+      "game_player_id": "76561197960551471",
+      "skill_level": 10,
+      "faceit_elo": 2189,
+      "game_player_name": ":O",
+      "skill_level_label": "",
+      "regions": {},
+      "game_profile_id": ""
+    },
+    "csgo": {
+      "region": "EU",
+      "game_player_id": "76561197960551471",
+      "skill_level": 0,
+      "faceit_elo": 1330,
+      "game_player_name": ":O",
+      "skill_level_label": "",
+      "regions": {},
+      "game_profile_id": ""
+    },
+    "csco": {
+      "region": "EU",
+      "game_player_id": "76561197960551471",
+      "skill_level": 3,
+      "faceit_elo": 1021,
+      "game_player_name": "Mike",
+      "skill_level_label": "",
+      "regions": {},
+      "game_profile_id": ""
+    }
+  },
+  "settings": {
+    "language": "en"
+  },
+  "friends_ids": [
+    "39beab6c-8d38-45b2-a6f1-41348ce10a93",
+    "37f2411a-4fa0-48e7-b0aa-0dee5106753d",
+    "9e9fbdcc-0702-4b5d-b7c5-c6a79b716381",
+    "021481a6-ac38-4f85-b460-3e5a7b2882c1",
+    "17ed5cde-310b-470b-acdf-534e10d360e1",
+    "b58ed821-60a9-4a9b-9e48-259fd7c34c7c",
+    "68456f9c-37cc-46e1-8afa-eb5da19b83f1",
+    "f1593975-c6d1-4afc-b76d-2cf085ac351b",
+    "ba440f28-6710-413b-a37a-d01e1d850d91",
+    "2e3f9bf4-118a-49aa-9b7e-ba8676bb47f2",
+    "18e25257-ea4b-44e2-9a71-853663991d7c",
+    "54d7ae41-2d39-4183-82b0-e021190004d3",
+    "3d3dd3a3-736f-44c7-a1d1-f71b52a87dde",
+    "a71a683e-535a-47b8-92d9-5e869d7cf719",
+    "2a8c57e0-bad6-4763-b93b-d45231e771a8",
+    "6d0d7f8e-ba3b-4c80-bebd-dce70fb64f14",
+    "9ced3e6c-7338-4b2e-a541-20546a808644",
+    "357579bf-d2df-43ac-befc-42ec1eefb7f9",
+    "b858617a-3de4-40df-a556-7b2a5b9eae3f",
+    "9347f339-d17e-4310-afeb-d2e5978c8c79",
+    "301a0c99-5a63-4b75-ac52-d1f4270a4fb5",
+    "05993bc2-59e0-4e24-9af7-406cd9e72274",
+    "ddac6791-81ff-4571-be83-862033f2e037",
+    "1bea5788-46a2-4b97-8fb7-4040da8fcd18",
+    "bcddc124-ed1c-451a-bf5b-c81de3d3ba79",
+    "8e229bdd-59b0-4b33-9520-acdf5b9dc1b2",
+    "0d733e8a-e7ff-467f-8a76-2bc5ff283163",
+    "9aaf63ea-5ed6-4c2d-ac09-56c53c9ae35c",
+    "5c40c599-7729-4e99-adeb-e098ef0653fa",
+    "7bba7bb3-0a72-4022-b0a3-aba8890db503",
+    "17cf97c6-69b4-4487-9b52-f7aea3e19f59",
+    "e881bc29-4d6a-43de-af4d-4a6994130c2d",
+    "271a9b40-ea26-4c2e-93ce-6f9fddd155da",
+    "b8dafbba-fc21-4d76-a3f4-e2edac158e30",
+    "c12fe40c-1a06-4f7a-8315-4058f4f35840",
+    "9fa8bf0e-0ecd-4324-adc3-33eb09de0d7d",
+    "2bc2cb3d-da29-447d-9434-25a007882fad",
+    "16278aec-5216-499e-8715-f7b639ca9cdf",
+    "213e5c20-80ee-444a-890c-6ef9d0826091",
+    "5e7f2ca3-fce6-4c6f-810a-1069b61e5d9e",
+    "3fb9104d-2208-49d3-ad6d-bc867825ca2f",
+    "eb50a125-e347-4b82-a478-c33edd209798",
+    "b2e59f76-e4d0-4ed5-abc3-9c8d0e2e203d"
+  ],
+  "new_steam_id": "[U:1:285743]",
+  "steam_id_64": "76561197960551471",
+  "steam_nickname": "sexy, ya?",
+  "memberships": [
+    "free"
+  ],
+  "faceit_url": "https://www.faceit.com/{lang}/players/fontek385",
+  "membership_type": "",
+  "cover_featured_image": "",
+  "infractions": {},
+  "verified": false,
+  "activated_at": "2015-10-26T13:35:23.348Z"
+}

@@ -1,0 +1,103 @@
+{
+  "player_id": "e881bc29-4d6a-43de-af4d-4a6994130c2d",
+  "nickname": "czopo",
+  "avatar": "",
+  "country": "pl",
+  "cover_image": "",
+  "platforms": {
+    "steam": "STEAM_0:1:16460979"
+  },
+  "games": {
+    "cs2": {
+      "region": "EU",
+      "game_player_id": "76561197993187687",
+      "skill_level": 9,
+      "faceit_elo": 1874,
+      "game_player_name": "katus `iksdel0l~",
+      "skill_level_label": "",
+      "regions": {},
+      "game_profile_id": ""
+    },
+    "csgo": {
+      "region": "EU",
+      "game_player_id": "76561197993187687",
+      "skill_level": 2,
+      "faceit_elo": 936,
+      "game_player_name": "katus `iksdel0l~",
+      "skill_level_label": "",
+      "regions": {},
+      "game_profile_id": ""
+    },
+    "csdz": {
+      "region": "EU",
+      "game_player_id": "76561197993187687",
+      "skill_level": 3,
+      "faceit_elo": 0,
+      "game_player_name": "katus `iksdel0l~",
+      "skill_level_label": "",
+      "regions": {},
+      "game_profile_id": ""
+    }
+  },
+  "settings": {
+    "language": "en"
+  },
+  "friends_ids": [
+    "3fb9104d-2208-49d3-ad6d-bc867825ca2f",
+    "0b54e740-1485-4303-ba23-1d52372a5422",
+    "d33c8c48-317d-47a4-aabc-7e55c356d4b3",
+    "d2c93e21-8afa-4ffd-8956-78b214c4f6c0",
+    "75ec5814-0174-465f-83bc-0aeca6d21fb7",
+    "9e7942ff-df3c-4f7b-a780-ba9031433dd4",
+    "76d8265e-3a12-42c9-a9fa-3e4a6717c607",
+    "93df0d34-c50e-4ead-a097-11b364fce071",
+    "27c8ea7c-cda5-4469-9700-faa3c4f0e6f5",
+    "4a75b173-45dd-4c8c-9501-a49d4a82ee76",
+    "eb50a125-e347-4b82-a478-c33edd209798",
+    "317206a4-da3f-4a84-ac3d-57c3df4c016c",
+    "3016aca8-6f5a-4b81-81c8-55c3f14f78ca",
+    "e17fd682-6f7c-4382-8f36-e86dc803c697",
+    "fb4e81ba-d36c-47f1-9249-1463eca03e87",
+    "2bc2cb3d-da29-447d-9434-25a007882fad",
+    "3482877a-c4a2-4042-82ca-2d68c32174ba",
+    "83c68903-84fe-41db-895f-72eb91acb979",
+    "eb19d660-7a40-4e2d-aeaa-7eafa6fb8294",
+    "64ea7e5b-2dfc-43c3-92b8-c70c7b6a8bfd",
+    "00dc6a38-988e-4010-b1db-bb52257a38f6",
+    "48c28155-a0ad-4870-9f7a-cc68df1f1642",
+    "a9684207-93ae-4da5-b68f-8ed736effa58",
+    "b858617a-3de4-40df-a556-7b2a5b9eae3f",
+    "e120e61e-abc4-4fbc-a251-67950da8a10e",
+    "467388cf-8417-46c3-89e9-5b5891167c25",
+    "1035fae0-e1d4-4528-abae-f0e15375c395",
+    "040001a5-4866-473d-9de8-51920d5ea3fc",
+    "b2e59f76-e4d0-4ed5-abc3-9c8d0e2e203d",
+    "c249dd51-999e-4e62-b331-95685cda0011",
+    "6b13524f-6799-424d-a03a-e1c87904eb7c",
+    "67b51e9c-5b85-4ab4-ac05-64032bfaed30",
+    "271a9b40-ea26-4c2e-93ce-6f9fddd155da",
+    "5710df9f-ff67-4811-9c40-3654e193face",
+    "b8dafbba-fc21-4d76-a3f4-e2edac158e30",
+    "9fa8bf0e-0ecd-4324-adc3-33eb09de0d7d",
+    "487bedcc-aff1-40f6-a170-4ef3fcb1e81d",
+    "5e7f2ca3-fce6-4c6f-810a-1069b61e5d9e",
+    "c37344a8-16d4-4d0b-aebd-953a3f56b0bc",
+    "c12fe40c-1a06-4f7a-8315-4058f4f35840",
+    "213e5c20-80ee-444a-890c-6ef9d0826091",
+    "f4567771-69df-4d0a-8c13-6e14e0e2eaa5",
+    "52759544-d3c7-41bf-a1ee-e959851b6bb1",
+    "4bc8b5af-7c42-4745-9db8-2081a61a09af"
+  ],
+  "new_steam_id": "[U:1:32921959]",
+  "steam_id_64": "76561197993187687",
+  "steam_nickname": "katus `iksdel0l~",
+  "memberships": [
+    "free"
+  ],
+  "faceit_url": "https://www.faceit.com/{lang}/players/czopo",
+  "membership_type": "",
+  "cover_featured_image": "",
+  "infractions": {},
+  "verified": false,
+  "activated_at": "2018-04-23T08:42:07.395Z"
+}

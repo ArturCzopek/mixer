@@ -1,0 +1,59 @@
+{
+  "player_id": "5e7f2ca3-fce6-4c6f-810a-1069b61e5d9e",
+  "nickname": "Windxore",
+  "avatar": "https://assets.faceit-cdn.net/avatars/5e7f2ca3-fce6-4c6f-810a-1069b61e5d9e_1550584141804.png",
+  "country": "pl",
+  "cover_image": "",
+  "platforms": {
+    "steam": "STEAM_1:0:27253044"
+  },
+  "games": {
+    "csgo": {
+      "region": "EU",
+      "game_player_id": "76561198014771816",
+      "skill_level": 0,
+      "faceit_elo": 1205,
+      "game_player_name": "Windxore",
+      "skill_level_label": "",
+      "regions": {},
+      "game_profile_id": ""
+    },
+    "cs2": {
+      "region": "EU",
+      "game_player_id": "76561198014771816",
+      "skill_level": 6,
+      "faceit_elo": 1277,
+      "game_player_name": "Windxore",
+      "skill_level_label": "",
+      "regions": {},
+      "game_profile_id": ""
+    }
+  },
+  "settings": {
+    "language": "pl"
+  },
+  "friends_ids": [
+    "9347f339-d17e-4310-afeb-d2e5978c8c79",
+    "7bba7bb3-0a72-4022-b0a3-aba8890db503",
+    "b858617a-3de4-40df-a556-7b2a5b9eae3f",
+    "271a9b40-ea26-4c2e-93ce-6f9fddd155da",
+    "e881bc29-4d6a-43de-af4d-4a6994130c2d",
+    "c12fe40c-1a06-4f7a-8315-4058f4f35840",
+    "213e5c20-80ee-444a-890c-6ef9d0826091",
+    "c37344a8-16d4-4d0b-aebd-953a3f56b0bc",
+    "52759544-d3c7-41bf-a1ee-e959851b6bb1",
+    "3fb9104d-2208-49d3-ad6d-bc867825ca2f"
+  ],
+  "new_steam_id": "[U:1:54506088]",
+  "steam_id_64": "76561198014771816",
+  "steam_nickname": "Windxore",
+  "memberships": [
+    "free"
+  ],
+  "faceit_url": "https://www.faceit.com/{lang}/players/Windxore",
+  "membership_type": "",
+  "cover_featured_image": "",
+  "infractions": {},
+  "verified": false,
+  "activated_at": "2015-02-25T16:20:05.761Z"
+}
