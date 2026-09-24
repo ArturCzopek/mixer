@@ -4,3 +4,4 @@ package-lock.json
 next-env.d.ts
 # Markdown docs are hand-formatted
 *.md
+.claude/

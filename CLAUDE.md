@@ -20,7 +20,8 @@ Read `docs/` before making design changes. The decision log (`docs/08-decisions.
 
 ## Conventions
 - Next.js 16 App Router: check `node_modules/next/dist/docs/` before using APIs you're unsure of (see @AGENTS.md).
-- UI: Tailwind v4 + shadcn/ui (`components/ui/`, `cn()` from `@/lib/utils`).
+- UI: Tailwind v4 + shadcn/ui (`components/ui/`, `cn()` from `@/lib/utils`). Add components with `npm run ui:add -- <names>` (`ui.shadcn.com` is blocked in the cloud sandbox; the script pulls from GitHub).
+- Push straight to `main` (no PRs needed). Keep CI green.
 
 - `lib/balance` and `lib/demo` are pure TS with unit tests; keep them free of I/O.
 - SteamID64 is always a `string`.
