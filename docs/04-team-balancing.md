@@ -1,7 +1,7 @@
 # Team balancing
 
 Goal: from 10 participants, propose **3 different 5v5 splits** that are as even as possible, and
-split the best pair and the worst pair across the two teams.
+split a clear top or bottom duo (if there is one) across the two teams.
 
 All logic lives in `lib/balance/` as pure, deterministic TypeScript functions with unit tests.
 All weights are config (stored per mix in `mixes.balance_config`) so we can tune them after a few mixes.
@@ -77,18 +77,27 @@ We score every one of them, so no heuristics are needed.
 
 ## 4. Pairing rules
 
-Sort players by S descending: `p1 … p10`. Pairs: `(p1,p2)`, `(p3,p4)`, `(p5,p6)`, `(p7,p8)`, `(p9,p10)`.
+Pairs are **not** a general constraint. The only pair rule is for a **clear duo**: two players who
+are close to each other and far from everyone else, e.g. two much stronger (or weaker) players who
+would decide the game if they played together.
+
+Sort players by S descending: `p1 … p10`.
+
+```
+top duo    exists if  S1 − S2 ≤ 100  and  S2 − S3 ≥ 200
+bottom duo exists if  S9 − S10 ≤ 100 and  S8 − S9 ≥ 200
+```
+(thresholds in `outlierPair`: `maxGap = 100`, `minSeparation = 200`; S already includes form.)
 
 | Rule | Default mode | Effect |
 |---|---|---|
-| Best pair `(p1,p2)` on opposite teams | **hard** | Filters candidates |
-| Worst pair `(p9,p10)` on opposite teams | **hard** | Filters candidates |
-| Middle pairs split | soft, 0.5 pp each | Adds a penalty if a pair is together |
+| Top duo on opposite teams (only if it exists) | **hard** | Filters candidates |
+| Bottom duo on opposite teams (only if it exists) | **hard** | Filters candidates |
 | AWP players on opposite teams (if ≥ 2 marked `awp`) | soft, 2 pp | Off by default in practice (only one dedicated AWPer) |
 | Avoid repeating the last mix's split (same 10 players) | soft, 2 pp | |
 
-With both hard rules, **40 of the 126 splits remain**. That is always feasible and still leaves
-plenty of room for balance. Either rule can be switched to `soft` (default weight 3 pp) in config.
+Candidates left: 126 with no duo, 70 with one duo, 40 with both. Always feasible.
+Either duo rule can be switched to `soft` (default weight 3 pp) or `off` in config.
 
 ## 5. Cost function
 
@@ -118,7 +127,7 @@ Greedy selection:
 
 - Team A / Team B lineups with each player's S (and a breakdown on hover: E / F / M).
 - Average S per team, the gap, and the win probability.
-- Badges: "Top pair split", "Bottom pair split", "Mid pairs split 3/3".
+- Badges (only when a clear duo exists): "Top duo split", "Bottom duo split".
 - Cost (for the admin; hidden from voters by default).
 
 ## 8. Snapshot
@@ -132,10 +141,10 @@ At generation time, each participant's inputs (E, F, M, S) are stored in
 {
   "form": { "windowDays": 30, "shrinkK": 10, "beta": 500, "max": 150, "minBaseline": 10 },
   "mix":  { "maps": 10, "shrinkK": 5, "gamma": 1000, "max": 200 },
+  "outlierPair": { "maxGap": 100, "minSeparation": 200 },
   "rules": {
     "topPair":    { "mode": "hard", "weight": 3 },
     "bottomPair": { "mode": "hard", "weight": 3 },
-    "midPairs":   { "mode": "soft", "weight": 0.5 },
     "awpSplit":   { "mode": "soft", "weight": 2 },
     "repeatSplit":{ "mode": "soft", "weight": 2 }
   },

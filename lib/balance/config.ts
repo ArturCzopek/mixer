@@ -19,10 +19,14 @@ export interface BalanceConfig {
     minBaseline: number;
   };
   mix: { maps: number; shrinkK: number; gamma: number; max: number };
+  /**
+   * A top (bottom) duo exists only when p1–p2 (p9–p10) are within `maxGap` of each other
+   * and at least `minSeparation` away from p3 (p8). Only then do the pair rules apply.
+   */
+  outlierPair: { maxGap: number; minSeparation: number };
   rules: {
     topPair: RuleConfig;
     bottomPair: RuleConfig;
-    midPairs: RuleConfig;
     awpSplit: RuleConfig;
     repeatSplit: RuleConfig;
   };
@@ -33,10 +37,10 @@ export interface BalanceConfig {
 export const DEFAULT_BALANCE_CONFIG: BalanceConfig = {
   form: { windowDays: 30, shrinkK: 10, beta: 500, max: 150, minBaseline: 10 },
   mix: { maps: 10, shrinkK: 5, gamma: 1000, max: 200 },
+  outlierPair: { maxGap: 100, minSeparation: 200 },
   rules: {
     topPair: { mode: "hard", weight: 3 },
     bottomPair: { mode: "hard", weight: 3 },
-    midPairs: { mode: "soft", weight: 0.5 },
     awpSplit: { mode: "soft", weight: 2 },
     repeatSplit: { mode: "soft", weight: 2 },
   },
@@ -47,6 +51,7 @@ export const DEFAULT_BALANCE_CONFIG: BalanceConfig = {
 export type BalanceConfigOverrides = {
   form?: Partial<BalanceConfig["form"]>;
   mix?: Partial<BalanceConfig["mix"]>;
+  outlierPair?: Partial<BalanceConfig["outlierPair"]>;
   rules?: { [K in keyof BalanceConfig["rules"]]?: Partial<RuleConfig> };
   variants?: number;
   minDistance?: number;
@@ -61,10 +66,10 @@ export function resolveConfig(
   return {
     form: { ...d.form, ...overrides.form },
     mix: { ...d.mix, ...overrides.mix },
+    outlierPair: { ...d.outlierPair, ...overrides.outlierPair },
     rules: {
       topPair: { ...d.rules.topPair, ...r.topPair },
       bottomPair: { ...d.rules.bottomPair, ...r.bottomPair },
-      midPairs: { ...d.rules.midPairs, ...r.midPairs },
       awpSplit: { ...d.rules.awpSplit, ...r.awpSplit },
       repeatSplit: { ...d.rules.repeatSplit, ...r.repeatSplit },
     },

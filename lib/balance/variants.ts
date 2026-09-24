@@ -27,10 +27,10 @@ export interface Variant {
   /** Imbalance in pp + soft-rule penalties. Lower is better. */
   cost: number;
   penalties: Penalty[];
+  /** Whether the clear top/bottom duo is split; null when there is no such duo. */
   badges: {
-    topPairSplit: boolean;
-    bottomPairSplit: boolean;
-    midPairsSplit: number;
+    topPairSplit: boolean | null;
+    bottomPairSplit: boolean | null;
   };
 }
 
@@ -84,10 +84,17 @@ export function generateVariants(
   }
   const byId = new Map(ranked.map((p) => [p.steamId, p]));
 
-  // Pairs by rank: (p1,p2) top, (p3,p4)…(p7,p8) middle, (p9,p10) bottom.
-  const pairs = [0, 2, 4, 6, 8].map((i) => [ids[i], ids[i + 1]] as const);
-  const [topPair, bottomPair] = [pairs[0], pairs[4]];
-  const midPairs = pairs.slice(1, 4);
+  // Two clearly best / two clearly worst players (docs/04 §4); null when there is no such duo.
+  const S = ranked.map((p) => p.S);
+  const { maxGap, minSeparation } = config.outlierPair;
+  const topPair =
+    S[0] - S[1] <= maxGap && S[1] - S[2] >= minSeparation
+      ? ([ids[0], ids[1]] as const)
+      : null;
+  const bottomPair =
+    S[8] - S[9] <= maxGap && S[7] - S[8] >= minSeparation
+      ? ([ids[8], ids[9]] as const)
+      : null;
 
   const awpers = ranked
     .filter((p) => p.preferredRole === "awp")
@@ -122,17 +129,15 @@ export function generateVariants(
       return true;
     };
 
-    const topPairSplit = split(topPair);
-    const bottomPairSplit = split(bottomPair);
-    const midTogether = midPairs.filter((p) => !split(p)).length;
+    const topPairSplit = topPair && split(topPair);
+    const bottomPairSplit = bottomPair && split(bottomPair);
     const awpInA = awpers.filter((id) => inA.has(id)).length;
     const awpUneven =
       awpers.length >= 2 && Math.abs(2 * awpInA - awpers.length) > 1;
 
     const ok =
-      check("topPair", config.rules.topPair, !topPairSplit) &&
-      check("bottomPair", config.rules.bottomPair, !bottomPairSplit) &&
-      check("midPairs", config.rules.midPairs, midTogether > 0, midTogether) &&
+      check("topPair", config.rules.topPair, topPairSplit === false) &&
+      check("bottomPair", config.rules.bottomPair, bottomPairSplit === false) &&
       check("awpSplit", config.rules.awpSplit, awpUneven) &&
       check("repeatSplit", config.rules.repeatSplit, key === previous);
     if (!ok) continue;
@@ -158,7 +163,6 @@ export function generateVariants(
       badges: {
         topPairSplit,
         bottomPairSplit,
-        midPairsSplit: midPairs.length - midTogether,
       },
     });
   }

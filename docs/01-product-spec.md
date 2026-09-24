@@ -55,7 +55,7 @@ Steam login claims that record automatically (matched on SteamID64).
 - The app fetches fresh data and shows **3 variants**. Each variant shows:
   - both lineups, each player's skill score,
   - team averages, estimated win probability (e.g. 50.4% / 49.6%),
-  - a note on the pairing rules it satisfies (best vs 2nd best split, worst vs 2nd worst split).
+  - a note when a clear top or bottom duo (two players far from the rest) is split.
 - Admin can re-roll (exclude shown variants) or tweak weights before publishing.
 - Details: [team balancing](04-team-balancing.md).
 

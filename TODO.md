@@ -18,6 +18,11 @@ Task IDs refer to [docs/07-roadmap.md](docs/07-roadmap.md).
 - [ ] **S4 browser test (when your tokens renew):** once the demo spike page exists, run it locally
       (`npm run dev`), drop the demo `.dem` in the browser and note parse time + memory. Local machine
       = real browser numbers; the cloud sandbox only measured native Node.
+- [ ] **S5 FACEIT Club test:** create a free Club + private queue for the group, check the queue
+      settings for team formation (captain pick only, or can we set teams ourselves?) and whether
+      club matches affect main ELO; play one mix there and send Claude the match room link
+- [ ] Optional, if Path C looks good: apply for the FACEIT **Downloads API** (fce.gg/downloads-api-application,
+      ~30 days review) for automatic demo download
 - [ ] Demo from an actual **mix** on Valve PM (your POV recording or the match demo) for S1
 - [ ] More past mixes (date, teams, score per map) for the balancing backtest (T-1)
 

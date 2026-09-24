@@ -31,9 +31,13 @@ function player(
   };
 }
 
-// Distinct skill levels: p1 (2600) … p10 (1250).
+// Evenly spread skill (150 apart): no clear top or bottom duo.
 const ELOS = [2600, 2450, 2300, 2150, 2000, 1850, 1700, 1550, 1400, 1250];
 const TEN = ELOS.map((s, i) => player(i + 1, s));
+// Two clearly best (50 apart, 250 above p3) and two clearly worst players.
+const DUO_ELOS = [2700, 2650, 2400, 2300, 2200, 2100, 2000, 1900, 1650, 1600];
+const DUOS = DUO_ELOS.map((s, i) => player(i + 1, s));
+const withElos = (elos: number[]) => elos.map((s, i) => player(i + 1, s));
 
 const idsOf = (team: SkillBreakdown[]) => team.map((p) => p.steamId);
 const together = (v: Variant, a: string, b: string) =>
@@ -88,54 +92,88 @@ describe("splits", () => {
 });
 
 describe("generateVariants: pairing rules", () => {
-  it("leaves 40 of 126 splits with both hard rules, all of them valid", () => {
-    const { candidateCount, variants } = allCandidates();
+  it("without a clear duo, no pair rule applies (all 126 splits)", () => {
+    const { candidateCount, variants } = allCandidates(TEN);
+    expect(candidateCount).toBe(126);
+    expect(variants[0].badges).toEqual({
+      topPairSplit: null,
+      bottomPairSplit: null,
+    });
+  });
+
+  it("splits both clear duos: 40 of 126 splits remain, all valid", () => {
+    const { candidateCount, variants } = allCandidates(DUOS);
     expect(candidateCount).toBe(40);
     for (const v of variants) {
       expect(together(v, id(1), id(2))).toBe(false);
       expect(together(v, id(9), id(10))).toBe(false);
-      expect(v.badges.topPairSplit && v.badges.bottomPairSplit).toBe(true);
+      expect(v.badges).toEqual({ topPairSplit: true, bottomPairSplit: true });
     }
+  });
+
+  it("detects a duo at the exact thresholds (≤ 100 apart, ≥ 200 from the next)", () => {
+    // p1–p2 = 100, p2–p3 = 200; bottom evenly spread.
+    const top = withElos([
+      2800, 2700, 2500, 2400, 2300, 2200, 2100, 2000, 1900, 1800,
+    ]);
+    expect(allCandidates(top).candidateCount).toBe(70);
+  });
+
+  it("no duo when the two are more than 100 apart", () => {
+    const top = withElos([
+      2801, 2700, 2500, 2400, 2300, 2200, 2100, 2000, 1900, 1800,
+    ]);
+    expect(allCandidates(top).candidateCount).toBe(126);
+  });
+
+  it("no duo when the gap to the next player is under 200", () => {
+    const top = withElos([
+      2800, 2700, 2501, 2400, 2300, 2200, 2100, 2000, 1900, 1800,
+    ]);
+    expect(allCandidates(top).candidateCount).toBe(126);
+  });
+
+  it("detects a bottom duo on its own", () => {
+    const bottom = withElos([
+      2500, 2400, 2300, 2200, 2100, 2000, 1900, 1800, 1550, 1500,
+    ]);
+    const { candidateCount, variants } = allCandidates(bottom);
+    expect(candidateCount).toBe(70);
+    expect(variants[0].badges).toEqual({
+      topPairSplit: null,
+      bottomPairSplit: true,
+    });
+  });
+
+  it("thresholds are configurable", () => {
+    const config = resolveConfig({
+      outlierPair: { maxGap: 150, minSeparation: 150 },
+    });
+    expect(allCandidates(TEN, config).candidateCount).toBe(40);
   });
 
   it("a soft top-pair rule keeps all splits and adds its weight as a penalty", () => {
     const config = resolveConfig({
       rules: { topPair: { mode: "soft", weight: 3 } },
     });
-    const { candidateCount, variants } = allCandidates(TEN, config);
+    const { candidateCount, variants } = allCandidates(DUOS, config);
     expect(candidateCount).toBe(70); // bottom pair still hard: 2 · C(7,3)
     const violating = variants.filter((v) => together(v, id(1), id(2)));
     expect(violating.length).toBe(30); // 70 − the 40 that split both pairs
-    expect(
-      violating.every((v) =>
-        v.penalties.some((p) => p.rule === "topPair" && p.pp === 3),
-      ),
-    ).toBe(true);
+    for (const v of violating) {
+      expect(v.penalties).toContainEqual({ rule: "topPair", pp: 3 });
+      expect(v.badges.topPairSplit).toBe(false);
+      expect(v.cost).toBeCloseTo(100 * Math.abs(v.winProbA - 0.5) + 3);
+    }
   });
 
   it("rules in 'off' mode have no effect", () => {
     const config = resolveConfig({
-      rules: {
-        topPair: { mode: "off" },
-        bottomPair: { mode: "off" },
-        midPairs: { mode: "off" },
-      },
+      rules: { topPair: { mode: "off" }, bottomPair: { mode: "off" } },
     });
-    const { candidateCount, variants } = allCandidates(TEN, config);
+    const { candidateCount, variants } = allCandidates(DUOS, config);
     expect(candidateCount).toBe(126);
     expect(variants.every((v) => v.penalties.length === 0)).toBe(true);
-  });
-
-  it("penalises middle pairs that stay together, 0.5 pp each", () => {
-    for (const v of allCandidates().variants) {
-      const midTogether = [3, 5, 7].filter((n) =>
-        together(v, id(n), id(n + 1)),
-      ).length;
-      expect(v.badges.midPairsSplit).toBe(3 - midTogether);
-      const pp = v.penalties.find((p) => p.rule === "midPairs")?.pp ?? 0;
-      expect(pp).toBe(0.5 * midTogether);
-      expect(v.cost).toBeCloseTo(100 * Math.abs(v.winProbA - 0.5) + pp);
-    }
   });
 
   it("penalises two AWPers on the same team", () => {
@@ -161,7 +199,7 @@ describe("generateVariants: pairing rules", () => {
 
   it("penalises repeating the last mix's split only for the same 10 players", () => {
     const best = generateVariants({
-      players: TEN,
+      players: DUOS,
       config: DEFAULT_BALANCE_CONFIG,
     }).variants[0];
     const previousSplit: [string[], string[]] = [
@@ -169,14 +207,14 @@ describe("generateVariants: pairing rules", () => {
       idsOf(best.teamA),
     ]; // mirrored
     const again = generateVariants({
-      players: TEN,
+      players: DUOS,
       config: DEFAULT_BALANCE_CONFIG,
       previousSplit,
     });
     expect(again.variants[0].key).not.toBe(best.key);
 
     const all = generateVariants({
-      players: TEN,
+      players: DUOS,
       config: { ...DEFAULT_BALANCE_CONFIG, variants: 40, minDistance: 0 },
       previousSplit,
     }).variants;
@@ -191,7 +229,7 @@ describe("generateVariants: pairing rules", () => {
       [...previousSplit[1].slice(0, 4), id(99)],
     ];
     const unaffected = generateVariants({
-      players: TEN,
+      players: DUOS,
       config: DEFAULT_BALANCE_CONFIG,
       previousSplit: other,
     });
@@ -273,9 +311,9 @@ describe("generateVariants: selection", () => {
     expect(r1.variants.map((v) => v.key)).toEqual(
       r2.variants.map((v) => v.key),
     );
-    // All teams are 50/50, so only the mid-pair penalty separates them.
+    // Every split is 50/50 and no duo exists: order falls back to the split key.
     expect(r1.variants[0].winProbA).toBe(0.5);
-    expect(r1.variants[0].badges.midPairsSplit).toBe(3);
+    expect(r1.variants[0].badges.topPairSplit).toBeNull();
   });
 
   it("re-roll never repeats a shown split, until candidates run out", () => {
@@ -283,7 +321,7 @@ describe("generateVariants: selection", () => {
     const seen = new Set<string>();
     for (let round = 0; round < 20; round++) {
       const { variants } = generateVariants({
-        players: TEN,
+        players: DUOS,
         config: DEFAULT_BALANCE_CONFIG,
         excludedSplits: shown,
       });
@@ -299,7 +337,7 @@ describe("generateVariants: selection", () => {
 
   it("relaxes the distance rule when too few distant candidates remain", () => {
     const { variants, relaxed } = generateVariants({
-      players: TEN,
+      players: DUOS,
       config: { ...DEFAULT_BALANCE_CONFIG, variants: 10 },
     });
     expect(variants).toHaveLength(10);

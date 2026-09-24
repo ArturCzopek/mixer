@@ -67,3 +67,19 @@ toward baseline handles players with few matches. See [team balancing](04-team-b
 ## D14. One recorder, optional backup, Accepted
 One POV recording is enough. The backup only protects against the recorder crashing or reconnecting
 (recording stops). No private-match demo download is assumed.
+
+## D15. Pair rule only for a clear duo, Accepted
+Owner feedback (2026-09-24): splitting "best with 2nd best" and "worst with 2nd worst" is not a
+general rule. It applies only when two players clearly stand out: within 100 of each other and at
+least 200 away from the next player (S, ELO points). Middle-pair penalties were removed. See
+[team balancing](04-team-balancing.md#4-pairing-rules).
+
+## D16. FACEIT match rating instead of K/D for FACEIT form, Accepted
+K/D ignores damage and impact. F uses a per-match rating in the Mixer Rating 2 shape built from
+FACEIT stats (KAST fixed), compared with the player's own older matches.
+
+## D17. Play mixes on a FACEIT Club queue?, Proposed
+Everyone has FACEIT; it brings anti-cheat, map veto and a demo + stats API for every match. Open
+points: team formation (captain pick vs our voted lineup), automatic demo access (Downloads API
+application), club matches vs main ELO. Decided after spike S5, see
+[demo pipeline](05-demo-pipeline.md#path-c-faceit-club-queue-under-evaluation-spike-s5).

@@ -50,8 +50,31 @@ A rented CS2 server running the [MatchZy](https://github.com/shobhit-pathak/Matc
 - Downsides: no Valve queue (players `connect` to an IP), someone must start the server, and it is
   one more moving part.
 
-**Decision for now:** build for **Path A** (A1 if available, else A2). Keep the stats code
-source-agnostic (`source` column), so Path B can be added without schema changes.
+### Path C: FACEIT Club queue (under evaluation, spike S5)
+
+Everyone in the group has FACEIT (anti-cheat, better map veto). Research (2026-09-24, from FACEIT
+support pages via search; FACEIT docs were not directly readable from the sandbox):
+
+| Question | Finding | Confidence |
+|---|---|---|
+| Can a friend group run private 10-man matches? | Yes: any **verified** FACEIT user can create a **Club for free**; a Club queue works like the old hubs (members queue against each other), with name, region and **privacy** settings | High (FACEIT support) |
+| Map veto | Built in: captains pick/ban maps (and server) with configurable voting time; auto-vote available | High |
+| Who forms the teams? | The queue does: **captains pick players** (order 1-2-2-2-2-1); captains are chosen automatically (Premium first, then highest Elo). No confirmed option to load **our** lineup into a queue match | Medium, verify in S5 |
+| Demos | Every FACEIT match has a GOTV demo; players download it from the match room (what we did for the test demo). **Automatic** download needs the **Downloads API**: separate application form, ~30 days review, token with a Downloads scope; then a signed URL from the `demo_url` in match data (+ "Match Demo Ready" webhook) | High |
+| Stats without a demo | Data API has hub/club matches and `GET /matches/{id}/stats` (per player per map: K, D, A, ADR, HS%, multi-kills…), readable with our existing server key | High for the endpoint; verify club matches in S5 |
+| Effect on main FACEIT ELO | Club queues have their own ranking; expected not to change the main FACEIT ELO | Low, verify in S5 |
+
+**What it would change for us**
+- Phase 2 gets much simpler: after a mix we only need the FACEIT match ID (or list the club's matches
+  via the Data API) and fetch stats automatically. Demo parsing becomes optional (only for extras such
+  as KAST/full Mixer Rating), and the demo is always there (no recorder, D14 no longer needed).
+- The open issue is **team formation**: our balancer + vote picks the lineup, but the queue lets
+  captains pick. Options: (1) captains simply pick the voted lineup (works among 10 friends, zero
+  code); (2) a FACEIT feature to set teams (organiser/championship tools) if one exists, to verify;
+  (3) our app compares the actual FACEIT teams with the voted lineup and flags a mismatch.
+
+**Decision for now:** build for **Path A** (A1 if available, else A2); decide on Path C after S5. Keep the stats code
+source-agnostic (`source` column), so Paths B and C can be added without schema changes.
 
 ## Parsing
 
