@@ -25,9 +25,42 @@ Base URL `https://open.faceit.com/data/v4`, header `Authorization: Bearer <FACEI
 | Per-match stats (form) | `GET /players/{player_id}/games/cs2/stats?limit=100`, filtered to the 30-day window (or `/matches/{match_id}/stats` per match) |
 | Lifetime stats (baseline) | `GET /players/{player_id}/stats/cs2` |
 
-→ **Spike S3**: confirm exact response fields for per-match K/D, ADR and result; whether the stats
-endpoint accepts `from`/`to` directly; rate limits; and the FACEIT API terms on storing snapshots
-(we store ELO and form per mix in `skill_snapshot`).
+### Spike S3 findings (2026-09-24)
+
+Recorded by `scripts/faceit-spike.mjs` via the manual **API spike** GitHub workflow (the cloud sandbox
+cannot reach `open.faceit.com`: Cloudflare answers with a bot challenge; FACEIT docs are blocked too).
+Fixtures: `lib/external/__fixtures__/faceit/{players,history,games-stats,lifetime,matches}/`, report with
+all statuses, headers and field paths: `lib/external/__fixtures__/spike-report.json`.
+
+- **All 12 roster SteamIDs have a FACEIT CS2 account** (ELO 938–2189, levels 4–10).
+- **Stat values are strings** (`"104.2"`, `"18"`); parse with Zod `z.coerce.number()`. Only
+  `Match Finished At` (games stats) and `started_at`/`finished_at` (history, match) are numbers.
+- **Rate limit:** `RateLimit-Limit: 20, 20;w=1` → **20 requests per second** per key (header name
+  `gateway-open-faceit-ratelimit`). No hourly quota was visible in headers. A balancing run for 10
+  players is ~30 calls, so no batching tricks are needed; keep a 10 min cache anyway.
+- **Time units differ:** `/history` takes `from`/`to` in **seconds**; `/games/cs2/stats` takes
+  `from`/`to` in **milliseconds** (seconds silently return 0 items). Both paginate with `offset` +
+  `limit` (max 100); `offset=100` works on both.
+
+| Need | Endpoint → field |
+|---|---|
+| FACEIT player from SteamID | `GET /players?game=cs2&game_player_id={steam64}` → `player_id`, `nickname`, `avatar`, `faceit_url` (`{lang}` placeholder), `games.cs2.faceit_elo`, `games.cs2.skill_level`, `steam_id_64` |
+| ELO + level | same response (no second call needed) |
+| Per-match stats for form F | `GET /players/{id}/games/cs2/stats?from={ms}&to={ms}&limit=100` → `items[].stats`: `Kills`, `Deaths`, `Assists`, `ADR`, `Damage`, `Rounds`, `Result` (`"1"`/`"0"`), `Map`, `Match Id`, `Competition Id`, `Game Mode`, `Match Finished At` (ms), `Headshots %`, `K/D Ratio`, multi-kills. **No KAST** (hence `ASSUMED_KAST`). One item per map |
+| Match list in a window | `GET /players/{id}/history?game=cs2&from={s}&to={s}&limit=100` → `items[]`: `match_id`, `competition_type` (`matchmaking`…), `competition_name` (`Europe 5v5 Queue`), `competition_id`, `finished_at`, `results`, both teams' players with `game_player_id` (SteamID64) |
+| Lifetime baseline | `GET /players/{id}/stats/cs2` → `lifetime` (`Matches`, `Win Rate %`, `ADR`, `Average K/D Ratio`, `Entry Rate`, utility/flash/1vX rates, `Recent Results`) and per-map `segments[]` |
+| Match room (M2-2) | `GET /matches/{id}` → `teams.faction{1,2}.roster[]` (`player_id`, `game_player_id` = SteamID64), `results`, `detailed_results[]`, `best_of`, `demo_url[]`, `competition_*`, `calculate_elo`, `status` (`FINISHED`) |
+| Match stats per map (M2-2) | `GET /matches/{id}/stats` → `rounds[]` (one per map): `round_stats` (`Map`, `Score`, `Rounds`, `Winner`), `teams[].team_stats` (`Final Score`, halves, `Team Win`), `teams[].players[].player_stats`: `Kills`, `Deaths`, `Assists`, `ADR`, `Damage`, `Headshots`, `First Kills`, `Entry Count`/`Entry Wins`, `1v1Count`/`1v1Wins`, `1v2Count`/`1v2Wins`, `Clutch Kills`, `Utility Damage`, `Enemies Flashed`, `Flash Count`/`Flash Successes`, `Sniper Kills`, multi-kills, `MVPs`. No KAST, no trades, no rounds played per player (use the map's `Rounds`) |
+
+Notes for the client (M1-2) and form F:
+- Filter F to `Game Mode = 5v5` and, once the Club exists, exclude the Club's `Competition Id`
+  (all 30-day history matches of the roster today are `matchmaking` / `Europe 5v5 Queue`).
+- Some old items (2023–early 2024, 24 of 1 168 recorded) have **no `ADR`/`Damage`**: skip them in F.
+- 30-day match counts vary a lot (2 to 52): shrinkage (k = 10) matters; one player has only 68
+  matches in total, below a 100-item page.
+- **Terms on storing:** the FACEIT developer terms page could not be read from the sandbox
+  (docs.faceit.com blocked). We store only derived numbers (ELO, form, per-map stats of our own
+  mixes), not bulk FACEIT data; owner to confirm in the Developer Portal (TODO.md).
 
 Why FACEIT directly and not via Leetify: Leetify's terms forbid storing or recalculating their data
 (see below). A balancing snapshot is exactly that.

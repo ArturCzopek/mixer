@@ -15,10 +15,10 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done
 | ID | Task | Deps | Done when |
 |---|---|---|---|
 | [x] **P0-1** | Scaffold: Next.js (App Router, TS, strict), Tailwind, shadcn/ui, ESLint/Prettier, Vitest, `lib/` + `app/` layout from [architecture](02-architecture.md#repository-layout-planned), `.env.example` | – | `npm run build`, `npm test` and `npm run lint` pass; README has "run locally" steps |
-| [ ] **P0-2** 👤 | Accounts & keys: Supabase project, Vercel project linked to GitHub repo, Steam Web API key, FACEIT API key, Leetify API key | – | Keys set in Vercel env + cloud environment env; `.env.example` lists them all |
+| [~] **P0-2** 👤 | Accounts & keys: Supabase project, Vercel project linked to GitHub repo, Steam Web API key, FACEIT API key, Leetify API key | – | Keys set in Vercel env + cloud environment env; `.env.example` lists them all |
 | [ ] **P0-3** | DB schema + migrations for Phase 1 tables (`players`, `mixes`, `mix_participants`, `variants`, `variant_players`, `votes`) + RLS select policies | P0-1, P0-2 | Migrations apply cleanly to Supabase; anon key can `select`, cannot write |
 | [ ] **P0-4** | Deploy pipeline + keep-alive cron (`/api/cron/keepalive`, `CRON_SECRET`) | P0-1, P0-2 | Preview deploy per PR; cron visible in Vercel; endpoint returns 200 and hits DB |
-| [ ] **S3** | FACEIT API spike: script calling the endpoints from [external APIs](06-external-apis.md#faceit-data-api-v4-balancing-source) for 2–3 members | P0-2 | Notes added to `docs/06` with exact fields for ELO, 30-day matches, per-match K/D (+ADR?), rate limits; recorded JSON fixtures saved in `lib/external/__fixtures__/` |
+| [x] **S3** | FACEIT API spike: script calling the endpoints from [external APIs](06-external-apis.md#faceit-data-api-v4-balancing-source) for 2–3 members | P0-2 | Notes added to `docs/06` with exact fields for ELO, 30-day matches, per-match K/D (+ADR?), rate limits; recorded JSON fixtures saved in `lib/external/__fixtures__/` |
 | [ ] **S5** 👤 | FACEIT Club spike: owner creates a free private Club + queue, checks team-formation options (can we set our lineup?), plays one mix; Claude reads the match via Data API (`/matches/{id}`, `/matches/{id}/stats`, club/hub matches list) | S3 | Answers for the open rows in [docs/05 Path C](05-demo-pipeline.md#path-c-faceit-club-queue-chosen-d17); D17 Accepted or Rejected |
 | [ ] **S4** *(optional, for M4-6; native parse done, see docs/05 "First parse test")* | demoparser2 WASM spike: minimal page parsing a FACEIT demo in a Web Worker | P0-1, 👤 demo file | Time + peak memory for a ~150 MB demo written in `docs/05`; D7 in decisions marked Accepted or switched to Python fallback |
 | [ ] **S1** *(optional, only for demo extras M4-6)* | POV vs GOTV accuracy: parse both demos of the same FACEIT match, compare per stat | S4, 👤 POV + GOTV demo | Table in `docs/05` listing which stats are exact / approximate / missing in POV |
@@ -81,8 +81,9 @@ P0-2 → S3 → M1-2 → M1-3
 M1-9 → M2-1 → M2-2 → M2-3 → M2-4 (stats from FACEIT)
 ```
 
-**Unblocked right now (no owner input needed):** nothing big; next steps need network access + keys (P0-2).
-**Owner inputs that unblock the rest:** `SUPABASE_ACCESS_TOKEN` (P0-3), FACEIT Club + one mix (S5), backtest data for T-1.
+**Unblocked right now (no owner input needed):** P0-3 (migrations via the `DB migrate` workflow, keys are in GitHub secrets), M1-2 (fixtures recorded in S3).
+**Where keys live:** GitHub Actions secrets (used by the `API spike` / `DB migrate` workflows) and Vercel. The cloud sandbox has none and cannot reach `open.faceit.com` (Cloudflare challenge), so live FACEIT calls always go through a workflow or a deploy.
+**Owner inputs that unblock the rest:** FACEIT Club + one mix (S5), backtest data for T-1.
 
 ## Resolved questions (2026-09-24)
 
