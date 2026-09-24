@@ -8,21 +8,21 @@
     "steam": "STEAM_1:0:27253044"
   },
   "games": {
-    "csgo": {
-      "region": "EU",
-      "game_player_id": "76561198014771816",
-      "skill_level": 0,
-      "faceit_elo": 1205,
-      "game_player_name": "Windxore",
-      "skill_level_label": "",
-      "regions": {},
-      "game_profile_id": ""
-    },
     "cs2": {
       "region": "EU",
       "game_player_id": "76561198014771816",
       "skill_level": 6,
       "faceit_elo": 1277,
+      "game_player_name": "Windxore",
+      "skill_level_label": "",
+      "regions": {},
+      "game_profile_id": ""
+    },
+    "csgo": {
+      "region": "EU",
+      "game_player_id": "76561198014771816",
+      "skill_level": 0,
+      "faceit_elo": 1205,
       "game_player_name": "Windxore",
       "skill_level_label": "",
       "regions": {},

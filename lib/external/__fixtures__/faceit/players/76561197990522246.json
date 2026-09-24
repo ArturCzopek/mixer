@@ -8,21 +8,21 @@
     "steam": "STEAM_1:0:15128259"
   },
   "games": {
-    "csgo": {
-      "region": "EU",
-      "game_player_id": "76561197990522246",
-      "skill_level": 6,
-      "faceit_elo": 1540,
-      "game_player_name": "jawor.exe",
-      "skill_level_label": "",
-      "regions": {},
-      "game_profile_id": ""
-    },
     "cs2": {
       "region": "EU",
       "game_player_id": "76561197990522246",
       "skill_level": 7,
       "faceit_elo": 1510,
+      "game_player_name": "jawor.exe",
+      "skill_level_label": "",
+      "regions": {},
+      "game_profile_id": ""
+    },
+    "csgo": {
+      "region": "EU",
+      "game_player_id": "76561197990522246",
+      "skill_level": 6,
+      "faceit_elo": 1540,
       "game_player_name": "jawor.exe",
       "skill_level_label": "",
       "regions": {},

@@ -570,8 +570,8 @@
       "results": {
         "winner": "faction1",
         "score": {
-          "faction2": 9,
-          "faction1": 13
+          "faction1": 13,
+          "faction2": 9
         }
       },
       "faceit_url": "https://www.faceit.com/{lang}/cs2/room/1-0d092de2-182e-417c-8d56-a6a713d83ae2"
@@ -714,8 +714,8 @@
       "results": {
         "winner": "faction2",
         "score": {
-          "faction2": 13,
-          "faction1": 10
+          "faction1": 10,
+          "faction2": 13
         }
       },
       "faceit_url": "https://www.faceit.com/{lang}/cs2/room/1-1ae1fa5f-55ba-43f0-87b1-9408e0fe9da3"
@@ -723,6 +723,6 @@
   ],
   "start": 0,
   "end": 100,
-  "from": 1787677443,
-  "to": 1790269443
+  "from": 1787677608,
+  "to": 1790269608
 }

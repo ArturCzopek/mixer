@@ -8,21 +8,21 @@
     "steam": "STEAM_0:1:22188902"
   },
   "games": {
-    "csgo": {
-      "region": "EU",
-      "game_player_id": "76561198004643533",
-      "skill_level": 10,
-      "faceit_elo": 2002,
-      "game_player_name": "sm1leyy",
-      "skill_level_label": "",
-      "regions": {},
-      "game_profile_id": ""
-    },
     "cs2": {
       "region": "EU",
       "game_player_id": "76561198004643533",
       "skill_level": 10,
       "faceit_elo": 2042,
+      "game_player_name": "sm1leyy",
+      "skill_level_label": "",
+      "regions": {},
+      "game_profile_id": ""
+    },
+    "csgo": {
+      "region": "EU",
+      "game_player_id": "76561198004643533",
+      "skill_level": 10,
+      "faceit_elo": 2002,
       "game_player_name": "sm1leyy",
       "skill_level_label": "",
       "regions": {},

@@ -18,21 +18,21 @@
       "regions": {},
       "game_profile_id": ""
     },
-    "csgo": {
-      "region": "EU",
-      "game_player_id": "76561197993187687",
-      "skill_level": 2,
-      "faceit_elo": 936,
-      "game_player_name": "katus `iksdel0l~",
-      "skill_level_label": "",
-      "regions": {},
-      "game_profile_id": ""
-    },
     "csdz": {
       "region": "EU",
       "game_player_id": "76561197993187687",
       "skill_level": 3,
       "faceit_elo": 0,
+      "game_player_name": "katus `iksdel0l~",
+      "skill_level_label": "",
+      "regions": {},
+      "game_profile_id": ""
+    },
+    "csgo": {
+      "region": "EU",
+      "game_player_id": "76561197993187687",
+      "skill_level": 2,
+      "faceit_elo": 936,
       "game_player_name": "katus `iksdel0l~",
       "skill_level_label": "",
       "regions": {},

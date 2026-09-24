@@ -8,6 +8,16 @@
     "steam": "STEAM_1:0:7909155"
   },
   "games": {
+    "wot_EU": {
+      "region": "EU",
+      "game_player_id": "500954660",
+      "skill_level": 3,
+      "faceit_elo": 1000,
+      "game_player_name": "szpadyzoRRRd",
+      "skill_level_label": "",
+      "regions": {},
+      "game_profile_id": ""
+    },
     "cs2": {
       "region": "EU",
       "game_player_id": "76561197976084038",
@@ -24,16 +34,6 @@
       "skill_level": 4,
       "faceit_elo": 1106,
       "game_player_name": "stan",
-      "skill_level_label": "",
-      "regions": {},
-      "game_profile_id": ""
-    },
-    "wot_EU": {
-      "region": "EU",
-      "game_player_id": "500954660",
-      "skill_level": 3,
-      "faceit_elo": 1000,
-      "game_player_name": "szpadyzoRRRd",
       "skill_level_label": "",
       "regions": {},
       "game_profile_id": ""
