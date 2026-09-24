@@ -14,7 +14,7 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done
 
 | ID | Task | Deps | Done when |
 |---|---|---|---|
-| [ ] **P0-1** | Scaffold: Next.js (App Router, TS, strict), Tailwind, shadcn/ui, ESLint/Prettier, Vitest, `lib/` + `app/` layout from [architecture](02-architecture.md#repository-layout-planned), `.env.example` | – | `npm run build`, `npm test` and `npm run lint` pass; README has "run locally" steps |
+| [x] **P0-1** | Scaffold: Next.js (App Router, TS, strict), Tailwind, shadcn/ui, ESLint/Prettier, Vitest, `lib/` + `app/` layout from [architecture](02-architecture.md#repository-layout-planned), `.env.example` | – | `npm run build`, `npm test` and `npm run lint` pass; README has "run locally" steps |
 | [ ] **P0-2** 👤 | Accounts & keys: Supabase project, Vercel project linked to GitHub repo, Steam Web API key, FACEIT API key, Leetify API key | – | Keys set in Vercel env + cloud environment env; `.env.example` lists them all |
 | [ ] **P0-3** | DB schema + migrations for Phase 1 tables (`players`, `mixes`, `mix_participants`, `variants`, `variant_players`, `votes`) + RLS select policies | P0-1, P0-2 | Migrations apply cleanly to Supabase; anon key can `select`, cannot write |
 | [ ] **P0-4** | Deploy pipeline + keep-alive cron (`/api/cron/keepalive`, `CRON_SECRET`) | P0-1, P0-2 | Preview deploy per PR; cron visible in Vercel; endpoint returns 200 and hits DB |
@@ -77,7 +77,7 @@ P0-2 → S3 → M1-2 → M1-3
 S4 → S1 → M2-3 → M2-4 → M2-5 (stats)
 ```
 
-**Unblocked right now (no owner input needed):** P0-1, then M1-4.
+**Unblocked right now (no owner input needed):** M1-4.
 **Owner inputs that unblock the rest:** P0-2 (accounts & keys), demo files for S4/S1, backtest data for T-1.
 
 ## Resolved questions (2026-09-24)
