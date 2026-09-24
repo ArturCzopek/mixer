@@ -9,10 +9,10 @@ Read `docs/` before making design changes. The decision log (`docs/08-decisions.
 
 - Free tiers only (Vercel Hobby + Supabase free). Keep the daily keep-alive cron.
 - **Leetify API data must never be stored, recalculated or renamed**, and must show "Data Provided by Leetify". Display only.
-- Balancing uses FACEIT data (ELO + 30-day form) + our own mix stats (`docs/04-team-balancing.md`).
+- Balancing uses FACEIT data (ELO + 30-day form rating, not K/D) + our own mix stats (`docs/04-team-balancing.md`).
 - One database (Supabase Postgres); document-style data goes in `jsonb` (`match_payloads`), no second DB.
 - Demos are never uploaded to our server: parse in the browser, send stats JSON only.
-- No map veto (played on Valve Private Matchmaking).
+- Mixes are played on a private FACEIT Club queue (D17): no map veto in the app; stats come from the FACEIT API; demos are an optional manual extra.
 - All DB writes go through server code with the service role; browsers only read realtime tables.
 
 ## Commands

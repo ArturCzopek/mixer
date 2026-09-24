@@ -36,14 +36,14 @@ there is no public upload API. Parsing ourselves with demoparser2 gives the whol
 Avoids upload size limits and storage costs; only ~50 KB of stats reach the server.
 Fallback: Python CLI with the same output format.
 
-## D8. Demo source: Valve Private MM first (Path A), own server optional (Path B), Accepted
+## D8. Demo source: Valve Private MM first (Path A), own server optional (Path B), Superseded by D17
 *Update 2026-09-24:* within Path A we record POV ourselves (A2); downloading from the client (A1) is not assumed.
 We keep queueing on Valve servers (free, no setup). POV recording is the guaranteed fallback.
 DatHost + MatchZy remains an option if forgetting to record or POV accuracy becomes a problem.
 
-## D9. No map veto, Accepted
-In Private Matchmaking the map is chosen in-game (after the recent CS2 update the client picks from
-the remaining pool). A veto in the app would not be binding.
+## D9. No map veto in the app, Accepted (reason updated by D17)
+With FACEIT the Club queue runs the map veto. (Original reason: in Private Matchmaking the map is chosen in-game (after the recent CS2 update the client picks from
+the remaining pool). A veto in the app would not be binding.)
 
 ## D10. English UI, Polish conversation, Accepted
 UI text and code in English.
@@ -64,7 +64,7 @@ Considered: a document database (e.g. MongoDB) for parsed matches. Rejected beca
 Players play very different volumes. A time window reflects "current form" consistently. Shrinkage
 toward baseline handles players with few matches. See [team balancing](04-team-balancing.md#f-recent-faceit-form).
 
-## D14. One recorder, optional backup, Accepted
+## D14. One recorder, optional backup, Superseded by D17
 One POV recording is enough. The backup only protects against the recorder crashing or reconnecting
 (recording stops). No private-match demo download is assumed.
 
@@ -78,8 +78,13 @@ least 200 away from the next player (S, ELO points). Middle-pair penalties were 
 K/D ignores damage and impact. F uses a per-match rating in the Mixer Rating 2 shape built from
 FACEIT stats (KAST fixed), compared with the player's own older matches.
 
-## D17. Play mixes on a FACEIT Club queue?, Proposed
-Everyone has FACEIT; it brings anti-cheat, map veto and a demo + stats API for every match. Open
-points: team formation (captain pick vs our voted lineup), automatic demo access (Downloads API
-application), club matches vs main ELO. Decided after spike S5, see
-[demo pipeline](05-demo-pipeline.md#path-c-faceit-club-queue-under-evaluation-spike-s5).
+## D17. Mixes are played on a private FACEIT Club queue, Accepted (2026-09-24)
+Everyone has FACEIT; it brings anti-cheat, map veto and a demo + stats API for every match.
+- **Stats:** FACEIT Data API per map (`/matches/{id}/stats`) is the primary source. No recorder.
+- **Demos:** optional extra; the owner downloads them from the match room and uploads manually
+  (parsed in the browser, never stored on our server). Automatic download (Downloads API) not needed.
+- **Teams:** our app balances + the group votes; in the FACEIT lobby the captains pick exactly the
+  voted lineup (group agreement). The app warns if FACEIT teams differ. In-app captain draft later (M4-5).
+- Still to verify in S5: club matches vs main FACEIT ELO (matters for form F: exclude club matches
+  from F if they show up in history), and club match stats via the Data API.
+See [demo pipeline](05-demo-pipeline.md#path-c-faceit-club-queue-chosen-d17).

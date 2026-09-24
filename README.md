@@ -14,13 +14,13 @@ performance across mixes (popflash-style stats from demos).
 3. **Team balancing** — the app pulls each player's FACEIT ELO + recent form + mix performance and
    proposes **3 different, balanced 5v5 splits** with an estimated win probability.
 4. **Voting** — participants vote in real time; the most-voted split is the lineup.
-5. **Result & stats** — after the match someone uploads the demo; the app parses it and stores
-   per-player stats (K/D, ADR, KAST, HLTV-style rating, entries, clutches, utility…).
+5. **Result & stats** — after the match the admin pastes the FACEIT room link; the app pulls
+   per-player stats from the FACEIT API (demos can be added for extra stats) (K/D, ADR, KAST, HLTV-style rating, entries, clutches, utility…).
 6. **Profiles** — per-player pages with stats filterable by source (Mix / FACEIT / Premier) and
    head-to-head comparisons.
 
-Map veto is intentionally **out of scope**: we play on Valve's Private Matchmaking, where the map
-pick happens in-game.
+Mixes are played on our private **FACEIT Club queue**, which handles servers, anti-cheat and map veto.
+The app does the balancing and voting, and pulls per-map stats from the FACEIT API afterwards.
 
 ## Documentation
 

@@ -3,8 +3,8 @@
 ## Context
 
 - A group of ~15 friends plays CS2 together. A few times a year (~10 mixes/year) we play a
-  **10-man mix**: two teams of five, queued against each other via **Valve Private Matchmaking**
-  on Valve servers.
+  **10-man mix**: two teams of five, played on the group's private **FACEIT Club queue**
+  (anti-cheat, map veto, stats API; D17). Captains pick the lineup voted in the app.
 - Everyone has Leetify and most play FACEIT and Premier.
 - Roles are not a constraint: one player is a dedicated AWP/IGL, everyone else plays rifles.
 - Pain points today: splitting teams fairly takes long and feels arbitrary, and there is no record
@@ -19,8 +19,7 @@
 
 ## Non-goals
 
-- Map veto / side pick (done in-game by Private Matchmaking; after the recent CS2 update the
-  client picks the final map from the remaining pool, so a BO3 veto is not usable).
+- Map veto / side pick (done by the FACEIT Club queue).
 - Running or orchestrating game servers in v1 (considered as an optional later path, see
   [demo pipeline](05-demo-pipeline.md#path-b--own-server-dathost--matchzy)).
 - Public product for other groups. It is built for one group; no multi-tenancy.

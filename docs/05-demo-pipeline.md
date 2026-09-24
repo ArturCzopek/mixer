@@ -50,7 +50,7 @@ A rented CS2 server running the [MatchZy](https://github.com/shobhit-pathak/Matc
 - Downsides: no Valve queue (players `connect` to an IP), someone must start the server, and it is
   one more moving part.
 
-### Path C: FACEIT Club queue (under evaluation, spike S5)
+### Path C: FACEIT Club queue (chosen, D17)
 
 Everyone in the group has FACEIT (anti-cheat, better map veto). Research (2026-09-24, from FACEIT
 support pages via search; FACEIT docs were not directly readable from the sandbox):
@@ -73,7 +73,8 @@ support pages via search; FACEIT docs were not directly readable from the sandbo
   code); (2) a FACEIT feature to set teams (organiser/championship tools) if one exists, to verify;
   (3) our app compares the actual FACEIT teams with the voted lineup and flags a mismatch.
 
-**Decision for now:** build for **Path A** (A1 if available, else A2); decide on Path C after S5. Keep the stats code
+**Decision (D17):** build for **Path C**. Stats from the FACEIT API; captains pick the voted lineup;
+demos are uploaded manually as an optional extra (M4-6). Paths A and B stay documented as fallbacks. Keep the stats code
 source-agnostic (`source` column), so Paths B and C can be added without schema changes.
 
 ## Parsing

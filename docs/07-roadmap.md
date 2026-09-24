@@ -19,9 +19,9 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done
 | [ ] **P0-3** | DB schema + migrations for Phase 1 tables (`players`, `mixes`, `mix_participants`, `variants`, `variant_players`, `votes`) + RLS select policies | P0-1, P0-2 | Migrations apply cleanly to Supabase; anon key can `select`, cannot write |
 | [ ] **P0-4** | Deploy pipeline + keep-alive cron (`/api/cron/keepalive`, `CRON_SECRET`) | P0-1, P0-2 | Preview deploy per PR; cron visible in Vercel; endpoint returns 200 and hits DB |
 | [ ] **S3** | FACEIT API spike: script calling the endpoints from [external APIs](06-external-apis.md#faceit-data-api-v4-balancing-source) for 2–3 members | P0-2 | Notes added to `docs/06` with exact fields for ELO, 30-day matches, per-match K/D (+ADR?), rate limits; recorded JSON fixtures saved in `lib/external/__fixtures__/` |
-| [ ] **S5** 👤 | FACEIT Club spike: owner creates a free private Club + queue, checks team-formation options (can we set our lineup?), plays one mix; Claude reads the match via Data API (`/matches/{id}`, `/matches/{id}/stats`, club/hub matches list) | S3 | Answers for the open rows in [docs/05 Path C](05-demo-pipeline.md#path-c-faceit-club-queue-under-evaluation-spike-s5); D17 Accepted or Rejected |
-| [ ] **S4** *(parallel, native parse done, see docs/05 "First parse test")* | demoparser2 WASM spike: minimal page parsing a FACEIT demo in a Web Worker | P0-1, 👤 demo file | Time + peak memory for a ~150 MB demo written in `docs/05`; D7 in decisions marked Accepted or switched to Python fallback |
-| [ ] **S1** *(parallel)* | POV vs GOTV accuracy: parse both demos of the same FACEIT match, compare per stat | S4, 👤 POV + GOTV demo | Table in `docs/05` listing which stats are exact / approximate / missing in POV |
+| [ ] **S5** 👤 | FACEIT Club spike: owner creates a free private Club + queue, checks team-formation options (can we set our lineup?), plays one mix; Claude reads the match via Data API (`/matches/{id}`, `/matches/{id}/stats`, club/hub matches list) | S3 | Answers for the open rows in [docs/05 Path C](05-demo-pipeline.md#path-c-faceit-club-queue-chosen-d17); D17 Accepted or Rejected |
+| [ ] **S4** *(optional, for M4-6; native parse done, see docs/05 "First parse test")* | demoparser2 WASM spike: minimal page parsing a FACEIT demo in a Web Worker | P0-1, 👤 demo file | Time + peak memory for a ~150 MB demo written in `docs/05`; D7 in decisions marked Accepted or switched to Python fallback |
+| [ ] **S1** *(optional, only for demo extras M4-6)* | POV vs GOTV accuracy: parse both demos of the same FACEIT match, compare per stat | S4, 👤 POV + GOTV demo | Table in `docs/05` listing which stats are exact / approximate / missing in POV |
 
 ## Phase 1: MVP (roster → mix → balance → vote)
 
@@ -38,18 +38,19 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done
 | [ ] **M1-9** 👤 | **Release MVP**: production deploy, owner adds roster, dry-run mix with the group | M1-8 | One real mix balanced + voted in the app |
 | [ ] **T-1** *(parallel)* 👤 | Balancing backtest: fixtures from recent real mixes (FACEIT profiles, real lineups, results) → report where real split ranks | M1-4, 👤 data | Fixtures in `lib/balance/__fixtures__/` run as tests; short findings note in `docs/04` |
 
-## Phase 2: results & demo stats
+## Phase 2: results & stats (FACEIT-first, see D17)
+
+Mixes are played on a private **FACEIT Club queue**. Stats come from the FACEIT Data API per map;
+demos are an optional extra (owner uploads them manually, parsed in the browser).
 
 | ID | Task | Deps | Done when |
 |---|---|---|---|
-| [ ] **M2-1** | Schema: `matches`, `match_player_stats`, `rounds`, `match_payloads` | M1-9 | Migrations applied |
-| [ ] **M2-2** | Manual result entry: map + score for a locked mix → `played` | M2-1 | Result shows on mix page; mix win/loss counted per player |
-| [ ] **M2-3** | `lib/demo` (pure TS): events → rounds, K/D/A, ADR (HP-capped), HS%, KAST, openings, trades, multikills, clutches, utility, flashes, Mixer Rating 2; warmup/knife exclusion | S4, S1 | Unit tests on recorded parser output; matches FACEIT scoreboard for the S5 demo within agreed tolerance |
-| [ ] **M2-4** | Upload flow: Web Worker parse → preview (unknown players, team mismatch, round coverage) → confirm → POST → Zod validate, dedupe hash, store stats + payload | M2-1, M2-3 | Uploading the same demo twice is rejected; mismatches are shown as warnings |
-| [ ] **M2-5** | Match page: scoreboard (popflash-style), half scores, rounds timeline | M2-4 | Renders for a real demo; mobile OK |
-| [ ] **M2-6** | Recorder assignment on mix page (recorder + optional backup, copy-paste `record mix_<n>`) | M1-7 | Shown on locked mixes |
-| [ ] **M2-7** | Mix form term **M** in balancing (last 10 mix maps, shrinkage to group avg) | M2-4 | Engine tests updated; snapshot includes M |
-| [ ] **M2-8** *(parallel)* | Python fallback script producing the identical payload (only if S4 says WASM is not viable) | S4 | Same JSON as the browser path for the test demo |
+| [ ] **M2-1** | Schema: `matches` (one per map, `faceit_match_id`), `match_player_stats`, `match_payloads` (raw FACEIT/demo JSON) | M1-9 | Migrations applied |
+| [ ] **M2-2** | FACEIT match import: admin pastes the FACEIT room link(s) of a locked mix → fetch `/matches/{id}` + `/matches/{id}/stats` → per-player per-map stats; map players to roster; warn if FACEIT teams differ from the voted lineup; mix → `played` | M2-1, S3 | Importing the room of a real mix stores all maps; re-import is idempotent; lineup mismatch shown |
+| [ ] **M2-3** | Mixer Rating from FACEIT stats (`lib/balance/faceit-rating.ts` shape, KAST fixed until demo extras exist) + manual result fallback (map + score) if FACEIT data is missing | M2-2 | Unit tests; rating stored per player per map |
+| [ ] **M2-4** | Match page: scoreboard (popflash-style) per map, mix summary (maps won, per-player totals) | M2-3 | Renders for a real mix; mobile OK |
+| [ ] **M2-5** | Mix page "how to play": FACEIT Club queue link + the voted lineup; captains pick exactly that lineup | M1-7 | Shown on locked mixes |
+| [ ] **M2-6** | Mix form term **M** in balancing (last 10 mix maps, shrinkage to group avg) | M2-3 | Engine tests updated; snapshot includes M |
 
 ## Phase 3: profiles & comparisons
 
@@ -64,10 +65,12 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done
 
 | ID | Task | Deps |
 |---|---|---|
-| [ ] **M4-1** | Mixer Rating 3 (swing table + eco adjustment), recompute from `match_payloads` | M2-4 |
-| [ ] **M4-2** | Discord webhook notifications (waiting on the open question below) | M1-7 |
-| [ ] **M4-3** | Balancing calibration report (predicted vs actual) | M2-2 + ~5 mixes |
-| [ ] **M4-4** | Path B: DatHost + MatchZy integration | M2-4 |
+| [ ] **M4-1** | Mixer Rating 3 (swing table + eco adjustment), recompute from `match_payloads` | M4-6 |
+| [ ] **M4-2** | Discord webhook notifications (mix created, lineup locked, results) | M1-7 |
+| [ ] **M4-3** | Balancing calibration report (predicted vs actual) | M2-3 + ~5 mixes |
+| [ ] **M4-4** | Path B: DatHost + MatchZy integration (only if FACEIT stops working for us) | M2-2 |
+| [ ] **M4-5** | **Captain draft** as an alternative to balanced variants: admin picks 2 captains → quick rock-paper-scissors mini-game (realtime) decides first pick → captains draft players in the app (1-2-2-2-2-1) → lineup locked **for the whole evening** (all maps of the mix) | M1-7 |
+| [ ] **M4-6** | Demo extras: owner uploads the FACEIT demo manually → `lib/demo` (pure TS, browser Web Worker) computes KAST, openings, trades, clutches, utility, flashes; full Mixer Rating 2 replaces the KAST-fixed one for that map. Pitfalls in docs/05 "First parse test" | M2-3, S4 |
 
 ## Critical path
 
@@ -75,11 +78,11 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done
 P0-1 → P0-3 → M1-1 → M1-3 → M1-5 → M1-6 → M1-7 → M1-8 → M1-9 (MVP)
 P0-1 → M1-4 ─────────────────────────┘
 P0-2 → S3 → M1-2 → M1-3
-S4 → S1 → M2-3 → M2-4 → M2-5 (stats)
+M1-9 → M2-1 → M2-2 → M2-3 → M2-4 (stats from FACEIT)
 ```
 
 **Unblocked right now (no owner input needed):** nothing big; next steps need network access + keys (P0-2).
-**Owner inputs that unblock the rest:** P0-2 (accounts & keys), demo files for S4/S1, backtest data for T-1.
+**Owner inputs that unblock the rest:** `SUPABASE_ACCESS_TOKEN` (P0-3), FACEIT Club + one mix (S5), backtest data for T-1.
 
 ## Resolved questions (2026-09-24)
 
@@ -89,12 +92,13 @@ S4 → S1 → M2-3 → M2-4 → M2-5 (stats)
 | Site visibility | Public, read-only for guests |
 | Voting end | All 10 voted or admin closes; no time limit |
 | More than 10 players | Hard cap 10, no waitlist; admin can remove people |
-| Demo source | We record ourselves (POV); one recorder, optional backup |
+| Demo source | ~~POV recording~~ → FACEIT: stats from the API, demos uploaded manually by the owner as an optional extra (D17) |
 | Leetify | Read-only display, never stored; balancing on FACEIT |
 | Discord | Yes, the group has a Discord server; integrate later (E4) |
+| Team picking | Balanced variants + vote now; captain draft with a rock-paper-scissors mini-game later (M4-5) |
 | Initial roster | 12 SteamID64s in `db/seed/roster.json` (2026-09-24) |
 
 ## Open questions
 
 1. ~~Is there a group Discord worth posting to (M4-2)?~~ Yes.
-2. The 2026-09-20 mix has a FACEIT match room (`1-1cb5b18b-…`). Are mixes played on FACEIT rather than Valve PM? If so, the FACEIT match stats API could replace most demo parsing (Phase 2).
+2. ~~Valve PM or FACEIT?~~ FACEIT Club queue (D17, 2026-09-24). The FACEIT room in the 2026-09-20 fixture was a random public match used only as a test demo.
