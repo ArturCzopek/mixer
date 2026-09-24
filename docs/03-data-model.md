@@ -117,16 +117,18 @@ One Steam identity across the whole app (can be in several groups).
 | updated_at | timestamptz | |
 
 ## matches
-One row per map played (a mix is usually one map).
+One row per map played. A map may have **only a score** (manual entry, no player stats): FACEIT
+and demos are optional sources (D21), so every stats table below is optional per match.
 | column | type | notes |
 |---|---|---|
 | id | uuid pk | |
 | mix_id | uuid fk null | null = standalone upload |
-| map_name | text | e.g. `de_mirage` |
-| played_at | timestamptz | from demo header or manual |
+| map_name | text null | e.g. `de_mirage`; may be unknown for a manual result |
+| played_at | timestamptz | from FACEIT / demo header / manual |
 | score_a / score_b | smallint | Team A / B as in the locked variant |
 | winner | char(1) null | `A` / `B` / null for a draw |
-| source | text | `manual` · `demo_pov` · `demo_gotv` |
+| source | text | `faceit` · `manual` · `demo` (how the result got in; stats may be added later from another source) |
+| faceit_match_id | text null | FACEIT room/match id when imported (unique with the map number) |
 | demo_hash | text unique null | dedupe |
 | demo_recorder_id | uuid fk players null | whose POV demo |
 | parser_version | text | so stats can be recomputed after formula changes |

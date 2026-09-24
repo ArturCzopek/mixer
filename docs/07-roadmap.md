@@ -30,7 +30,7 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done
 |---|---|---|---|
 | [ ] **M1-1** | Steam OpenID login + session cookie (`jose`), logout, `ADMIN_STEAM_IDS` bootstrap of `is_site_admin`, `getSession()` helper, guards `requireSiteAdmin()` / `requireGroupRole(groupId, 'admin'\|'member')` | P0-5 | Log in with Steam on a preview deploy; site admin flag correct; group role read from DB per request; forged OpenID assertion rejected (unit test on verifier) |
 | [ ] **M1-2** | External clients: `lib/external/steam.ts` (summaries, vanity), `faceit.ts` (player by SteamID, ELO, 30-day matches, lifetime) with caching | S3 | Unit tests against fixtures; typed with Zod |
-| [ ] **M1-G** | Groups UI: any logged-in player creates a group (name, slug, **FACEIT Club link**), becomes its admin; group page; admins promote/demote admins, close memberships; group switcher in the nav; seed our group from `db/seed/roster.json` | M1-1 | Group created from the UI with a FACEIT link; a non-admin cannot manage it (server check); our 12 players seeded |
+| [ ] **M1-G** | Groups UI (generic: any group; ours is only seeded): any logged-in player creates a group (name, slug, optional **FACEIT Club link**), becomes its admin; group page; admins promote/demote admins, close memberships; group switcher in the nav; seed our group from `db/seed/roster.json` | M1-1 | Group created from the UI with a FACEIT link; a non-admin cannot manage it (server check); our 12 players seeded |
 | [ ] **M1-3** | Roster (per group): group admin adds player by SteamID64 / profile URL / vanity; auto-fill Steam name+avatar and FACEIT link; manual ELO override; deactivate player; first login claims record | M1-G, M1-2 | Adding by each input form works; a pre-added player logging in sees their own record, no duplicate |
 | [x] **M1-4** | Balancing engine `lib/balance` (pure TS): skill score E+F(+M=0), win prob, 126-split enumeration, hard/soft pair rules, cost, diverse top-3 selection, re-roll exclusion, config defaults | – *(can start right after P0-1)* | Unit tests cover: 40 candidates with both hard rules, distance function, tie handling, determinism, shrinkage examples from [docs/04](04-team-balancing.md) |
 | [ ] **M1-5** | Mix lobby (per group): create mix, join/leave, admin add/remove, hard cap 10 (DB-enforced), status machine `open→balancing→voting→locked→played/cancelled`, realtime participant list | M1-3 | Two browsers see joins live; 11th join is rejected even under race (DB constraint/transaction) |
@@ -47,9 +47,10 @@ demos are an optional extra (owner uploads them manually, parsed in the browser)
 
 | ID | Task | Deps | Done when |
 |---|---|---|---|
-| [ ] **M2-1** | Schema: `matches` (one per map, `faceit_match_id`), `match_player_stats`, `match_payloads` (raw FACEIT/demo JSON) | M1-9 | Migrations applied |
-| [ ] **M2-2** | FACEIT match import: admin pastes the FACEIT room link(s) of a locked mix → fetch `/matches/{id}` + `/matches/{id}/stats` → per-player per-map stats; map players to roster; warn if FACEIT teams differ from the voted lineup; mix → `played` | M2-1, S3 | Importing the room of a real mix stores all maps; re-import is idempotent; lineup mismatch shown |
-| [ ] **M2-3** | Mixer Rating from FACEIT stats (`lib/balance/faceit-rating.ts` shape, KAST fixed until demo extras exist) + manual result fallback (map + score) if FACEIT data is missing | M2-2 | Unit tests; rating stored per player per map |
+| [ ] **M2-1** | Schema: `matches` (one per map, `source` faceit/manual/demo, `faceit_match_id` null), `match_player_stats` (optional per match), `match_payloads` (raw FACEIT/demo JSON) | M1-9 | Migrations applied; a match with only a score is valid |
+| [ ] **M2-7** | **Manual results** (no FACEIT, D21): group admin enters maps + scores for a locked mix (map optional), mix → `played`; player stats stay empty or come later (FACEIT import / demo upload M4-6) | M2-1 | A mix played without FACEIT gets a result; profiles and win rates count it, rating-based stats skip it |
+| [ ] **M2-2** | FACEIT match import (groups with a FACEIT Club; club matches listed via `groups.faceit_club_id` or pasted room link): admin pastes the FACEIT room link(s) of a locked mix → fetch `/matches/{id}` + `/matches/{id}/stats` → per-player per-map stats; map players to roster; warn if FACEIT teams differ from the voted lineup; mix → `played` | M2-1, S3 | Importing the room of a real mix stores all maps; re-import is idempotent; lineup mismatch shown |
+| [ ] **M2-3** | Mixer Rating from FACEIT stats (`lib/balance/faceit-rating.ts` shape, KAST fixed until demo extras exist); maps without player stats get no rating | M2-2 | Unit tests; rating stored per player per map |
 | [ ] **M2-4** | Match page: scoreboard (popflash-style) per map, mix summary (maps won, per-player totals) | M2-3 | Renders for a real mix; mobile OK |
 | [ ] **M2-5** | Mix page "how to play": the group's FACEIT Club link (`groups.faceit_club_url`) + the voted lineup; captains pick exactly that lineup | M1-7 | Shown on locked mixes |
 | [ ] **M2-6** | Mix form term **M** in balancing (last 10 mix maps, shrinkage to group avg) | M2-3 | Engine tests updated; snapshot includes M |
@@ -94,7 +95,7 @@ A player must already be connected to a voice channel of that server to be moved
 P0-1 → P0-3 → P0-5 → M1-1 → M1-G → M1-3 → M1-5 → M1-6 → M1-7 → M1-8 → M1-9 (MVP)
 P0-1 → M1-4 ─────────────────────────┘
 P0-2 → S3 → M1-2 → M1-3
-M1-9 → M2-1 → M2-2 → M2-3 → M2-4 (stats from FACEIT)
+M1-9 → M2-1 → M2-7 (manual results) → M2-2 → M2-3 → M2-4 (stats from FACEIT)
 ```
 
 **Unblocked right now (no owner input needed):** M1-2 (clients on the S3 fixtures), M1-1 (Steam login; preview deploy needs the Vercel env vars), P0-4.

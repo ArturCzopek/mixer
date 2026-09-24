@@ -115,3 +115,13 @@ reported 10 000 requests/hour (429 until the next full hour). What we store is s
 the ELO/form snapshot at balancing time and per-map stats of our own mixes, fetched by a server key
 that only reads public data. Short caches (minutes) for everything else. If FACEIT terms or FACEIT
 support object, we can drop stored FACEIT stats and keep only our own results (manual fallback, M2-3).
+
+## D21. FACEIT is the preferred source, never a requirement, Accepted (2026-09-24)
+Owner: mixes of a group should ideally be played on that group's FACEIT Club and synced from it,
+but a group may have no FACEIT Club, and a mix may have no FACEIT room or no data at all.
+- `groups.faceit_club_url` is optional (asked for at group creation, can be added later).
+- Every mix can get a **manual result** (maps + scores); player stats per map are optional and can
+  come from a FACEIT import or a manually uploaded demo (M4-6), in any order.
+- Balancing does not depend on it: E falls back to `group_members.manual_skill_override`, F is 0
+  without FACEIT history, M uses only maps that have player stats.
+- Seed data for our own group (`db/seed/roster.json`) is just the first group, loaded in M1-G.
