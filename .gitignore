@@ -1,0 +1,7 @@
+node_modules/
+.env
+.env*.local
+.next/
+*.dem
+*.dem.bz2
+*.dem.zst
