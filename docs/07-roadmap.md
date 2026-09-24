@@ -19,7 +19,7 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done
 | [ ] **P0-3** | DB schema + migrations for Phase 1 tables (`players`, `mixes`, `mix_participants`, `variants`, `variant_players`, `votes`) + RLS select policies | P0-1, P0-2 | Migrations apply cleanly to Supabase; anon key can `select`, cannot write |
 | [ ] **P0-4** | Deploy pipeline + keep-alive cron (`/api/cron/keepalive`, `CRON_SECRET`) | P0-1, P0-2 | Preview deploy per PR; cron visible in Vercel; endpoint returns 200 and hits DB |
 | [ ] **S3** | FACEIT API spike: script calling the endpoints from [external APIs](06-external-apis.md#faceit-data-api-v4-balancing-source) for 2–3 members | P0-2 | Notes added to `docs/06` with exact fields for ELO, 30-day matches, per-match K/D (+ADR?), rate limits; recorded JSON fixtures saved in `lib/external/__fixtures__/` |
-| [ ] **S4** *(parallel)* | demoparser2 WASM spike: minimal page parsing a FACEIT demo in a Web Worker | P0-1, 👤 demo file | Time + peak memory for a ~150 MB demo written in `docs/05`; D7 in decisions marked Accepted or switched to Python fallback |
+| [ ] **S4** *(parallel, native parse done, see docs/05 "First parse test")* | demoparser2 WASM spike: minimal page parsing a FACEIT demo in a Web Worker | P0-1, 👤 demo file | Time + peak memory for a ~150 MB demo written in `docs/05`; D7 in decisions marked Accepted or switched to Python fallback |
 | [ ] **S1** *(parallel)* | POV vs GOTV accuracy: parse both demos of the same FACEIT match, compare per stat | S4, 👤 POV + GOTV demo | Table in `docs/05` listing which stats are exact / approximate / missing in POV |
 
 ## Phase 1: MVP (roster → mix → balance → vote)

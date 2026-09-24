@@ -7,7 +7,8 @@ export type PreferredRole = "awp" | "rifle" | "any";
 export interface FaceitMatchSample {
   /** ISO 8601 timestamp of when the match finished. */
   finishedAt: string;
-  kd: number;
+  /** Per-match performance, see `faceitMatchRating`. */
+  rating: number;
 }
 
 export interface PlayerInput {
@@ -15,11 +16,11 @@ export interface PlayerInput {
   faceitElo: number | null;
   /** Admin-entered ELO, used when FACEIT ELO is missing. */
   manualSkillOverride?: number | null;
-  faceit?: {
-    lifetimeKd: number | null;
-    /** FACEIT matches; anything outside the form window is ignored. */
-    matches: FaceitMatchSample[];
-  };
+  /**
+   * Recent FACEIT match history (e.g. the last 100–200 matches). Matches inside the form window
+   * are the "recent" sample; older ones form the player's own baseline.
+   */
+  faceit?: { matches: FaceitMatchSample[] };
   /** Mixer Rating per mix map, most recent first. */
   mixRatings?: number[];
   preferredRole?: PreferredRole;
@@ -49,22 +50,29 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const clamp = (x: number, max: number) => Math.min(max, Math.max(-max, x));
 const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
 
-/** F: recent FACEIT K/D vs lifetime K/D, shrunk toward 1.0 by match count. */
+/**
+ * F: FACEIT rating in the form window vs the player's own rating before it,
+ * shrunk toward 1.0 by the number of recent matches.
+ */
 export function faceitForm(
   player: PlayerInput,
   now: Date,
   cfg: BalanceConfig["form"],
 ): { F: number; matches: number } {
-  const lifetimeKd = player.faceit?.lifetimeKd;
   const from = now.getTime() - cfg.windowDays * DAY_MS;
-  const window = (player.faceit?.matches ?? []).filter((m) => {
+  const window: number[] = [];
+  const before: number[] = [];
+  for (const m of player.faceit?.matches ?? []) {
     const t = Date.parse(m.finishedAt);
-    return t >= from && t <= now.getTime();
-  });
+    if (t > now.getTime()) continue;
+    (t >= from ? window : before).push(m.rating);
+  }
   const n = window.length;
-  if (n === 0 || !lifetimeKd || lifetimeKd <= 0) return { F: 0, matches: n };
+  if (n === 0 || before.length < cfg.minBaseline) return { F: 0, matches: n };
+  const baseline = mean(before);
+  if (baseline <= 0) return { F: 0, matches: n };
 
-  const ratio = mean(window.map((m) => m.kd)) / lifetimeKd;
+  const ratio = mean(window) / baseline;
   const shrunk = (n * ratio + cfg.shrinkK * 1.0) / (n + cfg.shrinkK);
   return { F: clamp(cfg.beta * (shrunk - 1), cfg.max), matches: n };
 }

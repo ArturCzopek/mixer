@@ -153,6 +153,19 @@ We never call it "HLTV rating" in the UI, because the weights are ours.
 Every stored match records `parser_version`. If we change a formula, we can recompute from `raw`
 where possible, or ask for a re-upload.
 
+## First parse test (2026-09-24)
+
+A FACEIT GOTV demo (de_nuke, 216 MB `.dem`, 157 MB as `.dem.zst`) parsed with the **native**
+`@laihoe/demoparser2` (Node, cloud sandbox): header + player list + `player_death` / `player_hurt` /
+`round_end` in **~1.8 s, ~95 MB RSS**. Browser/WASM numbers are still open (S4). Lessons for M2-3:
+- **Restarts:** the demo had two `round_announce_match_start` events (tick 1280 and 5262). Only rounds
+  after the **last** one count; otherwise a pre-match round leaks in (20 → 18 real rounds).
+- **ADR:** `player_hurt.dmg_health` includes overkill (a 205 "ADR" came out). Cap each hit at the
+  victim's remaining health (`health` before the hit) to match scoreboard ADR.
+- **Score per team:** `round_end.winner` is a side (T/CT); map it to teams using the halftime swap
+  (after round 12 in MR12, and every 3 rounds in OT).
+- `parsePlayerInfo` gives SteamID64 + name + team, enough to map players to the roster.
+
 ## Validation on upload
 
 - Every player in the demo must map to a roster SteamID. Unknown players are shown and can be ignored or added.

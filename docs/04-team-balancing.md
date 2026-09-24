@@ -25,21 +25,26 @@ S = E + F + M
 A time window, not a match count: people play very different amounts, so "last 20 matches" can mean
 one week for one player and half a year for another.
 
+The per-match number is a **FACEIT match rating**, not K/D: K/D ignores damage and impact
+(owner feedback: rating/impact matters more). It has the same shape as Mixer Rating 2
+([demo pipeline](05-demo-pipeline.md#rating)) built from FACEIT per-match stats (KPR, DPR, APR →
+Impact, ADR); FACEIT does not report KAST, so it is fixed at 72 %. Code: `lib/balance/faceit-rating.ts`.
+
 ```
-window   = FACEIT matches finished in the last 30 days            (n = number of matches)
-recent   = mean K/D over the window
-baseline = lifetime K/D
-ratio    = recent / baseline
+history  = the player's recent FACEIT matches (e.g. last 100–200), each with a match rating
+window   = matches finished in the last 30 days                   (n = number of matches)
+before   = older matches in the history                            (the player's own baseline)
+ratio    = mean(window) / mean(before)
 ratio^   = (n · ratio + k · 1.0) / (n + k)                          # shrink toward "normal form", k = 10
 F        = clamp( β · (ratio^ − 1), −F_max, +F_max )
 ```
-Defaults: `β = 500`, `F_max = 150`, `k = 10`. The same +30% K/D form gives:
+Defaults: `β = 500`, `F_max = 150`, `k = 10`, `minBaseline = 10`. The same +30% rating form gives:
 - over 20 matches: ratio^ = 1.20, so F = +100 ELO;
 - over 2 matches: ratio^ = 1.05, so F = +25 ELO. A lucky evening counts little.
-- 0 matches in 30 days gives F = 0 (ELO only).
+- 0 matches in 30 days, or fewer than 10 older matches for a baseline, gives F = 0 (ELO only).
 
-K/D is the most reliably available per-match number in the FACEIT API. If ADR per match is
-available, use `0.5·KD_ratio + 0.5·ADR_ratio` instead (decide during the FACEIT spike).
+The FACEIT client must fetch enough history to have a baseline before the window (paginate if all
+of the last 100 matches fall inside 30 days). Exact FACEIT field names are confirmed in spike S3.
 
 ### M: mix form (our own rating)
 
@@ -125,7 +130,7 @@ At generation time, each participant's inputs (E, F, M, S) are stored in
 
 ```json
 {
-  "form": { "windowDays": 30, "shrinkK": 10, "beta": 500, "max": 150 },
+  "form": { "windowDays": 30, "shrinkK": 10, "beta": 500, "max": 150, "minBaseline": 10 },
   "mix":  { "maps": 10, "shrinkK": 5, "gamma": 1000, "max": 200 },
   "rules": {
     "topPair":    { "mode": "hard", "weight": 3 },

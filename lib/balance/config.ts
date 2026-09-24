@@ -10,7 +10,14 @@ export interface RuleConfig {
 }
 
 export interface BalanceConfig {
-  form: { windowDays: number; shrinkK: number; beta: number; max: number };
+  form: {
+    windowDays: number;
+    shrinkK: number;
+    beta: number;
+    max: number;
+    /** Matches before the window needed for a baseline; fewer gives F = 0. */
+    minBaseline: number;
+  };
   mix: { maps: number; shrinkK: number; gamma: number; max: number };
   rules: {
     topPair: RuleConfig;
@@ -24,7 +31,7 @@ export interface BalanceConfig {
 }
 
 export const DEFAULT_BALANCE_CONFIG: BalanceConfig = {
-  form: { windowDays: 30, shrinkK: 10, beta: 500, max: 150 },
+  form: { windowDays: 30, shrinkK: 10, beta: 500, max: 150, minBaseline: 10 },
   mix: { maps: 10, shrinkK: 5, gamma: 1000, max: 200 },
   rules: {
     topPair: { mode: "hard", weight: 3 },
