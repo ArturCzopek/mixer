@@ -1,0 +1,46 @@
+name: API spike
+
+# Manual run: calls FACEIT / Steam / Leetify with the repo secrets (the cloud sandbox has no keys
+# and open.faceit.com blocks it) and commits the recorded fixtures + report back to main.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: api-spike
+  cancel-in-progress: false
+
+jobs:
+  spike:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run spike
+        env:
+          FACEIT_API_KEY: ${{ secrets.FACEIT_API_KEY }}
+          STEAM_WEB_API_KEY: ${{ secrets.STEAM_WEB_API_KEY }}
+          LEETIFY_API_KEY: ${{ secrets.LEETIFY_API_KEY }}
+          # Presence check only (names reported, never values)
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: node scripts/faceit-spike.mjs
+      - name: Commit fixtures
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add lib/external/__fixtures__
+          if git diff --cached --quiet; then echo "No changes"; exit 0; fi
+          git commit -m "Record API spike fixtures (S3) [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main

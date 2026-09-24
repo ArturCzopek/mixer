@@ -1,19 +1,47 @@
 {
-  "$comment": "Real mix for the backtest (T-1). Nicknames as the owner wrote them; map them to SteamID64s once the Steam/FACEIT APIs are reachable. Team A is the owner's team.",
+  "$comment": "Real mix for the backtest (T-1). Nicknames as the owner wrote them; steamIds in the same order (matched to Steam profile names 2026-09-24; Jawor = jawOla.exe by elimination, to confirm). Team A is the owner's team.",
   "date": "2026-09-20",
   "playedOn": "valve-private-matchmaking",
   "teamA": {
     "players": ["katusiksde", "Nefcio", "Stan", "13hp", "Jawor"],
-    "steamIds": ["76561197993187687"]
+    "steamIds": [
+      "76561197993187687",
+      "76561198144253703",
+      "76561197976084038",
+      "76561197990797581",
+      "76561197990522246"
+    ]
   },
   "teamB": {
     "players": ["Profesor", "sexy ya", "Windxore", "Majkz", "Chelmut"],
-    "steamIds": []
+    "steamIds": [
+      "76561198012352866",
+      "76561197960551471",
+      "76561198014771816",
+      "76561198063581077",
+      "76561198148296203"
+    ]
   },
   "maps": [
-    { "map": "de_ancient", "scoreA": 4, "scoreB": 13 },
-    { "map": "de_dust2", "scoreA": 9, "scoreB": 13 },
-    { "map": "de_cache", "scoreA": 10, "scoreB": 13 },
-    { "map": "de_anubis", "scoreA": 13, "scoreB": 11 }
+    {
+      "map": "de_ancient",
+      "scoreA": 4,
+      "scoreB": 13
+    },
+    {
+      "map": "de_dust2",
+      "scoreA": 9,
+      "scoreB": 13
+    },
+    {
+      "map": "de_cache",
+      "scoreA": 10,
+      "scoreB": 13
+    },
+    {
+      "map": "de_anubis",
+      "scoreA": 13,
+      "scoreB": 11
+    }
   ]
 }

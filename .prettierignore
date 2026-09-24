@@ -5,3 +5,5 @@ next-env.d.ts
 # Markdown docs are hand-formatted
 *.md
 .claude/
+# Recorded API responses (written by scripts/faceit-spike.mjs)
+lib/external/__fixtures__/
