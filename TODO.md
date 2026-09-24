@@ -37,7 +37,11 @@ Task IDs refer to [docs/07-roadmap.md](docs/07-roadmap.md).
 ## Next Claude session: start here
 
 1. Read `CLAUDE.md`, this file and `docs/07-roadmap.md`.
-2. S3 is done: FACEIT fields, units and rate limits are in `docs/06` ("Spike S3 findings"), fixtures in
-   `lib/external/__fixtures__/`. To refresh them: trigger the `API spike` workflow (GitHub MCP
-   `actions_run_trigger`, workflow `api-spike.yml`, ref `main`); it commits back to `main`, then `git pull`.
-3. Next: **P0-3** (schema + migrations), then M1-2 (clients on the S3 fixtures), M1-1 onward.
+2. Done so far: M1-4, P0-1, **S3** (FACEIT fields/units/rate limits in `docs/06` "Spike S3 findings",
+   fixtures in `lib/external/__fixtures__/`), **P0-3** (Phase 1 schema live on Supabase, applied by the
+   `DB migrate` workflow; see `lib/db/README.md`).
+3. Live API / DB work goes through workflows (GitHub MCP `actions_run_trigger` on `main`, then read logs
+   with `get_job_logs`): `api-spike.yml` refreshes fixtures and commits them back (`git pull` after);
+   `db-migrate.yml` runs automatically on pushes touching `db/`.
+4. Next: **M1-2** (`lib/external/steam.ts`, `faceit.ts`, Zod on the recorded fixtures; games-stats
+   `from`/`to` in ms, values are strings; Leetify header `_leetify_key`), then **M1-1** (Steam login) and P0-4.

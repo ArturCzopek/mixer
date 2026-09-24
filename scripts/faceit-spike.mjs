@@ -260,23 +260,11 @@ if (process.env.STEAM_WEB_API_KEY) {
 
 // ---------- Leetify (validate key only; never record data) ----------
 if (process.env.LEETIFY_API_KEY) {
-  const raw = process.env.LEETIFY_API_KEY;
-  const key = raw.trim();
-  // Shape only, never the value: helps spot a pasted newline/quote in the secret.
-  report.notes.push(
-    `LEETIFY_API_KEY length ${raw.length}, whitespace around: ${raw !== key}, quoted: ${/^["']/.test(key)}`,
-  );
-  const url = "https://api-public.cs-prod.leetify.com/api-key/validate";
+  // Header is `_leetify_key` (docs/06); `Authorization: Bearer` returns 401 for our key.
   await call(
-    "leetify validate key (Bearer)",
-    url,
-    { Authorization: `Bearer ${key}` },
-    { record: false },
-  );
-  await call(
-    "leetify validate key (_leetify_key)",
-    url,
-    { _leetify_key: key },
+    "leetify validate key",
+    "https://api-public.cs-prod.leetify.com/api-key/validate",
+    { _leetify_key: process.env.LEETIFY_API_KEY.trim() },
     { record: false },
   );
 } else {
