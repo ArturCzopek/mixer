@@ -140,9 +140,20 @@ async function faceit() {
   const { players } = JSON.parse(
     readFileSync(`${FIX}/popflash/players.json`, "utf8"),
   );
-  // Popflash period Oct–Dec 2024; form needs 30 days before a match plus a baseline before that.
-  const from = Date.parse("2024-03-01T00:00:00Z");
+  // Popflash period Jan–Dec 2024; form needs 30 days before a map plus a baseline before that.
+  // Fetched in 2-month slices: one long window stops at 300 items (offset limit).
+  const from = Date.parse("2023-09-01T00:00:00Z");
   const to = Date.parse("2025-01-31T00:00:00Z");
+  const slices = [];
+  for (let t = from; t < to;) {
+    const d = new Date(t);
+    const next = Math.min(
+      to,
+      Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 2, 1),
+    );
+    slices.push([t, next]);
+    t = next;
+  }
   const summary = [];
   for (const p of players) {
     if (p.mergeInto) continue; // second account: the main account carries the FACEIT data
@@ -163,31 +174,38 @@ async function faceit() {
     }
     const player = JSON.parse(r.text);
     const stats = [];
-    for (let offset = 0; offset < 2000; offset += 100) {
-      await sleep(100);
-      const page = await get(
-        `${FACEIT}/players/${player.player_id}/games/cs2/stats?from=${from}&to=${to}&limit=100&offset=${offset}`,
-        auth,
-      );
-      if (page.status !== 200) break;
-      const items = JSON.parse(page.text).items ?? [];
-      for (const { stats: s } of items) {
-        stats.push({
-          matchId: s["Match Id"],
-          finishedAt: new Date(Number(s["Match Finished At"])).toISOString(),
-          gameMode: s["Game Mode"],
-          competitionId: s["Competition Id"] ?? null,
-          map: s["Map"],
-          kills: Number(s["Kills"]),
-          deaths: Number(s["Deaths"]),
-          assists: Number(s["Assists"]),
-          rounds: Number(s["Rounds"]),
-          adr: s["ADR"] === undefined ? null : Number(s["ADR"]),
-          won: s["Result"] === "1",
-        });
+    for (const [sliceFrom, sliceTo] of slices)
+      for (let offset = 0; offset < 300; offset += 100) {
+        await sleep(100);
+        const page = await get(
+          `${FACEIT}/players/${player.player_id}/games/cs2/stats?from=${sliceFrom}&to=${sliceTo}&limit=100&offset=${offset}`,
+          auth,
+        );
+        if (page.status !== 200) break;
+        const items = JSON.parse(page.text).items ?? [];
+        for (const { stats: s } of items) {
+          stats.push({
+            matchId: s["Match Id"],
+            finishedAt: new Date(Number(s["Match Finished At"])).toISOString(),
+            gameMode: s["Game Mode"],
+            competitionId: s["Competition Id"] ?? null,
+            map: s["Map"],
+            kills: Number(s["Kills"]),
+            deaths: Number(s["Deaths"]),
+            assists: Number(s["Assists"]),
+            rounds: Number(s["Rounds"]),
+            adr: s["ADR"] === undefined ? null : Number(s["ADR"]),
+            won: s["Result"] === "1",
+          });
+        }
+        if (items.length < 100) break;
       }
-      if (items.length < 100) break;
-    }
+    const seen = new Set();
+    const unique = stats
+      .filter((x) => !seen.has(x.matchId) && seen.add(x.matchId))
+      .sort((a, b) => b.finishedAt.localeCompare(a.finishedAt));
+    stats.length = 0;
+    stats.push(...unique);
     write(`${FIX}/backtest/faceit/${p.steamId}.json`, {
       steamId: p.steamId,
       nickname: player.nickname,
