@@ -23,6 +23,7 @@ import {
   explain,
   lobby,
   mix,
+  NOW,
   players,
   result,
   skill,
@@ -372,27 +373,28 @@ function Labels({ variant }: { variant: MockVariant }) {
 }
 
 /**
- * Leetify preview (M3-2) as an old-client property window. Values are shown exactly as Leetify
- * names and scales them; this preview uses invented sample numbers.
+ * Leetify preview (M3-2) as an old-client property window: FACEIT matches of the last 30 days only,
+ * each with its Leetify Rating exactly as Leetify shows it. Nothing is averaged or recomputed
+ * (Leetify terms). This preview uses invented sample numbers.
  */
 function LeetifyCard({ player }: { player: MockPlayer }) {
-  const l = leetifySample(player.steamId, player.level);
-  const dec = (n: number) => (n > 0 ? `+${n.toFixed(2)}` : n.toFixed(2));
-  const rows: [string, string][] = [
-    ["Aim", String(l.rating.aim)],
-    ["Positioning", String(l.rating.positioning)],
-    ["Utility", String(l.rating.utility)],
-    ["Clutch", dec(l.rating.clutch)],
-    ["Opening", dec(l.rating.opening)],
-    ["Premier", l.ranks.premier?.toLocaleString("en-US") ?? "–"],
-    ["FACEIT", l.ranks.faceit ? `Level ${l.ranks.faceit}` : "–"],
-    ["Win rate", `${Math.round(l.winrate * 100)}%`],
-  ];
+  const matches = leetifySample(
+    player.steamId,
+    player.form.matches,
+    player.form.sessions,
+    player.form.before ? player.form.recent / player.form.before : 1,
+    NOW,
+  );
+  const won = matches.filter((m) => m.score[0] > m.score[1]).length;
+  const shown = matches.slice(0, 8);
+  const rating = (n: number) =>
+    n > 0 ? `+${n.toFixed(2)}` : n < 0 ? `−${Math.abs(n).toFixed(2)}` : "0.00";
   return (
-    <details className="group mt-2.5">
+    <details open className="group mt-2.5">
       <summary className="bevel bg-window flex cursor-pointer list-none items-center justify-between px-2 py-1.5 select-none">
         <span>
-          Leetify preview <b className="text-text">{player.name}</b>
+          Leetify · FACEIT, last 30 days{" "}
+          <b className="text-text">{player.name}</b>
         </span>
         <ChevronDown
           aria-hidden
@@ -401,31 +403,73 @@ function LeetifyCard({ player }: { player: MockPlayer }) {
       </summary>
       <Well className="text-dim flex items-center gap-1.5 px-2 py-1.5 text-[11px]">
         <span aria-hidden className="bg-gold size-[7px] shrink-0" />
-        Live from Leetify, not stored · sample numbers in this preview
+        {matches.length === 0 ? (
+          "No FACEIT matches in the last 30 days."
+        ) : (
+          <span>
+            <b className="text-text">{matches.length}</b> FACEIT matches ·{" "}
+            <b className="text-text">
+              {won} W {matches.length - won} L
+            </b>{" "}
+            · live from Leetify, not stored · sample numbers in this preview
+          </span>
+        )}
       </Well>
-      <Well className="mt-1.5">
-        <ListHead>
-          <span className="flex-1">Leetify stat</span>
-          <span>Value</span>
-        </ListHead>
-        <div className="grid grid-cols-2">
-          {rows.map(([k, v], i) => (
-            <div
-              key={k}
-              className={cn(
-                "border-row flex justify-between border-b px-1.5 py-1",
-                i % 2 === 0 && "border-r",
-              )}
-            >
-              <span className="text-dim">{k}</span>
-              <b>{v}</b>
+      {matches.length > 0 && (
+        <>
+          <div
+            aria-label="Results, newest first"
+            className="mt-1.5 flex flex-wrap gap-0.5 px-0.5"
+          >
+            {matches.map((m, i) => (
+              <span
+                key={i}
+                title={`${m.map} ${m.score[0]}:${m.score[1]}`}
+                className={cn(
+                  "size-[7px]",
+                  m.score[0] > m.score[1] ? "bg-gold" : "bg-lo",
+                )}
+              />
+            ))}
+          </div>
+          <Well className="mt-1.5">
+            <div className="border-lo bg-window text-dim grid grid-cols-[3rem_1fr_3rem_5.6rem] gap-x-2 border-b px-1.5 py-1 text-[10px] tracking-[0.06em] uppercase">
+              <span>Date</span>
+              <span>Map</span>
+              <span className="text-right">Score</span>
+              <span className="text-right">Leetify Rating</span>
             </div>
-          ))}
-        </div>
-        <p className="text-dim px-1.5 py-1 text-[11px]">
-          {l.totalMatches.toLocaleString("en-US")} matches on Leetify
-        </p>
-      </Well>
+            {shown.map((m, i) => (
+              <div
+                key={i}
+                className="border-row grid grid-cols-[3rem_1fr_3rem_5.6rem] items-center gap-x-2 border-b px-1.5 py-1"
+              >
+                <span className="text-dim text-[11px]">
+                  {m.finishedAt.slice(8, 10)}.{m.finishedAt.slice(5, 7)}
+                </span>
+                <span className="truncate">{m.map.replace("de_", "")}</span>
+                <span className="text-right">
+                  <b
+                    className={
+                      m.score[0] > m.score[1] ? "text-gold" : "text-text"
+                    }
+                  >
+                    {m.score[0]}
+                  </b>
+                  <span className="text-dim">:</span>
+                  {m.score[1]}
+                </span>
+                <b className="text-right">{rating(m.leetifyRating)}</b>
+              </div>
+            ))}
+            {matches.length > shown.length && (
+              <p className="text-dim px-1.5 py-1 text-[11px]">
+                and {matches.length - shown.length} more on Leetify
+              </p>
+            )}
+          </Well>
+        </>
+      )}
       <a
         href="https://leetify.com/"
         target="_blank"

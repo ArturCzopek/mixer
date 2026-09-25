@@ -96,9 +96,11 @@ Why FACEIT directly and not via Leetify: Leetify's terms forbid storing or recal
 
 We use it for the profile tabs **FACEIT** and **Premier**, by filtering match history on `data_source`,
 and for the **Leetify preview** (M3-2): a small card fetched live when someone opens a player (tap in
-the lobby / variant, profile header) with Leetify's own `ranks` (Premier, FACEIT), `rating` (aim,
-positioning, utility, clutch, opening) and `winrate`, exactly as named and scaled by Leetify, with the
-"Data Provided by Leetify" logo. Fetched by a server route with a 5–10 min HTTP cache, never written to
+the lobby / variant, profile header). Owner (2026-09-25): **FACEIT matches of the last 30 days only**
+(`/v3/profile/matches`, `data_source = "faceit"`, `finished_at` within 30 days): per match the date,
+map, score and the player's **Leetify Rating** exactly as Leetify shows it, plus the count of matches
+and wins. No profile-wide numbers (aim, positioning…) and no averages or other scores computed from
+Leetify data (their terms forbid recalculating). With the "Data Provided by Leetify" logo. Fetched by a server route with a 5–10 min HTTP cache, never written to
 the database, never an input to balancing. `privacy_mode` on → the card says the profile is private.
 
 ### Leetify developer guidelines: hard rules for us

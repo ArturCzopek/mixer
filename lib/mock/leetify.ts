@@ -1,50 +1,62 @@
-// INVENTED sample values in the shape of Leetify's `GET /v3/profile` (docs/06), for the design
-// preview only. Real Leetify data is fetched live by the server, shown as-is with the
-// "Data Provided by Leetify" attribution, and never stored (CLAUDE.md, M3-2).
+// INVENTED sample values in the shape of Leetify's `GET /v3/profile/matches` (docs/06), for the
+// design preview only. Real Leetify data is fetched live by the server, filtered to FACEIT matches
+// of the last 30 days, shown as-is with the "Data Provided by Leetify" attribution, and never
+// stored (CLAUDE.md, M3-2). No averages or other scores are computed from it.
 
-export interface LeetifySample {
-  /** `rating.*`, Leetify's own names and scales. */
-  rating: {
-    aim: number;
-    positioning: number;
-    utility: number;
-    clutch: number;
-    opening: number;
-  };
-  /** `ranks.*` */
-  ranks: { premier: number | null; faceit: number | null };
-  /** `winrate` (0..1) and `total_matches` */
-  winrate: number;
-  totalMatches: number;
-  privacyMode: boolean;
+export interface LeetifyMatchSample {
+  /** `finished_at` */
+  finishedAt: string;
+  /** `data_source` (the card keeps only "faceit") */
+  dataSource: "faceit";
+  /** `map_name` */
+  map: string;
+  /** Our team's rounds : theirs, from `team_scores`. */
+  score: [number, number];
+  /** The player's `leetify_rating` for that match, in Leetify's display format (e.g. +1.23). */
+  leetifyRating: number;
 }
 
-/** Deterministic made-up numbers per player, so the preview is stable. */
+const MAPS = [
+  "de_mirage",
+  "de_inferno",
+  "de_nuke",
+  "de_anubis",
+  "de_ancient",
+  "de_dust2",
+  "de_train",
+];
+
+/**
+ * Deterministic made-up FACEIT matches of the last 30 days: `count` matches over `sessions`
+ * evenings (the same numbers the preview's form F uses), better ratings when `trend` > 1.
+ */
 export function leetifySample(
   steamId: string,
-  faceitLevel: number,
-): LeetifySample {
+  count: number,
+  sessions: number,
+  trend: number,
+  now: Date,
+): LeetifyMatchSample[] {
   let h = 0;
   for (const c of steamId) h = (h * 31 + c.charCodeAt(0)) >>> 0;
-  const r = (min: number, max: number) => {
+  const r = () => {
     h = (h * 1103515245 + 12345) >>> 0;
-    return min + (((h >>> 8) % 1000) / 1000) * (max - min);
+    return ((h >>> 8) % 1000) / 1000;
   };
-  const skill = faceitLevel / 10;
-  return {
-    rating: {
-      aim: Math.round(35 + 55 * skill + r(-8, 8)),
-      positioning: Math.round(30 + 50 * skill + r(-10, 10)),
-      utility: Math.round(25 + 50 * skill + r(-12, 12)),
-      clutch: Math.round(r(-0.04, 0.16) * 100) / 100,
-      opening: Math.round(r(-0.08, 0.08) * 100) / 100,
-    },
-    ranks: {
-      premier: Math.round((6000 + 16000 * skill + r(-1500, 1500)) / 10) * 10,
-      faceit: faceitLevel,
-    },
-    winrate: Math.round(r(0.44, 0.58) * 100) / 100,
-    totalMatches: Math.round(r(300, 2400)),
-    privacyMode: false,
-  };
+  const bias = (trend - 1) * 12;
+  return Array.from({ length: count }, (_, i): LeetifyMatchSample => {
+    const day = (i % Math.max(1, sessions)) * 2 + 1;
+    const rating = Math.round((bias + (r() - 0.5) * 6) * 100) / 100;
+    const won = r() < 0.5 + rating / 12;
+    const lost = Math.floor(r() * 11) + 2;
+    return {
+      finishedAt: new Date(
+        now.getTime() - day * 86_400_000 - (i % 3) * 3_600_000,
+      ).toISOString(),
+      dataSource: "faceit",
+      map: MAPS[Math.floor(r() * MAPS.length)],
+      score: won ? [13, lost] : [lost, 13],
+      leetifyRating: rating,
+    };
+  }).sort((a, b) => b.finishedAt.localeCompare(a.finishedAt));
 }
