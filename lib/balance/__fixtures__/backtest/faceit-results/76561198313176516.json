@@ -1,0 +1,123 @@
+{
+  "steamId": "76561198313176516",
+  "nickname": "piotrK666",
+  "eloNow": 724,
+  "recordedAt": "2026-09-25T16:15:30.484Z",
+  "truncatedSlices": 0,
+  "results": [
+    {
+      "finishedAt": "2024-10-03T19:32:05.000Z",
+      "won": false,
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd"
+    },
+    {
+      "finishedAt": "2024-10-03T20:31:22.000Z",
+      "won": true,
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd"
+    },
+    {
+      "finishedAt": "2024-12-13T11:10:49.000Z",
+      "won": false,
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd"
+    },
+    {
+      "finishedAt": "2024-12-13T11:46:45.000Z",
+      "won": false,
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd"
+    },
+    {
+      "finishedAt": "2024-12-20T18:44:09.000Z",
+      "won": true,
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd"
+    },
+    {
+      "finishedAt": "2024-12-20T19:32:06.000Z",
+      "won": true,
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd"
+    },
+    {
+      "finishedAt": "2024-12-23T16:50:00.000Z",
+      "won": false,
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd"
+    },
+    {
+      "finishedAt": "2024-12-23T18:00:46.000Z",
+      "won": false,
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd"
+    },
+    {
+      "finishedAt": "2024-12-23T23:10:10.000Z",
+      "won": false,
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd"
+    },
+    {
+      "finishedAt": "2024-12-24T11:39:58.000Z",
+      "won": false,
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd"
+    },
+    {
+      "finishedAt": "2024-12-24T12:13:20.000Z",
+      "won": true,
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd"
+    },
+    {
+      "finishedAt": "2024-12-24T13:07:43.000Z",
+      "won": true,
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd"
+    },
+    {
+      "finishedAt": "2024-12-27T16:28:13.000Z",
+      "won": true,
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd"
+    },
+    {
+      "finishedAt": "2024-12-27T18:17:28.000Z",
+      "won": true,
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd"
+    },
+    {
+      "finishedAt": "2024-12-27T18:57:42.000Z",
+      "won": false,
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd"
+    },
+    {
+      "finishedAt": "2024-12-29T21:08:16.000Z",
+      "won": true,
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd"
+    },
+    {
+      "finishedAt": "2025-01-07T22:22:15.000Z",
+      "won": false,
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd"
+    },
+    {
+      "finishedAt": "2025-01-11T21:50:25.000Z",
+      "won": false,
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd"
+    },
+    {
+      "finishedAt": "2025-01-11T22:48:48.000Z",
+      "won": true,
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd"
+    }
+  ]
+}

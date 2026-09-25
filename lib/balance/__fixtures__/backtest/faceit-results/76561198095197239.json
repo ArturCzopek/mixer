@@ -1,0 +1,33 @@
+{
+  "steamId": "76561198095197239",
+  "nickname": "daro5g",
+  "eloNow": 681,
+  "recordedAt": "2026-09-25T16:15:21.789Z",
+  "truncatedSlices": 0,
+  "results": [
+    {
+      "finishedAt": "2024-04-22T20:43:07.000Z",
+      "won": true,
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd"
+    },
+    {
+      "finishedAt": "2024-04-22T21:27:03.000Z",
+      "won": true,
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd"
+    },
+    {
+      "finishedAt": "2024-04-24T19:26:51.000Z",
+      "won": false,
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd"
+    },
+    {
+      "finishedAt": "2024-04-24T20:10:01.000Z",
+      "won": false,
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd"
+    }
+  ]
+}
