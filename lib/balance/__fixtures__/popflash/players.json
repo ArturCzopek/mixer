@@ -34,7 +34,8 @@
       "name": "loowN.",
       "steamId": "76561197999931838",
       "maps": 54,
-      "who": null
+      "who": null,
+      "faceitNickname": "loownn"
     },
     {
       "popflashId": "1114658",
@@ -45,10 +46,11 @@
     },
     {
       "popflashId": "2046631",
-      "name": "¯\_(ツ)_/¯",
+      "name": "¯\\_(ツ)_/¯",
       "steamId": "76561198004045444",
       "maps": 40,
-      "who": null
+      "who": null,
+      "faceitNickname": "CRACKH3AD"
     },
     {
       "popflashId": "2038746",
@@ -62,9 +64,9 @@
       "name": "WIOTKI-CHAN",
       "steamId": "76561197973636234",
       "maps": 35,
-      "who": "chelmut (probably)",
+      "who": "chelmut",
       "mergeInto": "76561198148296203",
-      "confirmed": false
+      "confirmed": true
     },
     {
       "popflashId": "2038781",
@@ -85,7 +87,8 @@
       "name": "Landa",
       "steamId": "76561198038068354",
       "maps": 27,
-      "who": null
+      "who": null,
+      "faceitNickname": "FadeClrs"
     },
     {
       "popflashId": "2070066",
@@ -106,7 +109,8 @@
       "name": "∫ƒ(x)dx",
       "steamId": "76561197998021810",
       "maps": 18,
-      "who": null
+      "who": null,
+      "faceitNickname": "_Mik3"
     },
     {
       "popflashId": "1449487",
@@ -120,77 +124,88 @@
       "name": "Pszemo",
       "steamId": "76561198317971663",
       "maps": 13,
-      "who": null
+      "who": null,
+      "faceitNickname": "KenGuuu"
     },
     {
       "popflashId": "2059300",
       "name": "VEGETA SSIJ 2",
       "steamId": "76561198015784703",
       "maps": 12,
-      "who": null
+      "who": null,
+      "faceitNickname": "IShoQ"
     },
     {
       "popflashId": "2069207",
       "name": "eNGie",
       "steamId": "76561198857565139",
       "maps": 12,
-      "who": null
+      "who": null,
+      "faceitNickname": "lukasek_"
     },
     {
       "popflashId": "2067335",
       "name": "Czimbele",
       "steamId": "76561198004327296",
       "maps": 10,
-      "who": null
+      "who": null,
+      "faceitNickname": "Czibll"
     },
     {
       "popflashId": "2177769",
       "name": "Alimenciarz g4skins",
       "steamId": "76561199092796223",
       "maps": 5,
-      "who": null
+      "who": null,
+      "faceitNickname": "Merlin009"
     },
     {
       "popflashId": "547388",
       "name": "Libra",
       "steamId": "76561197995838560",
       "maps": 3,
-      "who": null
+      "who": null,
+      "faceitNickname": "Libra_XD"
     },
     {
       "popflashId": "579255",
       "name": "bozenasz51",
       "steamId": "76561198049630339",
       "maps": 3,
-      "who": null
+      "who": null,
+      "faceitNickname": "bozenasz51"
     },
     {
       "popflashId": "899420",
       "name": "SaKsU",
       "steamId": "76561198065842803",
       "maps": 3,
-      "who": null
+      "who": null,
+      "faceitNickname": "Dingor107"
     },
     {
       "popflashId": "2070070",
       "name": "Daro5G",
       "steamId": "76561198095197239",
       "maps": 3,
-      "who": null
+      "who": null,
+      "faceitNickname": "daro5g"
     },
     {
       "popflashId": "2177756",
       "name": "piotr.k ™",
       "steamId": "76561198313176516",
       "maps": 3,
-      "who": null
+      "who": null,
+      "faceitNickname": "piotrK666"
     },
     {
       "popflashId": "2184805",
       "name": "depre??ed",
       "steamId": "76561198132232950",
       "maps": 3,
-      "who": null
+      "who": null,
+      "faceitNickname": "takash1ge"
     }
   ]
 }

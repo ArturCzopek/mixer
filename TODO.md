@@ -38,7 +38,7 @@ Task IDs refer to [docs/07-roadmap.md](docs/07-roadmap.md).
 - [x] "Jawor" in the 2026-09-20 mix = Steam `jawOla.exe` / FACEIT `jawOla21` (confirmed)
 - [x] Past mixes source: popflash club `skarpeciarze-i-pantofle` (T-2 exports it)
 - [x] T-2 mapping: popflash players → SteamID64 in `lib/balance/__fixtures__/popflash/players.json` (owner named them 2026-09-25)
-- [ ] Confirm WIOTKI-CHAN (`76561197973636234`) is chelmut's other account (currently merged, `confirmed: false`)
+- [x] WIOTKI-CHAN (`76561197973636234`) = chelmut's other account (owner confirmed 2026-09-25); Profesor never played on popflash; former players are backtest-only (FACEIT nicknames resolved), not added to the roster
 
 ## Next Claude session: start here
 
