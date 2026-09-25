@@ -70,7 +70,8 @@ push straight to `main`; run test, lint, typecheck, format:check and build befor
 - Data: 71 popflash maps (2024), FACEIT stats of 26 players, and FACEIT **results up to today** in
   `lib/balance/__fixtures__/backtest/faceit-results/` (for rebuilding ELO at each map,
   `backtest/elo-history.ts`, ±25 per EU-queue match walked back from today's ELO).
-- Findings so far in `backtest/README.md` "Findings" (+ the "ELO rebuilt" section of the report).
+- Findings in `backtest/README.md`. Rebuilding 2024 ELO from results (±25) was **tried and is
+  worse than today's ELO** (log-loss 0.694 vs 0.634), so the backtest keeps today's ELO for now.
 - **Local-only next step (owner OK'd using other sources temporarily):** FACEIT's site API has real
   ELO per match (`https://api.faceit.com/stats/v1/stats/time/users/{faceit player_id}/games/cs2?page=0&size=100`,
   field names unknown). GitHub runners are blocked there, a home IP probably is not. Keep such data

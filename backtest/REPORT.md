@@ -23,7 +23,8 @@ Log-loss and Brier: lower is better (coin flip = 0.693 / 0.250). *Fav. won*: how
 | E + A | 0.641 | 0.225 | 64.3 % (42) | 0.85 (0.639) | 0.0074 [0.0006, 0.0142] | 3.4 % | 0.49 |
 | E + F + A | 0.642 | 0.225 | 64.3 % (42) | 0.85 (0.640) | 0.0081 [-0.0008, 0.0160] | 6.7 % | 0.49 |
 | E + F + 0.5·M (no A) | 0.633 | 0.223 | 64.3 % (42) | 0.85 (0.630) | -0.0012 [-0.0121, 0.0092] | 57.7 % | 0.51 |
-| E + F + 0.5·M + A (default) | 0.639 | 0.225 | 66.7 % (42) | 0.80 (0.636) | 0.0056 [-0.0062, 0.0171] | 23.6 % | 0.50 |
+| E + F + 0.5·M + A (A at weight 1, D26) | 0.639 | 0.225 | 66.7 % (42) | 0.80 (0.636) | 0.0056 [-0.0062, 0.0171] | 23.6 % | 0.50 |
+| E + F + 0.5·M + 0.5·A (default, D30) | 0.636 | 0.224 | 66.7 % (42) | 0.80 (0.633) | 0.0022 [-0.0087, 0.0127] | 39.6 % | 0.50 |
 | E + F + 1·M + A | 0.641 | 0.226 | 66.7 % (42) | 0.75 (0.634) | 0.0067 [-0.0160, 0.0283] | 32.5 % | 0.49 |
 | E + 0.5·M | 0.633 | 0.223 | 64.3 % (42) | 0.80 (0.630) | -0.0014 [-0.0138, 0.0106] | 57.6 % | 0.50 |
 | E + 2·F (asym) + 0.5·M + A | 0.640 | 0.225 | 66.7 % (42) | 0.80 (0.637) | 0.0060 [-0.0054, 0.0177] | 23.9 % | 0.49 |
@@ -40,29 +41,70 @@ Players with no FACEIT account get a flat 1400, like a group admin's guess (D21)
 | E + A | 64 | 0.583 | 0.197 | 71.9 % |
 | E + F + A | 64 | 0.582 | 0.197 | 71.9 % |
 | E + F + 0.5·M (no A) | 64 | 0.568 | 0.192 | 71.4 % |
-| E + F + 0.5·M + A (default) | 64 | 0.572 | 0.194 | 73.0 % |
+| E + F + 0.5·M + A (A at weight 1, D26) | 64 | 0.572 | 0.194 | 73.0 % |
+| E + F + 0.5·M + 0.5·A (default, D30) | 64 | 0.570 | 0.193 | 73.0 % |
 | E + F + 1·M + A | 64 | 0.567 | 0.193 | 73.4 % |
 | E + 0.5·M | 64 | 0.569 | 0.193 | 71.4 % |
 | E + 2·F (asym) + 0.5·M + A | 64 | 0.572 | 0.193 | 73.0 % |
+
+## ELO at the time of the map (rebuilt) vs ELO today
+
+E rebuilt by walking back from today's ELO over every later FACEIT queue match (±25 each, `elo-history.ts`). Same maps, same everything else.
+
+| Model | E | Log-loss | Brier | Fav. won | Best k | Δ rebuilt vs today [90 % CI] | P(better) |
+|---|---|---|---|---|---|---|---|
+| E only | today | 0.634 | 0.222 | 64.3 % | 0.90 | – | – |
+| E only | rebuilt | 0.694 | 0.250 | 54.8 % | 0.50 | 0.0601 [-0.0294, 0.1617] | 14.0 % |
+| E + F, asymmetric (D24) | today | 0.634 | 0.223 | 64.3 % | 0.90 | – | – |
+| E + F, asymmetric (D24) | rebuilt | 0.697 | 0.252 | 54.8 % | 0.45 | 0.0623 [-0.0271, 0.1633] | 13.0 % |
+| E + A | today | 0.641 | 0.225 | 64.3 % | 0.85 | – | – |
+| E + A | rebuilt | 0.700 | 0.253 | 54.8 % | 0.45 | 0.0584 [-0.0321, 0.1598] | 14.8 % |
+| E + F + 0.5·M (no A) | today | 0.633 | 0.223 | 64.3 % | 0.85 | – | – |
+| E + F + 0.5·M (no A) | rebuilt | 0.685 | 0.246 | 59.5 % | 0.55 | 0.0521 [-0.0369, 0.1507] | 16.6 % |
+| E + F + 0.5·M + 0.5·A (default, D30) | today | 0.636 | 0.224 | 66.7 % | 0.80 | – | – |
+| E + F + 0.5·M + 0.5·A (default, D30) | rebuilt | 0.687 | 0.247 | 59.5 % | 0.55 | 0.0512 [-0.0379, 0.1505] | 17.0 % |
+
+| Player | ELO today | Rebuilt, first used map | Rebuilt, last used map |
+|---|---|---|---|
+| fontek | 2189 | 2189 (2024-02-07) | 1564 (2024-12-16) |
+| smileyz | 2042 | 1842 (2024-01-04) | 1892 (2024-12-16) |
+| lukasek_ | 1866 | 1866 (2024-02-24) | 1866 (2024-04-19) |
+| czopo (owner) | 1797 | 1797 (2024-01-04) | 1622 (2024-12-16) |
+| CRACKH3AD | 1582 | 1582 (2024-01-16) | 1582 (2024-04-30) |
+| jawor | 1510 | 1560 (2024-10-17) | 1535 (2024-12-16) |
+| stan | 1420 | 1420 (2024-01-04) | 1070 (2024-12-16) |
+| janex | 1414 | 1639 (2024-01-04) | 1514 (2024-12-16) |
+| chelmut | 1409 | 1409 (2024-01-04) | 1309 (2024-12-16) |
+| loownn | 1389 | 1089 (2024-01-04) | 1339 (2024-12-16) |
+| FadeClrs | 1317 | 1317 (2024-01-04) | 1317 (2024-10-17) |
+| windxore | 1277 | 1277 (2024-02-25) | 1252 (2024-12-04) |
+| roevs | 1248 | 1248 (2024-01-04) | 973 (2024-12-16) |
+| coma | 1126 | 951 (2024-01-04) | 976 (2024-12-04) |
+| IShoQ | 1052 | 1152 (2024-02-07) | 1152 (2024-04-19) |
+| Czibll | 989 | 989 (2024-02-21) | 989 (2024-12-04) |
+| nefcio | 938 | 938 (2024-01-04) | 1113 (2024-12-16) |
+| KenGuuu | 845 | 845 (2024-01-16) | 845 (2024-04-30) |
+
+Mean |today − rebuilt| over player-maps: 183 ELO.
 
 ## Calibration (default model vs E only)
 
 | Favourite's predicted chance | Maps (default) | Predicted | Won | Maps (E only) | Predicted | Won |
 |---|---|---|---|---|---|---|
-| 50.0 % – 55.0 % | 5 | 51.6 % | 60.0 % | 9 | 53.2 % | 55.6 % |
-| 55.0 % – 60.0 % | 8 | 57.0 % | 75.0 % | 7 | 58.3 % | 71.4 % |
-| 60.0 % – 70.0 % | 9 | 64.2 % | 55.6 % | 9 | 66.7 % | 44.4 % |
+| 50.0 % – 55.0 % | 5 | 51.5 % | 60.0 % | 9 | 53.2 % | 55.6 % |
+| 55.0 % – 60.0 % | 8 | 56.8 % | 75.0 % | 7 | 58.3 % | 71.4 % |
+| 60.0 % – 70.0 % | 9 | 64.0 % | 55.6 % | 9 | 66.7 % | 44.4 % |
 | 70.0 % – 100.0 % | 20 | 77.0 % | 70.0 % | 17 | 76.4 % | 76.5 % |
 
 ## How even were the real popflash teams
 
 Scored with the default model. Popflash teams were not balanced by any algorithm.
 
-- Mean imbalance of the real lineups: **17.4 pp** (median 17.9 pp, i.e. a 67.9 % favourite).
-- The engine's most even split for the same 10 players: mean 0.62 pp.
+- Mean imbalance of the real lineups: **17.3 pp** (median 17.4 pp, i.e. a 67.4 % favourite).
+- The engine's most even split for the same 10 players: mean 0.55 pp.
 - Median rank of the real lineup among the 126 splits: 43.5.
 - Maps where the real lineup was a clear mismatch (> 10 pp): 29; the favourite won 19 of them.
-- Round difference vs predicted gap (Spearman): 0.39.
+- Round difference vs predicted gap (Spearman): 0.41.
 
 ## What the terms did (default model)
 
@@ -70,7 +112,7 @@ Scored with the default model. Popflash teams were not balanced by any algorithm
 |---|---|---|---|---|
 | F (form) | 3.4 | -29 | 53 | 92 of 420 |
 | M (mix form) | 45.5 | -100 | 100 | 396 of 420 |
-| A (activity) | 16.4 | -60 | 15 | 361 of 420 |
+| A (activity) | 8.5 | -30 | 8 | 361 of 420 |
 
 Form status per player-map: no-recent-matches 303, ok 104, thin-baseline 13. F hit its clamp 0 times.
 
@@ -80,24 +122,24 @@ Players with at least 5 used maps. *Mixer Rating* is Mixer Rating 2 from popflas
 
 | Player | Maps | Mean S (default) | Mean E | Mixer Rating | Win % |
 |---|---|---|---|---|---|
-| smileyz | 25 | 2123 | 2042 | 1.53 | 64.0 % |
-| jawor | 11 | 1527 | 1510 | 1.33 | 63.6 % |
+| smileyz | 25 | 2129 | 2042 | 1.53 | 64.0 % |
+| jawor | 11 | 1534 | 1510 | 1.33 | 63.6 % |
 | fontek | 20 | 2245 | 2189 | 1.31 | 45.0 % |
-| CRACKH3AD | 24 | 1665 | 1582 | 1.29 | 54.2 % |
-| czopo (owner) | 42 | 1832 | 1797 | 1.20 | 52.4 % |
-| FadeClrs | 11 | 1278 | 1317 | 1.11 | 54.5 % |
-| coma | 20 | 1107 | 1126 | 1.10 | 50.0 % |
-| loownn | 35 | 1385 | 1389 | 1.08 | 31.4 % |
-| windxore | 13 | 1238 | 1277 | 1.07 | 53.8 % |
-| chelmut | 34 | 1409 | 1409 | 1.05 | 52.9 % |
-| lukasek_ | 7 | 1878 | 1866 | 1.00 | 28.6 % |
-| stan | 23 | 1405 | 1420 | 0.94 | 60.9 % |
-| janex | 42 | 1382 | 1414 | 0.91 | 40.5 % |
-| roevs | 37 | 1209 | 1248 | 0.87 | 56.8 % |
-| KenGuuu | 7 | 771 | 845 | 0.87 | 42.9 % |
-| IShoQ | 9 | 981 | 1052 | 0.82 | 22.2 % |
-| nefcio | 41 | 876 | 938 | 0.81 | 43.9 % |
-| Czibll | 5 | 906 | 989 | 0.50 | 0.0 % |
+| CRACKH3AD | 24 | 1661 | 1582 | 1.29 | 54.2 % |
+| czopo (owner) | 42 | 1827 | 1797 | 1.20 | 52.4 % |
+| FadeClrs | 11 | 1293 | 1317 | 1.11 | 54.5 % |
+| coma | 20 | 1115 | 1126 | 1.10 | 50.0 % |
+| loownn | 35 | 1387 | 1389 | 1.08 | 31.4 % |
+| windxore | 13 | 1246 | 1277 | 1.07 | 53.8 % |
+| chelmut | 34 | 1408 | 1409 | 1.05 | 52.9 % |
+| lukasek_ | 7 | 1889 | 1866 | 1.00 | 28.6 % |
+| stan | 23 | 1406 | 1420 | 0.94 | 60.9 % |
+| janex | 42 | 1378 | 1414 | 0.91 | 40.5 % |
+| roevs | 37 | 1206 | 1248 | 0.87 | 56.8 % |
+| KenGuuu | 7 | 791 | 845 | 0.87 | 42.9 % |
+| IShoQ | 9 | 983 | 1052 | 0.82 | 22.2 % |
+| nefcio | 41 | 871 | 938 | 0.81 | 43.9 % |
+| Czibll | 5 | 922 | 989 | 0.50 | 0.0 % |
 
 Spearman(mean S, Mixer Rating) = 0.77; Spearman(mean E, Mixer Rating) = 0.75.
 

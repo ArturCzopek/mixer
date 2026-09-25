@@ -20,6 +20,11 @@ export interface EloAt {
   elo: number;
   /** Queue matches undone between `at` and today: the uncertainty grows with it. */
   matchesWalkedBack: number;
+  /**
+   * False when the player had no FACEIT match before `at` (account made later): walking back would
+   * only reach the starting ELO of a new account, so `elo` is today's value instead.
+   */
+  rebuilt: boolean;
 }
 
 export function eloAt(
@@ -30,6 +35,8 @@ export function eloAt(
 ): EloAt {
   const step = opts.step ?? ELO_STEP;
   const queues = new Set(opts.queues ?? [EU_QUEUE]);
+  if (!results.some((r) => Date.parse(r.finishedAt) <= at.getTime()))
+    return { elo: eloNow, matchesWalkedBack: 0, rebuilt: false };
   let elo = eloNow;
   let n = 0;
   for (const r of results) {
@@ -43,5 +50,5 @@ export function eloAt(
     elo -= r.won ? step : -step;
     n++;
   }
-  return { elo: Math.max(ELO_FLOOR, elo), matchesWalkedBack: n };
+  return { elo: Math.max(ELO_FLOOR, elo), matchesWalkedBack: n, rebuilt: true };
 }

@@ -115,16 +115,28 @@ describe("ELO reconstruction", () => {
     expect(eloAt(2000, results, new Date("2024-05-01T00:00:00Z"))).toEqual({
       elo: 1975, // 2000 − 25 − 25 + 25
       matchesWalkedBack: 3,
+      rebuilt: true,
     });
     expect(eloAt(2000, results, new Date("2025-01-01T00:00:00Z")).elo).toBe(
       2000,
     );
   });
 
+  it("keeps today's ELO for a player whose account did not exist yet", () => {
+    expect(eloAt(1866, results, new Date("2023-06-01T00:00:00Z"))).toEqual({
+      elo: 1866,
+      matchesWalkedBack: 0,
+      rebuilt: false,
+    });
+  });
+
   it("never goes below the FACEIT floor", () => {
+    const first = r("2024-06-30T00:00:00Z", false);
     const wins = Array.from({ length: 100 }, (_, i) =>
       r(new Date(Date.UTC(2024, 6, 1 + i)).toISOString(), true),
     );
-    expect(eloAt(500, wins, new Date("2024-01-01T00:00:00Z")).elo).toBe(100);
+    expect(
+      eloAt(500, [first, ...wins], new Date("2024-06-30T12:00:00Z")).elo,
+    ).toBe(100);
   });
 });

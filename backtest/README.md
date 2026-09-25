@@ -37,8 +37,11 @@ For every popflash map, in date order:
 3. **Compare with the result.** Draws are skipped. Maps with a player who has no FACEIT account are
    skipped in the main table and included in a second table with a flat manual ELO of 1400.
 4. **Models** compared (`models()` in `evaluate.ts`): E only; E + F (symmetric / asymmetric);
-   E + A; E + F + A; E + F + 0.5·M without A; the default E + F + 0.5·M + A; M at weight 1;
-   E + 0.5·M; F at weight 2.
+   E + A; E + F + A; E + F + 0.5·M without A; E + F + 0.5·M + A; the default E + F + 0.5·M + 0.5·A
+   (D30); M at weight 1; E + 0.5·M; F at weight 2.
+5. **E today vs E rebuilt:** the same models with E rebuilt for the map's date
+   (`elo-history.ts`: walk back from today's ELO, ±25 per later EU-queue match; players whose
+   FACEIT account did not exist yet keep today's ELO).
 
 Metrics (`metrics.ts`):
 
@@ -95,12 +98,22 @@ Suggestions (owner decides; defaults unchanged):
   time is stored in `skill_snapshot` and the test becomes fair.
 - Re-run this backtest after every ~5 mixes on the app's own data (snapshots + results).
 
+### ELO rebuilt from results (2026-09-25)
+
+Rebuilding 2024 ELO from match results is **worse than using today's ELO** (E only: log-loss 0.694
+vs 0.634, the favourite won 55 % vs 64 %; mean difference 183 ELO). Walking back 300–800 matches with
+a flat ±25 drifts far (stan comes out at 1070 in Dec 2024, fontek at 1564), because FACEIT's real
+change per match depends on the teams' ELO gap. So: **keep today's ELO for this backtest**; a fair
+test of F and A needs the real ELO per match (FACEIT site API, local only, see Next steps) or our
+own mixes, where `skill_snapshot` stores E at balancing time.
+
 ## Next steps
 
-- **ELO at the time of a map.** Options: (a) from now on, the app stores E per mix in
-  `skill_snapshot`, which makes future backtests exact; (b) reconstruct 2024 ELO from FACEIT match
-  results walking back from today's ELO (±~25 per match, error grows with the number of matches);
-  (c) FACEIT's undocumented site API has ELO history, but it is not part of the Data API and may be
-  against its terms, so not used without the owner's OK.
+- **ELO at the time of a map.** (a) From now on the app stores E per mix in `skill_snapshot`, which
+  makes future backtests exact. (b) Rebuilt from results: tried, too noisy (above). (c) FACEIT's site
+  API (`api.faceit.com/stats/v1/stats/time/users/{id}/games/cs2`) has ELO per match; GitHub runners
+  are blocked there, so try it **locally**, keep the data out of git (owner: temporary use is fine),
+  then plug it into `inputAt` instead of `eloAt`. Leetify cannot help: it keeps ~100 recent matches
+  (from 2026-07) and no ELO per match.
 - Awards (M2-8) can be tried on the same popflash data (it has team flashes, wallbangs, no-scopes,
   clutches).
