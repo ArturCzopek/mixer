@@ -1,17 +1,28 @@
 // Illustrative data for the design preview (`/design/mix`). Real names and ELO from the recorded
 // fixtures; form numbers, votes and the result are made up. Replaced by DB data in M1-5..M1-7.
 
-import { faceitMatchRating } from "@/lib/balance/faceit-rating";
+import {
+  DEFAULT_BALANCE_CONFIG,
+  faceitMatchRating,
+  generateVariants,
+  skillScore,
+  type PlayerInput,
+  type SkillBreakdown,
+  type Variant,
+} from "@/lib/balance";
 
 export interface MockPlayer {
   steamId: string;
   name: string;
   avatar: string;
   level: number;
-  /** Skill score parts (docs/04): E FACEIT ELO, M mix form; F is derived from `form`. */
+  /** FACEIT ELO (E in docs/04). */
   E: number;
-  M: number;
-  form: { maps: number; recent: number; before: number };
+  /**
+   * Made-up FACEIT history fed to the real engine: `matches` in the last 30 days at rating `recent`,
+   * played over `sessions` evenings, and 30 older matches at `before` as the baseline.
+   */
+  form: { matches: number; sessions: number; recent: number; before: number };
 }
 
 const avatar = (hash: string) =>
@@ -24,8 +35,7 @@ export const players: Record<string, MockPlayer> = {
     avatar: avatar("31999d46685f965e7eedc9fe19174af090ba3de6"),
     level: 10,
     E: 2189,
-    M: 0,
-    form: { maps: 22, recent: 1.18, before: 1.12 },
+    form: { matches: 22, sessions: 8, recent: 1.18, before: 1.12 },
   },
   smiley: {
     steamId: "76561198004643533",
@@ -33,8 +43,7 @@ export const players: Record<string, MockPlayer> = {
     avatar: avatar("f55a27a898f5b4a904b6082336c5a400ad0745fc"),
     level: 10,
     E: 2042,
-    M: 0,
-    form: { maps: 9, recent: 1.02, before: 1.08 },
+    form: { matches: 0, sessions: 0, recent: 0, before: 1.08 },
   },
   czopo: {
     steamId: "76561197993187687",
@@ -42,8 +51,7 @@ export const players: Record<string, MockPlayer> = {
     avatar: avatar("d8a6babc2ce4607cbd84d1c8d0012ab306bf0a95"),
     level: 9,
     E: 1797,
-    M: 0,
-    form: { maps: 14, recent: 1.23, before: 1.02 },
+    form: { matches: 14, sessions: 5, recent: 1.23, before: 1.02 },
   },
   jawola: {
     steamId: "76561197990522246",
@@ -51,8 +59,7 @@ export const players: Record<string, MockPlayer> = {
     avatar: avatar("1df3535a6f4c9bcf76d310fff46700d18b98412c"),
     level: 7,
     E: 1510,
-    M: 0,
-    form: { maps: 31, recent: 0.97, before: 0.98 },
+    form: { matches: 31, sessions: 10, recent: 0.97, before: 0.98 },
   },
   stan: {
     steamId: "76561197976084038",
@@ -60,8 +67,7 @@ export const players: Record<string, MockPlayer> = {
     avatar: avatar("35dfb61aa54766bfb7e21c6e4c7c4be9e33746af"),
     level: 7,
     E: 1420,
-    M: 0,
-    form: { maps: 12, recent: 1.11, before: 1.02 },
+    form: { matches: 12, sessions: 4, recent: 1.11, before: 1.02 },
   },
   janex: {
     steamId: "76561197990797581",
@@ -69,8 +75,7 @@ export const players: Record<string, MockPlayer> = {
     avatar: avatar("08308f69be2b8778624c99b4cbd22b6129b48ba9"),
     level: 7,
     E: 1414,
-    M: 0,
-    form: { maps: 18, recent: 0.91, before: 1.0 },
+    form: { matches: 18, sessions: 6, recent: 0.91, before: 1.0 },
   },
   chelmut: {
     steamId: "76561198148296203",
@@ -78,8 +83,7 @@ export const players: Record<string, MockPlayer> = {
     avatar: avatar("a86d93098a6f1da4e576e770feb1b8b90b27dd83"),
     level: 7,
     E: 1409,
-    M: 0,
-    form: { maps: 6, recent: 1.08, before: 1.02 },
+    form: { matches: 6, sessions: 2, recent: 1.08, before: 1.02 },
   },
   windxore: {
     steamId: "76561198014771816",
@@ -87,8 +91,7 @@ export const players: Record<string, MockPlayer> = {
     avatar: avatar("c6a7db2b413531b5985235b14426883116581969"),
     level: 6,
     E: 1277,
-    M: 0,
-    form: { maps: 40, recent: 1.14, before: 0.97 },
+    form: { matches: 40, sessions: 12, recent: 1.14, before: 0.97 },
   },
   roevs: {
     steamId: "76561198063581077",
@@ -96,8 +99,7 @@ export const players: Record<string, MockPlayer> = {
     avatar: avatar("19c6fa0ba96030c8cc25130dca324362ee965212"),
     level: 6,
     E: 1248,
-    M: 0,
-    form: { maps: 11, recent: 0.95, before: 1.0 },
+    form: { matches: 11, sessions: 4, recent: 0.95, before: 1.0 },
   },
   coma: {
     steamId: "76561199126921648",
@@ -105,50 +107,75 @@ export const players: Record<string, MockPlayer> = {
     avatar: avatar("8dfe278c7493b6984540e57ecd57b791df13841e"),
     level: 5,
     E: 1126,
-    M: 0,
-    form: { maps: 3, recent: 1.06, before: 1.01 },
+    form: { matches: 3, sessions: 1, recent: 1.06, before: 1.01 },
   },
 };
 
-/** F from docs/04 with the default config (k = 10, beta = 500, max 150). */
-export function formBreakdown(p: MockPlayer) {
-  const { maps, recent, before } = p.form;
-  const ratio = recent / before;
-  const shrunk = (maps * ratio + 10) / (maps + 10);
-  const F = Math.round(Math.max(-150, Math.min(150, 500 * (shrunk - 1))));
-  return { ratio, shrunk, F };
+/** "Now" for the preview, so the made-up history always lands in the same windows. */
+export const NOW = new Date("2026-09-24T12:00:00Z");
+const HOUR = 3_600_000;
+
+/** Turns the made-up form numbers into the engine's input (FACEIT history with timestamps). */
+function toInput(p: MockPlayer): PlayerInput {
+  const { matches, sessions, recent, before } = p.form;
+  const at = (ms: number) => new Date(NOW.getTime() - ms).toISOString();
+  const history = [
+    // Recent matches, spread over `sessions` evenings two days apart, one hour between maps.
+    ...Array.from({ length: matches }, (_, i) => ({
+      finishedAt: at(((i % sessions) * 2 + 1) * 24 * HOUR + (i % 3) * HOUR),
+      rating: recent,
+    })),
+    // Baseline: 30 older matches, 45+ days ago.
+    ...Array.from({ length: 30 }, (_, i) => ({
+      finishedAt: at((45 + i) * 24 * HOUR),
+      rating: before,
+    })),
+  ];
+  return { steamId: p.steamId, faceitElo: p.E, faceit: { matches: history } };
 }
 
-export const skill = (p: MockPlayer) => p.E + formBreakdown(p).F + p.M;
+const breakdowns = new Map(
+  Object.values(players).map((pl) => [
+    pl.steamId,
+    skillScore(
+      toInput(pl),
+      { now: NOW, groupRating: null },
+      DEFAULT_BALANCE_CONFIG,
+    ),
+  ]),
+);
+
+/** The engine's full explanation of a player's S (M1-4b). */
+export const explain = (p: MockPlayer): SkillBreakdown =>
+  breakdowns.get(p.steamId)!;
+export const skill = (p: MockPlayer) => explain(p).S;
+export const config = DEFAULT_BALANCE_CONFIG;
 
 export interface MockVariant {
   number: number;
   teamA: MockPlayer[];
   teamB: MockPlayer[];
   votes: number;
+  /** The engine's variant: averages, win chance, cost split, duo status. */
+  engine: Variant;
 }
 
 const p = players;
-export const variants: MockVariant[] = [
-  {
-    number: 1,
-    votes: 4,
-    teamA: [p.fontek, p.jawola, p.stan, p.chelmut, p.roevs],
-    teamB: [p.smiley, p.czopo, p.janex, p.windxore, p.coma],
-  },
-  {
-    number: 2,
-    votes: 3,
-    teamA: [p.fontek, p.stan, p.janex, p.windxore, p.coma],
-    teamB: [p.smiley, p.czopo, p.jawola, p.chelmut, p.roevs],
-  },
-  {
-    number: 3,
-    votes: 2,
-    teamA: [p.fontek, p.jawola, p.janex, p.windxore, p.roevs],
-    teamB: [p.smiley, p.czopo, p.stan, p.chelmut, p.coma],
-  },
-];
+const bySteamId = new Map(Object.values(players).map((pl) => [pl.steamId, pl]));
+const generated = generateVariants({
+  players: [...breakdowns.values()],
+  config: DEFAULT_BALANCE_CONFIG,
+});
+/** Splits left after hard rules, for "rank x of n" in the explanation. */
+export const candidateCount = generated.candidateCount;
+const VOTES = [4, 3, 2];
+export const variants: MockVariant[] = generated.variants.map((v, i) => ({
+  number: i + 1,
+  votes: VOTES[i],
+  teamA: v.teamA.map((b) => bySteamId.get(b.steamId)!),
+  teamB: v.teamB.map((b) => bySteamId.get(b.steamId)!),
+  engine: v,
+}));
 
 /** Everyone in the mix, in join order (D28); `joinedAt` is local time on mix day. */
 export const participants: { player: MockPlayer; joinedAt: string }[] = [

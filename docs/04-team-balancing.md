@@ -21,8 +21,10 @@ S = wE·E + wF·F + wM·M + wA·A     # weights from config (D22): wE = 1, wF = 
 | **M**: mix form | How the player performs **in our mixes** | Our own mix stats (FACEIT import or demo) |
 | **A**: activity | Rust penalty / small bonus for regular play | Sessions in the last 30 days (FACEIT history + mix maps) |
 
-The engine returns every intermediate number with S (M1-4b), and the "How was this calculated?"
-panel shows each term as its own line: value, weight, contribution. The contributions add up to S.
+The engine returns every intermediate number with S (M1-4b, `SkillBreakdown` in `lib/balance/skill.ts`),
+and the "How was this calculated?" panel shows each term as its own line: value, weight, contribution.
+Each contribution `w·term` is rounded to whole ELO points and **S is their sum**, so the panel always
+adds up exactly. A weight of 0 switches a term off (it is still explained).
 
 ### F: recent FACEIT form
 

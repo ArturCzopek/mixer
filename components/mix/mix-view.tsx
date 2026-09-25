@@ -17,9 +17,12 @@ import {
 } from "@/components/vgui";
 import {
   byJoinOrder,
-  formBreakdown,
+  candidateCount,
+  config,
+  explain,
   lobby,
   mix,
+  players,
   result,
   skill,
   variants,
@@ -33,7 +36,6 @@ export type MixState = "lobby" | "voting" | "locked" | "played";
 
 const avg = (team: MockPlayer[]) =>
   Math.round(team.reduce((s, p) => s + skill(p), 0) / team.length);
-const winProbA = (a: number, b: number) => 1 / (1 + 10 ** ((b - a) / 400));
 
 export function MixView({ state }: { state: MixState }) {
   const [variantNo, setVariantNo] = React.useState(1);
@@ -282,9 +284,9 @@ function TeamList({
 }
 
 function Odds({ variant }: { variant: MockVariant }) {
-  const a = avg(variant.teamA);
-  const b = avg(variant.teamB);
-  const pa = Math.round(winProbA(a, b) * 100);
+  const a = Math.round(variant.engine.avgA);
+  const b = Math.round(variant.engine.avgB);
+  const pa = Math.round(variant.engine.winProbA * 100);
   return (
     <div className="mb-2 flex items-end justify-between">
       <div>
@@ -343,6 +345,11 @@ function VariantBody({
   );
 }
 
+const signed = (n: number) =>
+  n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : "0";
+const nameOf = (steamId: string) =>
+  Object.values(players).find((p) => p.steamId === steamId)?.name ?? steamId;
+
 function Explanation({
   player,
   variant,
@@ -350,12 +357,17 @@ function Explanation({
   player: MockPlayer;
   variant: MockVariant;
 }) {
-  const f = formBreakdown(player);
-  const a = avg(variant.teamA);
-  const b = avg(variant.teamB);
-  const pa = winProbA(a, b);
-  const imbalance = Math.abs(pa - 0.5) * 100;
-  const sign = (n: number) => (n > 0 ? `+${n}` : `${n}`);
+  const x = explain(player);
+  const w = x.weights;
+  const c = x.contributions;
+  const v = variant.engine;
+  const weighted = (weight: number, k: string) =>
+    weight === 1 ? k : `${weight}·${k}`;
+  const penalties = v.penalties.reduce((s, p) => s + p.pp, 0);
+  const duos = [
+    v.duos.top && (["Top", v.duos.top] as const),
+    v.duos.bottom && (["Bottom", v.duos.bottom] as const),
+  ].filter((d) => !!d);
   return (
     <details open className="group mt-2.5">
       <summary className="bevel bg-window flex cursor-pointer list-none items-center justify-between px-2 py-1.5 select-none">
@@ -369,30 +381,91 @@ function Explanation({
       </summary>
       <Well className="p-2">
         <p className="text-gold mb-1.5 text-[11px] font-bold">
-          S = E + F + M = {player.E} {f.F < 0 ? "−" : "+"} {Math.abs(f.F)} +{" "}
-          {player.M} = {skill(player)}
+          S = {weighted(w.elo, "E")} + {weighted(w.faceitForm, "F")} +{" "}
+          {weighted(w.mixForm, "M")} + {weighted(w.activity, "A")} = {c.E}{" "}
+          {[c.F, c.M, c.A].map((n) => (n < 0 ? `− ${-n} ` : `+ ${n} `))}= {x.S}
         </p>
-        <Term k="E" name="FACEIT ELO" value={player.E} />
+        <Term
+          k="E"
+          name="FACEIT ELO"
+          value={c.E}
+          note={
+            x.eSource === "faceit"
+              ? `Level ${player.level}, live from FACEIT`
+              : "No FACEIT account: the group admin's manual ELO"
+          }
+        />
         <Term
           k="F"
-          name="FACEIT form, last 30 days"
-          value={sign(f.F)}
-          note={`${player.form.maps} maps · rating ${player.form.recent.toFixed(2)} vs ${player.form.before.toFixed(2)} before · ratio ${f.ratio.toFixed(2)} → ${f.shrunk.toFixed(2)} after shrinkage (k = 10) · 500 × ${(f.shrunk - 1).toFixed(2)}`}
+          name={`FACEIT form, last ${config.form.windowDays} days`}
+          value={signed(c.F)}
+          note={formNote(x)}
         />
         <Term
           k="M"
-          name="Mix form"
-          value={player.M}
-          note="No mix maps with stats yet"
+          name={`Mix form${w.mixForm === 1 ? "" : ` · weight ${w.mixForm}`}`}
+          value={signed(c.M)}
+          note={
+            x.mix.status === "ok"
+              ? `${x.mix.maps} mix maps · Mixer Rating ${x.mix.playerRating!.toFixed(2)} vs group ${x.mix.groupRating!.toFixed(2)} → ${x.mix.shrunkRating!.toFixed(2)} after shrinkage`
+              : "No mix maps with stats yet"
+          }
+        />
+        <Term
+          k="A"
+          name={`Activity, last ${x.activity.windowDays} days`}
+          value={signed(c.A)}
+          note={activityNote(x)}
         />
         <p className="text-dim mt-2 text-[11px]">
-          Variant cost: {imbalance.toFixed(1)} pp imbalance + 0 pp rule
-          penalties. Lower is fairer; the three cheapest distinct splits are
+          Variant cost: {v.imbalance.toFixed(1)} pp imbalance + {penalties} pp
+          rule penalties = {v.cost.toFixed(1)}. Rank {v.rank} of{" "}
+          {candidateCount} possible splits; the three cheapest distinct ones are
           shown.
+          {duos.map(([label, d]) => (
+            <React.Fragment key={label}>
+              {" "}
+              {label} duo {nameOf(d.ids[0])} + {nameOf(d.ids[1])}{" "}
+              {d.split ? "play on opposite teams" : "play together"} ({d.mode}{" "}
+              rule).
+            </React.Fragment>
+          ))}
         </p>
       </Well>
     </details>
   );
+}
+
+function formNote(x: ReturnType<typeof explain>) {
+  const f = x.form;
+  const cfg = config.form;
+  if (f.status === "no-recent-matches")
+    return "No FACEIT matches in the window: no form, ELO only.";
+  if (f.status === "thin-baseline")
+    return `${f.matches} matches, but only ${f.baselineMatches} older ones for a baseline (needs ${cfg.minBaseline}): no form.`;
+  if (f.status === "invalid-baseline") return "No usable baseline rating.";
+  const cap = (hit: boolean) => (hit ? ` (capped at ±${cfg.max})` : "");
+  return [
+    `${f.matches} matches · rating ${f.windowRating!.toFixed(2)} vs ${f.baselineRating!.toFixed(2)} over ${f.baselineMatches} older ones`,
+    `ratio ${f.ratio!.toFixed(2)} → ${f.shrunkRatio!.toFixed(2)} after shrinkage (k = ${cfg.shrinkK})`,
+    `raw ${cfg.beta} × ${(f.shrunkRatio! - 1).toFixed(3)} = ${signed(Math.round(f.raw))}${cap(f.rawClamped)}`,
+    `× ${f.multiplier.toFixed(2)} for ${f.direction === "up" ? "good form" : "a slump"} at ${x.E} ELO${cap(f.clamped)}`,
+  ].join(" · ");
+}
+
+function activityNote(x: ReturnType<typeof explain>) {
+  const a = x.activity;
+  if (a.status === "no-data")
+    return "No FACEIT history: counts as 0, never a penalty.";
+  const sessions = `${a.sessions} ${a.sessions === 1 ? "session" : "sessions"} (evenings)`;
+  const last =
+    a.sessions === 0 && a.lastPlayedAt
+      ? ` · last played ${a.lastPlayedAt.slice(0, 10)}`
+      : "";
+  const anchors = config.activity.anchors;
+  const [first, top] = [anchors[0], anchors[anchors.length - 1]];
+  const neutral = anchors.find((n) => n.value === 0)?.sessions;
+  return `${sessions}${last} · ${neutral} a month is neutral, fewer costs up to ${signed(first.value)}, ${top.sessions}+ adds ${signed(top.value)}.`;
 }
 
 function Term({

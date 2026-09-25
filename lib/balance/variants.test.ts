@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { DEFAULT_BALANCE_CONFIG, resolveConfig } from "./config";
-import type { SkillBreakdown } from "./skill";
+import type { PreferredRole } from "./skill";
 import { enumerateSplits, splitDistance, splitKey } from "./splits";
 import {
   generateVariants,
@@ -12,23 +12,10 @@ import {
 
 const id = (n: number) => `7656119796000${String(n).padStart(4, "0")}`;
 
-function player(
-  n: number,
-  S: number,
-  extra: Partial<SkillBreakdown> = {},
-): SkillBreakdown {
-  return {
-    steamId: id(n),
-    E: S,
-    F: 0,
-    M: 0,
-    S,
-    eSource: "faceit",
-    formMatches: 0,
-    mixMaps: 0,
-    preferredRole: "any",
-    ...extra,
-  };
+type P = { steamId: string; S: number; preferredRole: PreferredRole };
+
+function player(n: number, S: number, extra: Partial<P> = {}): P {
+  return { steamId: id(n), S, preferredRole: "any", ...extra };
 }
 
 // Evenly spread skill (150 apart): no clear top or bottom duo.
@@ -39,8 +26,8 @@ const DUO_ELOS = [2700, 2650, 2400, 2300, 2200, 2100, 2000, 1900, 1650, 1600];
 const DUOS = DUO_ELOS.map((s, i) => player(i + 1, s));
 const withElos = (elos: number[]) => elos.map((s, i) => player(i + 1, s));
 
-const idsOf = (team: SkillBreakdown[]) => team.map((p) => p.steamId);
-const together = (v: Variant, a: string, b: string) =>
+const idsOf = (team: P[]) => team.map((p) => p.steamId);
+const together = (v: Variant<P>, a: string, b: string) =>
   idsOf(v.teamA).includes(a) === idsOf(v.teamA).includes(b);
 
 function allCandidates(players = TEN, config = DEFAULT_BALANCE_CONFIG) {
@@ -95,10 +82,7 @@ describe("generateVariants: pairing rules", () => {
   it("without a clear duo, no pair rule applies (all 126 splits)", () => {
     const { candidateCount, variants } = allCandidates(TEN);
     expect(candidateCount).toBe(126);
-    expect(variants[0].badges).toEqual({
-      topPairSplit: null,
-      bottomPairSplit: null,
-    });
+    expect(variants[0].duos).toEqual({ top: null, bottom: null });
   });
 
   it("splits both clear duos: 40 of 126 splits remain, all valid", () => {
@@ -107,7 +91,10 @@ describe("generateVariants: pairing rules", () => {
     for (const v of variants) {
       expect(together(v, id(1), id(2))).toBe(false);
       expect(together(v, id(9), id(10))).toBe(false);
-      expect(v.badges).toEqual({ topPairSplit: true, bottomPairSplit: true });
+      expect(v.duos).toEqual({
+        top: { ids: [id(1), id(2)], mode: "hard", split: true },
+        bottom: { ids: [id(9), id(10)], mode: "hard", split: true },
+      });
     }
   });
 
@@ -139,9 +126,9 @@ describe("generateVariants: pairing rules", () => {
     ]);
     const { candidateCount, variants } = allCandidates(bottom);
     expect(candidateCount).toBe(70);
-    expect(variants[0].badges).toEqual({
-      topPairSplit: null,
-      bottomPairSplit: true,
+    expect(variants[0].duos).toEqual({
+      top: null,
+      bottom: { ids: [id(9), id(10)], mode: "hard", split: true },
     });
   });
 
@@ -162,7 +149,7 @@ describe("generateVariants: pairing rules", () => {
     expect(violating.length).toBe(30); // 70 − the 40 that split both pairs
     for (const v of violating) {
       expect(v.penalties).toContainEqual({ rule: "topPair", pp: 3 });
-      expect(v.badges.topPairSplit).toBe(false);
+      expect(v.duos.top).toMatchObject({ mode: "soft", split: false });
       expect(v.cost).toBeCloseTo(100 * Math.abs(v.winProbA - 0.5) + 3);
     }
   });
@@ -313,7 +300,7 @@ describe("generateVariants: selection", () => {
     );
     // Every split is 50/50 and no duo exists: order falls back to the split key.
     expect(r1.variants[0].winProbA).toBe(0.5);
-    expect(r1.variants[0].badges.topPairSplit).toBeNull();
+    expect(r1.variants[0].duos.top).toBeNull();
   });
 
   it("re-roll never repeats a shown split, until candidates run out", () => {
@@ -355,5 +342,34 @@ describe("generateVariants: selection", () => {
     expect(() =>
       generateVariants({ players: dup, config: DEFAULT_BALANCE_CONFIG }),
     ).toThrow();
+  });
+});
+
+describe("generateVariants: explanation (M1-4b)", () => {
+  it("cost is exactly imbalance + the listed penalties", () => {
+    const config = resolveConfig({
+      rules: { topPair: { mode: "soft", weight: 3 } },
+    });
+    const { variants } = allCandidates(DUOS, config);
+    for (const v of variants) {
+      expect(v.imbalance).toBeCloseTo(100 * Math.abs(v.winProbA - 0.5));
+      expect(v.cost).toBe(
+        v.imbalance + v.penalties.reduce((s, p) => s + p.pp, 0),
+      );
+    }
+  });
+
+  it("rank is the position among all candidates by cost", () => {
+    const all = allCandidates(TEN);
+    expect(all.variants.map((v) => v.rank)).toEqual(
+      all.variants.map((_, i) => i + 1),
+    );
+    const { variants } = generateVariants({
+      players: TEN,
+      config: DEFAULT_BALANCE_CONFIG,
+    });
+    expect(variants[0].rank).toBe(1);
+    for (const v of variants)
+      expect(all.variants.find((c) => c.key === v.key)!.rank).toBe(v.rank);
   });
 });

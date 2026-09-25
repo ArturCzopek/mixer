@@ -1,6 +1,6 @@
 // Scoring splits and picking diverse variants (docs/04-team-balancing.md §2, §4–§6).
 
-import type { BalanceConfig, RuleConfig } from "./config";
+import type { BalanceConfig, RuleConfig, RuleMode } from "./config";
 import type { SkillBreakdown } from "./skill";
 import { enumerateSplits, splitDistance, splitKey, TEAM_SIZE } from "./splits";
 
@@ -12,30 +12,47 @@ export interface Penalty {
   pp: number;
 }
 
-export interface Variant {
+/** What the engine needs from a player; a full `SkillBreakdown` in practice. */
+export type RankedPlayer = Pick<
+  SkillBreakdown,
+  "steamId" | "S" | "preferredRole"
+>;
+
+/** A clear top or bottom duo (docs/04 §4) and whether this variant splits it. */
+export interface DuoStatus {
+  ids: [string, string];
+  mode: RuleMode;
+  split: boolean;
+}
+
+export interface Variant<P extends RankedPlayer = SkillBreakdown> {
   /** Mirror-independent split id, see `splitKey`. */
   key: string;
   /** Team with the highest-S player. Both teams are sorted by S descending. */
-  teamA: SkillBreakdown[];
-  teamB: SkillBreakdown[];
+  teamA: P[];
+  teamB: P[];
   avgA: number;
   avgB: number;
   /** avgA − avgB */
   gap: number;
   /** Probability that team A wins, 0..1. */
   winProbA: number;
-  /** Imbalance in pp + soft-rule penalties. Lower is better. */
+  /** 100 · |winProbA − 0.5|, in percentage points. */
+  imbalance: number;
+  /** imbalance + Σ penalties. Lower is better. */
   cost: number;
+  /** Soft-rule penalties in pp (hard rules filter candidates instead). */
   penalties: Penalty[];
-  /** Whether the clear top/bottom duo is split; null when there is no such duo. */
-  badges: {
-    topPairSplit: boolean | null;
-    bottomPairSplit: boolean | null;
-  };
+  /** 1-based position among all candidates sorted by cost. */
+  rank: number;
+  /** Clear duos and whether this split separates them; null when there is no such duo. */
+  duos: { top: DuoStatus | null; bottom: DuoStatus | null };
 }
 
-export interface GenerateVariantsInput {
-  players: SkillBreakdown[];
+export interface GenerateVariantsInput<
+  P extends RankedPlayer = SkillBreakdown,
+> {
+  players: P[];
   config: BalanceConfig;
   /** Both teams of the last mix's lineup; only used if it had the same 10 players. */
   previousSplit?: [string[], string[]];
@@ -43,8 +60,10 @@ export interface GenerateVariantsInput {
   excludedSplits?: string[][];
 }
 
-export interface GenerateVariantsResult {
-  variants: Variant[];
+export interface GenerateVariantsResult<
+  P extends RankedPlayer = SkillBreakdown,
+> {
+  variants: Variant<P>[];
   /** Splits left after hard rules and exclusions (40 with default rules). */
   candidateCount: number;
   /** True if `minDistance` had to be relaxed to fill all variants. */
@@ -59,21 +78,21 @@ export function winProbability(avgA: number, avgB: number): number {
 }
 
 /** Players sorted by S descending; ties broken by SteamID so the order is deterministic. */
-export function rankPlayers(
-  players: readonly SkillBreakdown[],
-): SkillBreakdown[] {
+export function rankPlayers<P extends RankedPlayer>(
+  players: readonly P[],
+): P[] {
   return [...players].sort(
     (a, b) =>
       b.S - a.S || (a.steamId < b.steamId ? -1 : a.steamId > b.steamId ? 1 : 0),
   );
 }
 
-const avg = (team: SkillBreakdown[]) =>
+const avg = (team: RankedPlayer[]) =>
   team.reduce((s, p) => s + p.S, 0) / team.length;
 
-export function generateVariants(
-  input: GenerateVariantsInput,
-): GenerateVariantsResult {
+export function generateVariants<P extends RankedPlayer>(
+  input: GenerateVariantsInput<P>,
+): GenerateVariantsResult<P> {
   const { config } = input;
   const ranked = rankPlayers(input.players);
   const ids = ranked.map((p) => p.steamId);
@@ -107,7 +126,7 @@ export function generateVariants(
       ? splitKey(input.previousSplit[0], ids)
       : null;
 
-  const candidates: Variant[] = [];
+  const candidates: Variant<P>[] = [];
   for (const [aIds, bIds] of enumerateSplits(ids)) {
     const key = splitKey(aIds, ids);
     if (excluded.has(key)) continue;
@@ -129,8 +148,8 @@ export function generateVariants(
       return true;
     };
 
-    const topPairSplit = topPair && split(topPair);
-    const bottomPairSplit = bottomPair && split(bottomPair);
+    const topPairSplit = topPair ? split(topPair) : null;
+    const bottomPairSplit = bottomPair ? split(bottomPair) : null;
     const awpInA = awpers.filter((id) => inA.has(id)).length;
     const awpUneven =
       awpers.length >= 2 && Math.abs(2 * awpInA - awpers.length) > 1;
@@ -147,8 +166,14 @@ export function generateVariants(
     const teamB = bIds.map((id) => byId.get(id)!);
     const [avgA, avgB] = [avg(teamA), avg(teamB)];
     const winProbA = winProbability(avgA, avgB);
-    const cost =
-      100 * Math.abs(winProbA - 0.5) + penalties.reduce((s, p) => s + p.pp, 0);
+    const imbalance = 100 * Math.abs(winProbA - 0.5);
+    const cost = imbalance + penalties.reduce((s, p) => s + p.pp, 0);
+    const duo = (
+      pair: readonly [string, string] | null,
+      splitNow: boolean | null,
+      cfg: RuleConfig,
+    ): DuoStatus | null =>
+      pair && { ids: [pair[0], pair[1]], mode: cfg.mode, split: !!splitNow };
 
     candidates.push({
       key,
@@ -158,11 +183,13 @@ export function generateVariants(
       avgB,
       gap: avgA - avgB,
       winProbA,
+      imbalance,
       cost,
       penalties,
-      badges: {
-        topPairSplit,
-        bottomPairSplit,
+      rank: 0,
+      duos: {
+        top: duo(topPair, topPairSplit, config.rules.topPair),
+        bottom: duo(bottomPair, bottomPairSplit, config.rules.bottomPair),
       },
     });
   }
@@ -174,6 +201,7 @@ export function generateVariants(
         ? -1
         : 1,
   );
+  candidates.forEach((c, i) => (c.rank = i + 1));
 
   const { chosen, relaxed } = pickDiverse(
     candidates,
@@ -184,9 +212,13 @@ export function generateVariants(
 }
 
 /** Greedy: best first, then the next best far enough from all chosen; relax to ≥1 if needed. */
-function pickDiverse(sorted: Variant[], count: number, minDistance: number) {
-  const chosen: Variant[] = [];
-  const ids = (v: Variant) => v.teamA.map((p) => p.steamId);
+function pickDiverse<P extends RankedPlayer>(
+  sorted: Variant<P>[],
+  count: number,
+  minDistance: number,
+) {
+  const chosen: Variant<P>[] = [];
+  const ids = (v: Variant<P>) => v.teamA.map((p) => p.steamId);
   const fill = (distance: number) => {
     for (const c of sorted) {
       if (chosen.length >= count) return;
