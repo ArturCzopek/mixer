@@ -148,3 +148,14 @@
     );
   }
 }
+
+/*
+ * Optional CS 1.6 backdrop (BackgroundToggle). The image is the owner's own screenshot at
+ * public/bg/cs16.jpg; without it the page keeps the plain olive ground. Dimmed so windows stay legible.
+ */
+html[data-bg="cs16"] body {
+  background:
+    linear-gradient(rgb(38 42 32 / 0.55), rgb(38 42 32 / 0.8)),
+    url("/bg/cs16.jpg") center / cover fixed,
+    var(--vg-ground);
+}

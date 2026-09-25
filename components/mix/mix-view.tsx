@@ -7,6 +7,7 @@ import * as React from "react";
 import Image from "next/image";
 import { ChevronDown, ChevronRight, ExternalLink, Lock } from "lucide-react";
 import {
+  BackgroundToggle,
   Badge,
   ListHead,
   Sheet,
@@ -47,7 +48,7 @@ export function MixView({ state }: { state: MixState }) {
   const count = state === "lobby" ? lobby.length : 10;
 
   return (
-    <div className="mx-auto flex w-full max-w-[460px] flex-1 flex-col pb-[76px] md:max-w-[520px]">
+    <div className="mx-auto flex w-full max-w-[460px] flex-1 flex-col pb-[76px] md:max-w-[760px] lg:max-w-[1180px]">
       <MenuBar />
       <div className="px-2">
         <Window
@@ -112,7 +113,8 @@ function MenuBar() {
       <a href="#" className="text-text truncate no-underline hover:underline">
         {mix.group}
       </a>
-      <span className="text-dim ml-auto flex items-center gap-1.5">
+      <BackgroundToggle className="ml-auto" />
+      <span className="text-dim ml-3 flex items-center gap-1.5">
         {mix.me.name}
         <Avatar player={mix.me} size={18} />
       </span>
@@ -227,25 +229,27 @@ function Lobby() {
         <span className="flex-1 pl-6">Player · join order</span>
         <span className="w-[46%]">Skill S</span>
       </ListHead>
-      {slots.map((p, i) =>
-        p ? (
-          <PlayerRow
-            key={p.player.steamId}
-            player={p.player}
-            index={i + 1}
-            joinedAt={p.joinedAt}
-          />
-        ) : (
-          <div
-            key={`free-${i}`}
-            className="border-row text-dim flex items-center gap-2 border-b px-1.5 py-1"
-          >
-            <span className="w-4 text-right text-[11px]">{i + 1}</span>
-            <span className="border-hi/60 inline-block size-5 border border-dashed" />
-            <span className="italic">free slot</span>
-          </div>
-        ),
-      )}
+      <div className="md:divide-row md:grid md:grid-flow-col md:grid-cols-2 md:grid-rows-5 md:divide-x">
+        {slots.map((p, i) =>
+          p ? (
+            <PlayerRow
+              key={p.player.steamId}
+              player={p.player}
+              index={i + 1}
+              joinedAt={p.joinedAt}
+            />
+          ) : (
+            <div
+              key={`free-${i}`}
+              className="border-row text-dim flex items-center gap-2 border-b px-1.5 py-1"
+            >
+              <span className="w-4 text-right text-[11px]">{i + 1}</span>
+              <span className="border-hi/60 inline-block size-5 border border-dashed" />
+              <span className="italic">free slot</span>
+            </div>
+          ),
+        )}
+      </div>
     </Well>
   );
 }
@@ -286,6 +290,46 @@ function TeamList({
   );
 }
 
+/** Team A and Team B: stacked on phones, side by side from md. */
+function Teams({
+  variant,
+  order,
+  focusId,
+  onFocus,
+}: {
+  variant: MockVariant;
+  order: "skill" | "join";
+  focusId?: string;
+  onFocus?: (id: string) => void;
+}) {
+  return (
+    <div className="grid gap-2.5 md:grid-cols-2">
+      {(
+        [
+          ["Team A", variant.teamA],
+          ["Team B", variant.teamB],
+        ] as const
+      ).map(([label, team]) => (
+        <Well key={label}>
+          <ListHead>
+            <span className="flex-1">
+              Player{onFocus ? " · tap for details" : ""}
+            </span>
+            <span className="w-[46%]">Skill S</span>
+          </ListHead>
+          <TeamList
+            label={label}
+            team={team}
+            order={order}
+            focusId={focusId}
+            onFocus={onFocus}
+          />
+        </Well>
+      ))}
+    </div>
+  );
+}
+
 function Odds({ variant }: { variant: MockVariant }) {
   const a = Math.round(variant.engine.avgA);
   const b = Math.round(variant.engine.avgB);
@@ -321,32 +365,22 @@ function VariantBody({
   const everyone = [...variant.teamA, ...variant.teamB];
   const focused = everyone.find((p) => p.steamId === focusId) ?? everyone[0];
   return (
-    <>
-      <Odds variant={variant} />
-      <Labels variant={variant} />
-      <Well>
-        <ListHead>
-          <span className="flex-1">Player · tap for details</span>
-          <span className="w-[46%]">Skill S</span>
-        </ListHead>
-        <TeamList
-          label="Team A"
-          team={variant.teamA}
+    <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-3">
+      <div>
+        <Odds variant={variant} />
+        <Labels variant={variant} />
+        <Teams
+          variant={variant}
           order="skill"
           focusId={focused.steamId}
           onFocus={onFocus}
         />
-        <TeamList
-          label="Team B"
-          team={variant.teamB}
-          order="skill"
-          focusId={focused.steamId}
-          onFocus={onFocus}
-        />
-      </Well>
-      <Explanation player={focused} variant={variant} />
-      <LeetifyCard player={focused} />
-    </>
+      </div>
+      <div className="lg:[&>details:first-child]:mt-0">
+        <Explanation player={focused} variant={variant} />
+        <LeetifyCard player={focused} />
+      </div>
+    </div>
   );
 }
 
@@ -661,13 +695,12 @@ function Tally() {
 
 function Locked({ variant }: { variant: MockVariant }) {
   return (
-    <div className="mt-2.5">
-      <Odds variant={variant} />
-      <Well>
-        <TeamList label="Team A" team={variant.teamA} order="join" />
-        <TeamList label="Team B" team={variant.teamB} order="join" />
-      </Well>
-      <Well className="mt-2.5 p-2">
+    <div className="mt-2.5 lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start lg:gap-3">
+      <div>
+        <Odds variant={variant} />
+        <Teams variant={variant} order="join" />
+      </div>
+      <Well className="mt-2.5 p-2 lg:mt-0">
         <p className="text-gold mb-1 flex items-center gap-1.5 font-bold">
           <Lock className="size-3.5" aria-hidden /> How to play
         </p>
@@ -688,8 +721,8 @@ function Played() {
   const map = result.maps.find((m) => m.map === pick);
   const rounds = result.maps.reduce((s, m) => s + m.a + m.b, 0);
   return (
-    <div className="mt-2.5">
-      <Well className="px-2 pt-2 pb-3 text-center">
+    <div className="mt-2.5 lg:grid lg:grid-cols-[360px_minmax(0,1fr)] lg:items-start lg:gap-3">
+      <Well className="px-2 pt-2 pb-3 text-center lg:py-6">
         <div className="text-dim text-[11px]">Maps won, Team A : Team B</div>
         <div className="text-gold text-[64px] leading-[1.05] font-bold tracking-[-0.04em]">
           {wonA}
@@ -713,23 +746,25 @@ function Played() {
           ))}
         </div>
       </Well>
-      <p className="text-dim mt-2.5 mb-1 px-0.5 text-[11px]">
-        {map ? (
-          <>
-            {map.map} ·{" "}
-            <b className="text-text">
-              {map.a} : {map.b}
-            </b>{" "}
-            · Team {map.a > map.b ? "A" : "B"} won · {map.a + map.b} rounds
-          </>
-        ) : (
-          <>
-            All {result.maps.length} maps · {rounds} rounds · ADR and MR
-            weighted by rounds
-          </>
-        )}
-      </p>
-      <Scoreboard lines={map ? map.lines : result.all} />
+      <div>
+        <p className="text-dim mt-2.5 mb-1 px-0.5 text-[11px] lg:mt-0">
+          {map ? (
+            <>
+              {map.map} ·{" "}
+              <b className="text-text">
+                {map.a} : {map.b}
+              </b>{" "}
+              · Team {map.a > map.b ? "A" : "B"} won · {map.a + map.b} rounds
+            </>
+          ) : (
+            <>
+              All {result.maps.length} maps · {rounds} rounds · ADR and MR
+              weighted by rounds
+            </>
+          )}
+        </p>
+        <Scoreboard lines={map ? map.lines : result.all} />
+      </div>
     </div>
   );
 }
@@ -857,7 +892,7 @@ function ActionBar({
 }) {
   return (
     <div className="border-hi bg-window fixed inset-x-0 bottom-0 border-t px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-      <div className="mx-auto flex max-w-[444px] gap-2 md:max-w-[504px]">
+      <div className="mx-auto flex max-w-[444px] gap-2 md:max-w-[744px] lg:max-w-[1164px] lg:justify-end lg:[&>button]:flex-none lg:[&>button]:basis-52">
         {state === "lobby" && (
           <>
             <VButton className="flex-1">Share</VButton>

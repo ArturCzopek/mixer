@@ -270,3 +270,8 @@ A sunken well at 11px dim, led by a 7px square indicator: gold while the mix is 
 - **Don't** introduce a second typeface or weights beyond 400 and 700.
 - **Don't** use gold for decoration or body copy. It marks the lead figure and the primary action.
 - **Don't** put small tracked uppercase captions above headings or readouts. Uppercase is reserved for column headers, team strips and badges.
+
+## Layout and backdrop (2026-09-25)
+
+- Phone first, but desktop uses the width: from `md` Team A and Team B sit side by side and the lobby shows two columns of five slots; from `lg` (container up to 1180 px) the explanation and Leetify panels move to a right column, the played view puts the score left and the scoreboard right, and the action bar right-aligns its buttons.
+- Optional **CS 1.6 backdrop** (`BackgroundToggle`, off by default, remembered per browser): `html[data-bg="cs16"]` shows `public/bg/cs16.jpg` dimmed under the windows. Without the file the ground stays plain olive. Windows stay opaque, so contrast does not change.

@@ -31,6 +31,7 @@ export function Window({
 }
 
 export { Tabs } from "./tabs";
+export { BackgroundToggle } from "./background-toggle";
 
 export function Well({ className, ...props }: React.ComponentProps<"div">) {
   return <div className={cn("sunk", className)} {...props} />;
