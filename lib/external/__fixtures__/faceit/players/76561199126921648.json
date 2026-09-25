@@ -8,21 +8,21 @@
     "steam": "STEAM_0:0:583327960"
   },
   "games": {
-    "cs2": {
-      "region": "EU",
-      "game_player_id": "76561199126921648",
-      "skill_level": 5,
-      "faceit_elo": 1126,
-      "game_player_name": "MRWHO",
-      "skill_level_label": "",
-      "regions": {},
-      "game_profile_id": ""
-    },
     "csgo": {
       "region": "EU",
       "game_player_id": "76561199126921648",
       "skill_level": 3,
       "faceit_elo": 1007,
+      "game_player_name": "MRWHO",
+      "skill_level_label": "",
+      "regions": {},
+      "game_profile_id": ""
+    },
+    "cs2": {
+      "region": "EU",
+      "game_player_id": "76561199126921648",
+      "skill_level": 5,
+      "faceit_elo": 1126,
       "game_player_name": "MRWHO",
       "skill_level_label": "",
       "regions": {},
@@ -52,7 +52,8 @@
     "1d6b8702-0cbb-470a-a6a4-54155749c716",
     "89d36d87-8f6b-49b9-8aeb-93938df6ba4e",
     "f9edcdc5-7b8f-4315-95de-d848f2a6fad6",
-    "c812dd9d-53b4-4012-80f7-236ba4db114d"
+    "c812dd9d-53b4-4012-80f7-236ba4db114d",
+    "9fa8bf0e-0ecd-4324-adc3-33eb09de0d7d"
   ],
   "new_steam_id": "[U:1:1166655920]",
   "steam_id_64": "76561199126921648",

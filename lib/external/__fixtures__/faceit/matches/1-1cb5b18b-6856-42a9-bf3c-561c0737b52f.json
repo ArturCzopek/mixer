@@ -166,20 +166,20 @@
           "guid": "de_dust2"
         },
         {
-          "game_map_id": "de_mirage",
-          "guid": "de_mirage",
           "image_lg": "https://assets.faceit-cdn.net/third_party/games/ce652bd4-0abb-4c90-9936-1133965ca38b/assets/votables/7fb7d725-e44d-4e3c-b557-e1d19b260ab8_1695819144685.jpeg",
           "image_sm": "https://assets.faceit-cdn.net/third_party/games/ce652bd4-0abb-4c90-9936-1133965ca38b/assets/votables/796b5b23-41e4-4387-a4a9-0d28c1c57456_1695819136505.jpeg",
           "name": "Mirage",
-          "class_name": "de_mirage"
+          "class_name": "de_mirage",
+          "game_map_id": "de_mirage",
+          "guid": "de_mirage"
         },
         {
+          "class_name": "de_nuke",
           "game_map_id": "de_nuke",
           "guid": "de_nuke",
           "image_lg": "https://assets.faceit-cdn.net/third_party/games/ce652bd4-0abb-4c90-9936-1133965ca38b/assets/votables/7197a969-81e4-4fef-8764-55f46c7cec6e_1695819158849.jpeg",
           "image_sm": "https://assets.faceit-cdn.net/third_party/games/ce652bd4-0abb-4c90-9936-1133965ca38b/assets/votables/15ff938d-a70d-4d0b-9bf9-6be215cdb193_1695819151395.jpeg",
-          "name": "Nuke",
-          "class_name": "de_nuke"
+          "name": "Nuke"
         },
         {
           "class_name": "de_ancient",
@@ -190,28 +190,28 @@
           "name": "Ancient"
         },
         {
+          "name": "Inferno",
           "class_name": "de_inferno",
           "game_map_id": "de_inferno",
           "guid": "de_inferno",
           "image_lg": "https://assets.faceit-cdn.net/third_party/games/ce652bd4-0abb-4c90-9936-1133965ca38b/assets/votables/993380de-bb5b-4aa1-ada9-a0c1741dc475_1695819220797.jpeg",
-          "image_sm": "https://assets.faceit-cdn.net/third_party/games/ce652bd4-0abb-4c90-9936-1133965ca38b/assets/votables/a2cb95be-1a3f-49f3-a5fa-a02503d02086_1695819214782.jpeg",
-          "name": "Inferno"
+          "image_sm": "https://assets.faceit-cdn.net/third_party/games/ce652bd4-0abb-4c90-9936-1133965ca38b/assets/votables/a2cb95be-1a3f-49f3-a5fa-a02503d02086_1695819214782.jpeg"
         },
         {
-          "image_sm": "https://assets.faceit-cdn.net/third_party/games/ce652bd4-0abb-4c90-9936-1133965ca38b/assets/votables/847a46ed-fbcc-4347-a64a-bc2d6a24be89_1695819226252.jpeg",
           "name": "Anubis",
           "class_name": "de_anubis",
           "game_map_id": "de_anubis",
           "guid": "de_anubis",
-          "image_lg": "https://assets.faceit-cdn.net/third_party/games/ce652bd4-0abb-4c90-9936-1133965ca38b/assets/votables/31f01daf-e531-43cf-b949-c094ebc9b3ea_1695819235255.jpeg"
+          "image_lg": "https://assets.faceit-cdn.net/third_party/games/ce652bd4-0abb-4c90-9936-1133965ca38b/assets/votables/31f01daf-e531-43cf-b949-c094ebc9b3ea_1695819235255.jpeg",
+          "image_sm": "https://assets.faceit-cdn.net/third_party/games/ce652bd4-0abb-4c90-9936-1133965ca38b/assets/votables/847a46ed-fbcc-4347-a64a-bc2d6a24be89_1695819226252.jpeg"
         },
         {
+          "name": "Cache",
           "class_name": "de_cache",
           "game_map_id": "de_cache",
           "guid": "de_cache",
           "image_lg": "https://assets.faceit-cdn.net/third_party/games/ce652bd4-0abb-4c90-9936-1133965ca38b/assets/votables/84fdec54-0c4b-424b-860d-7477495ea026_1741030140483.jpeg",
-          "image_sm": "https://assets.faceit-cdn.net/third_party/games/ce652bd4-0abb-4c90-9936-1133965ca38b/assets/votables/db483b30-8cbb-488f-8105-0b60c111cc9a_1741030130806.jpeg",
-          "name": "Cache"
+          "image_sm": "https://assets.faceit-cdn.net/third_party/games/ce652bd4-0abb-4c90-9936-1133965ca38b/assets/votables/db483b30-8cbb-488f-8105-0b60c111cc9a_1741030130806.jpeg"
         }
       ],
       "pick": [
@@ -231,8 +231,8 @@
   "results": {
     "winner": "faction2",
     "score": {
-      "faction1": 5,
-      "faction2": 13
+      "faction2": 13,
+      "faction1": 5
     }
   },
   "detailed_results": [
@@ -240,11 +240,11 @@
       "asc_score": false,
       "winner": "faction2",
       "factions": {
-        "faction1": {
-          "score": 5
-        },
         "faction2": {
           "score": 13
+        },
+        "faction1": {
+          "score": 5
         }
       }
     }

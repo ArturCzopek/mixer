@@ -45,3 +45,6 @@ next-env.d.ts
 *.dem
 *.dem.bz2
 *.dem.zst
+
+# IDE
+.idea/

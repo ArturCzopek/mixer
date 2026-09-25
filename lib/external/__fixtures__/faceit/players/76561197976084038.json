@@ -8,6 +8,16 @@
     "steam": "STEAM_1:0:7909155"
   },
   "games": {
+    "csgo": {
+      "region": "EU",
+      "game_player_id": "76561197976084038",
+      "skill_level": 4,
+      "faceit_elo": 1106,
+      "game_player_name": "stan",
+      "skill_level_label": "",
+      "regions": {},
+      "game_profile_id": ""
+    },
     "wot_EU": {
       "region": "EU",
       "game_player_id": "500954660",
@@ -22,17 +32,7 @@
       "region": "EU",
       "game_player_id": "76561197976084038",
       "skill_level": 7,
-      "faceit_elo": 1449,
-      "game_player_name": "stan",
-      "skill_level_label": "",
-      "regions": {},
-      "game_profile_id": ""
-    },
-    "csgo": {
-      "region": "EU",
-      "game_player_id": "76561197976084038",
-      "skill_level": 4,
-      "faceit_elo": 1106,
+      "faceit_elo": 1420,
       "game_player_name": "stan",
       "skill_level_label": "",
       "regions": {},
@@ -69,7 +69,8 @@
     "961593f2-c696-4afe-8ee7-ac5d95e661a1",
     "5cfba6a7-bb8a-434f-bb19-f739dff23511",
     "3fb9104d-2208-49d3-ad6d-bc867825ca2f",
-    "213e5c20-80ee-444a-890c-6ef9d0826091"
+    "213e5c20-80ee-444a-890c-6ef9d0826091",
+    "467388cf-8417-46c3-89e9-5b5891167c25"
   ],
   "new_steam_id": "[U:1:15818310]",
   "steam_id_64": "76561197976084038",
