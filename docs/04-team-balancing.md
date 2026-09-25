@@ -134,6 +134,11 @@ M       = clamp( γ · (r̂ − r̄_group), −M_max, +M_max )
 Defaults: `γ = 1000`, `M_max = 200`. Example: after 10 maps at 1.15 when the group average is 1.00,
 r̂ = 1.10, so M = +100 ELO. A player with no mix history gets M = 0.
 
+**Asymmetry (D32):** like F, the raw value `γ · (r̂ − r̄_group)` (clamped to ±M_max) is multiplied by
+m+(E) for good mix form and m−(E) for a slump, from `mix.asymmetry` (defaults equal to
+`form.asymmetry`: ≤1000 ELO ×1.5 / ×0.3, 1500 ×1.0 / ×0.45, ≥2000 ×0.1 / ×0.6). Example: +100 raw
+becomes +150 at 1000 ELO and +10 at 2000; −100 becomes −30 and −60.
+
 **Cold start:** until we have ~3 mixes with demos, M ≈ 0 for everyone and balancing is effectively FACEIT-only.
 
 ## 2. Win probability

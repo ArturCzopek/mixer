@@ -73,6 +73,13 @@ export interface MixExplanation {
   playerRating: number | null;
   groupRating: number | null;
   shrunkRating: number | null;
+  /** γ · (shrunk − group), clamped to ±max, before the ELO multiplier. */
+  raw: number;
+  rawClamped: boolean;
+  direction: "up" | "down";
+  /** m+(E) or m−(E) from `mix.asymmetry` (D32). */
+  multiplier: number;
+  /** Final ±max clamp hit after the multiplier. */
   clamped: boolean;
 }
 
@@ -265,10 +272,14 @@ export function activity(
   };
 }
 
-/** M: Mixer Rating over the last N mix maps vs the group average, shrunk toward the group. */
+/**
+ * M: Mixer Rating over the last N mix maps vs the group average, shrunk toward the group, then
+ * scaled by the multiplier for the player's ELO like F (D32).
+ */
 export function mixForm(
   player: PlayerInput,
   groupRating: number | null,
+  elo: number,
   cfg: BalanceConfig["mix"],
 ): MixExplanation {
   const ratings = (player.mixRatings ?? []).slice(0, cfg.maps);
@@ -280,6 +291,10 @@ export function mixForm(
     playerRating: n ? mean(ratings) : null,
     groupRating,
     shrunkRating: null,
+    raw: 0,
+    rawClamped: false,
+    direction: "up",
+    multiplier: formMultipliers(elo, cfg.asymmetry).up,
     clamped: false,
   };
   if (n === 0) return { ...base, status: "no-maps" };
@@ -288,8 +303,21 @@ export function mixForm(
   const shrunk =
     (n * mean(ratings) + cfg.shrinkK * groupRating) / (n + cfg.shrinkK);
   const unclamped = cfg.gamma * (shrunk - groupRating);
-  const M = clamp(unclamped, cfg.max);
-  return { ...base, M, shrunkRating: shrunk, clamped: M !== unclamped };
+  const raw = clamp(unclamped, cfg.max);
+  const direction = raw >= 0 ? "up" : "down";
+  const multiplier = formMultipliers(elo, cfg.asymmetry)[direction];
+  const scaled = raw * multiplier;
+  const M = clamp(scaled, cfg.max);
+  return {
+    ...base,
+    M,
+    shrunkRating: shrunk,
+    raw,
+    rawClamped: raw !== unclamped,
+    direction,
+    multiplier,
+    clamped: M !== scaled,
+  };
 }
 
 export function skillScore(
@@ -312,7 +340,7 @@ export function skillScore(
   }
 
   const form = faceitForm(player, E, ctx.now, config.form);
-  const mix = mixForm(player, ctx.groupRating, config.mix);
+  const mix = mixForm(player, ctx.groupRating, E, config.mix);
   const act = activity(player, ctx.now, config.activity);
   const w = config.weights;
   const contributions = {

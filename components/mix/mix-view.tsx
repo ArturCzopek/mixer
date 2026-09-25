@@ -740,7 +740,7 @@ function PlayerExplanation({
         value={signed(c.M)}
         note={
           x.mix.status === "ok"
-            ? `${x.mix.maps} mix maps · Mixer Rating ${x.mix.playerRating!.toFixed(2)} vs group ${x.mix.groupRating!.toFixed(2)} → ${x.mix.shrunkRating!.toFixed(2)} after shrinkage`
+            ? `${x.mix.maps} mix maps · Mixer Rating ${x.mix.playerRating!.toFixed(2)} vs group ${x.mix.groupRating!.toFixed(2)} → ${x.mix.shrunkRating!.toFixed(2)} after shrinkage · raw ${signed(Math.round(x.mix.raw))} × ${x.mix.multiplier.toFixed(2)} for ${x.mix.direction === "up" ? "good form" : "a slump"} at ${x.E} ELO${x.mix.clamped || x.mix.rawClamped ? ` (capped at ±${data.config.mix.max})` : ""}`
             : "No mix maps with stats yet"
         }
       />

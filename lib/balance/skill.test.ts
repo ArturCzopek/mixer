@@ -272,32 +272,36 @@ describe("mixForm (docs/04 shrinkage example)", () => {
   });
 
   it("10 maps at 1.15 vs group 1.00 gives +100 ELO", () => {
-    const m = mixForm(player(Array(10).fill(1.15)), 1.0, CFG.mix);
+    const m = mixForm(player(Array(10).fill(1.15)), 1.0, 1500, CFG.mix);
     expect(m.M).toBeCloseTo(100);
     expect(m.shrunkRating).toBeCloseTo(1.1);
   });
 
   it("uses only the last N maps (most recent first)", () => {
     const ratings = [...Array(10).fill(1.15), ...Array(10).fill(0.5)];
-    expect(mixForm(player(ratings), 1.0, CFG.mix)).toMatchObject({ maps: 10 });
-    expect(mixForm(player(ratings), 1.0, CFG.mix).M).toBeCloseTo(100);
+    expect(mixForm(player(ratings), 1.0, 1500, CFG.mix)).toMatchObject({
+      maps: 10,
+    });
+    expect(mixForm(player(ratings), 1.0, 1500, CFG.mix).M).toBeCloseTo(100);
   });
 
   it("is 0 with no mix history or no group data (cold start)", () => {
-    expect(mixForm(player([]), 1.0, CFG.mix)).toMatchObject({
+    expect(mixForm(player([]), 1.0, 1500, CFG.mix)).toMatchObject({
       M: 0,
       status: "no-maps",
     });
-    expect(mixForm(player([1.5]), null, CFG.mix)).toMatchObject({
+    expect(mixForm(player([1.5]), null, 1500, CFG.mix)).toMatchObject({
       M: 0,
       status: "no-group-data",
     });
   });
 
   it("is clamped to ±max", () => {
-    expect(mixForm(player(Array(10).fill(3)), 1.0, CFG.mix)).toMatchObject({
+    expect(
+      mixForm(player(Array(10).fill(3)), 1.0, 1500, CFG.mix),
+    ).toMatchObject({
       M: 200,
-      clamped: true,
+      rawClamped: true,
     });
   });
 });
@@ -367,5 +371,30 @@ describe("skillScore", () => {
   it("respects config overrides", () => {
     const cfg = resolveConfig({ form: { beta: 0 } });
     expect(skillScore(withForm(20, 1.3), ctx, cfg).F).toBe(0);
+  });
+});
+
+describe("mixForm asymmetry by ELO (D32)", () => {
+  const p = (ratings: number[]) => ({
+    steamId: "76561190000000001",
+    faceitElo: 1500,
+    mixRatings: ratings,
+  });
+  const good = p(Array(10).fill(1.15)); // raw +100 at a group average of 1.0
+  const bad = p(Array(10).fill(0.85)); // raw −100
+  it("strong players gain little from good mix form and lose more from a slump", () => {
+    expect(mixForm(good, 1.0, 2000, CFG.mix).M).toBeCloseTo(10);
+    expect(mixForm(bad, 1.0, 2000, CFG.mix).M).toBeCloseTo(-60);
+  });
+  it("weaker players gain more and lose less", () => {
+    expect(mixForm(good, 1.0, 1000, CFG.mix).M).toBeCloseTo(150);
+    expect(mixForm(bad, 1.0, 1000, CFG.mix).M).toBeCloseTo(-30);
+  });
+  it("explains raw value, direction and multiplier", () => {
+    expect(mixForm(bad, 1.0, 1500, CFG.mix)).toMatchObject({
+      direction: "down",
+      multiplier: 0.45,
+    });
+    expect(mixForm(bad, 1.0, 1500, CFG.mix).raw).toBeCloseTo(-100);
   });
 });

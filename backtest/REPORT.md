@@ -22,12 +22,12 @@ Log-loss and Brier: lower is better (coin flip = 0.693 / 0.250). *Fav. won*: how
 | E + F, asymmetric (D24) | 0.634 | 0.223 | 64.3 % (42) | 0.90 (0.634) | 0.0006 [-0.0041, 0.0049] | 41.6 % | 0.50 |
 | E + A | 0.641 | 0.225 | 64.3 % (42) | 0.85 (0.639) | 0.0074 [0.0006, 0.0142] | 3.4 % | 0.49 |
 | E + F + A | 0.642 | 0.225 | 64.3 % (42) | 0.85 (0.640) | 0.0081 [-0.0008, 0.0160] | 6.7 % | 0.49 |
-| E + F + 0.5·M (no A) | 0.633 | 0.223 | 64.3 % (42) | 0.85 (0.630) | -0.0012 [-0.0121, 0.0092] | 57.7 % | 0.51 |
-| E + F + 0.5·M + A (A at weight 1, D26) | 0.639 | 0.225 | 66.7 % (42) | 0.80 (0.636) | 0.0056 [-0.0062, 0.0171] | 23.6 % | 0.50 |
-| E + F + 0.5·M + 0.5·A (default, D30) | 0.636 | 0.224 | 66.7 % (42) | 0.80 (0.633) | 0.0022 [-0.0087, 0.0127] | 39.6 % | 0.50 |
-| E + F + 1·M + A | 0.641 | 0.226 | 66.7 % (42) | 0.75 (0.634) | 0.0067 [-0.0160, 0.0283] | 32.5 % | 0.49 |
-| E + 0.5·M | 0.633 | 0.223 | 64.3 % (42) | 0.80 (0.630) | -0.0014 [-0.0138, 0.0106] | 57.6 % | 0.50 |
-| E + 2·F (asym) + 0.5·M + A | 0.640 | 0.225 | 66.7 % (42) | 0.80 (0.637) | 0.0060 [-0.0054, 0.0177] | 23.9 % | 0.49 |
+| E + F + 0.5·M (no A) | 0.635 | 0.224 | 66.7 % (42) | 0.85 (0.634) | 0.0014 [-0.0064, 0.0087] | 37.7 % | 0.51 |
+| E + F + 0.5·M + A (A at weight 1, D26) | 0.642 | 0.226 | 64.3 % (42) | 0.80 (0.640) | 0.0086 [-0.0010, 0.0173] | 6.8 % | 0.50 |
+| E + F + 0.5·M + 0.5·A (default, D30) | 0.639 | 0.225 | 64.3 % (42) | 0.85 (0.637) | 0.0049 [-0.0030, 0.0124] | 16.2 % | 0.51 |
+| E + F + 1·M + A | 0.644 | 0.228 | 64.3 % (42) | 0.80 (0.641) | 0.0104 [-0.0059, 0.0258] | 15.6 % | 0.50 |
+| E + 0.5·M | 0.635 | 0.224 | 66.7 % (42) | 0.85 (0.633) | 0.0010 [-0.0074, 0.0094] | 41.4 % | 0.50 |
+| E + 2·F (asym) + 0.5·M + A | 0.643 | 0.227 | 64.3 % (42) | 0.80 (0.641) | 0.0092 [-0.0016, 0.0189] | 8.2 % | 0.49 |
 
 ### Same models with a manual ELO of 1400 for players without FACEIT
 
@@ -40,12 +40,12 @@ Players with no FACEIT account get a flat 1400, like a group admin's guess (D21)
 | E + F, asymmetric (D24) | 64 | 0.578 | 0.196 | 71.9 % |
 | E + A | 64 | 0.583 | 0.197 | 71.9 % |
 | E + F + A | 64 | 0.582 | 0.197 | 71.9 % |
-| E + F + 0.5·M (no A) | 64 | 0.568 | 0.192 | 71.4 % |
-| E + F + 0.5·M + A (A at weight 1, D26) | 64 | 0.572 | 0.194 | 73.0 % |
-| E + F + 0.5·M + 0.5·A (default, D30) | 64 | 0.570 | 0.193 | 73.0 % |
-| E + F + 1·M + A | 64 | 0.567 | 0.193 | 73.4 % |
-| E + 0.5·M | 64 | 0.569 | 0.193 | 71.4 % |
-| E + 2·F (asym) + 0.5·M + A | 64 | 0.572 | 0.193 | 73.0 % |
+| E + F + 0.5·M (no A) | 64 | 0.574 | 0.194 | 73.0 % |
+| E + F + 0.5·M + A (A at weight 1, D26) | 64 | 0.578 | 0.196 | 71.4 % |
+| E + F + 0.5·M + 0.5·A (default, D30) | 64 | 0.576 | 0.195 | 71.4 % |
+| E + F + 1·M + A | 64 | 0.575 | 0.195 | 71.9 % |
+| E + 0.5·M | 64 | 0.574 | 0.195 | 73.0 % |
+| E + 2·F (asym) + 0.5·M + A | 64 | 0.578 | 0.196 | 71.4 % |
 
 ## ELO at the time of the map (rebuilt) vs ELO today
 
@@ -59,10 +59,10 @@ E rebuilt by walking back from today's ELO over every later FACEIT queue match (
 | E + F, asymmetric (D24) | rebuilt | 0.697 | 0.252 | 54.8 % | 0.45 | 0.0623 [-0.0271, 0.1633] | 13.0 % |
 | E + A | today | 0.641 | 0.225 | 64.3 % | 0.85 | – | – |
 | E + A | rebuilt | 0.700 | 0.253 | 54.8 % | 0.45 | 0.0584 [-0.0321, 0.1598] | 14.8 % |
-| E + F + 0.5·M (no A) | today | 0.633 | 0.223 | 64.3 % | 0.85 | – | – |
-| E + F + 0.5·M (no A) | rebuilt | 0.685 | 0.246 | 59.5 % | 0.55 | 0.0521 [-0.0369, 0.1507] | 16.6 % |
-| E + F + 0.5·M + 0.5·A (default, D30) | today | 0.636 | 0.224 | 66.7 % | 0.80 | – | – |
-| E + F + 0.5·M + 0.5·A (default, D30) | rebuilt | 0.687 | 0.247 | 59.5 % | 0.55 | 0.0512 [-0.0379, 0.1505] | 17.0 % |
+| E + F + 0.5·M (no A) | today | 0.635 | 0.224 | 66.7 % | 0.85 | – | – |
+| E + F + 0.5·M (no A) | rebuilt | 0.687 | 0.247 | 54.8 % | 0.55 | 0.0520 [-0.0336, 0.1492] | 15.8 % |
+| E + F + 0.5·M + 0.5·A (default, D30) | today | 0.639 | 0.225 | 64.3 % | 0.85 | – | – |
+| E + F + 0.5·M + 0.5·A (default, D30) | rebuilt | 0.690 | 0.248 | 54.8 % | 0.50 | 0.0511 [-0.0348, 0.1482] | 16.2 % |
 
 | Player | ELO today | Rebuilt, first used map | Rebuilt, last used map |
 |---|---|---|---|
@@ -91,27 +91,27 @@ Mean |today − rebuilt| over player-maps: 183 ELO.
 
 | Favourite's predicted chance | Maps (default) | Predicted | Won | Maps (E only) | Predicted | Won |
 |---|---|---|---|---|---|---|
-| 50.0 % – 55.0 % | 5 | 51.5 % | 60.0 % | 9 | 53.2 % | 55.6 % |
-| 55.0 % – 60.0 % | 8 | 56.8 % | 75.0 % | 7 | 58.3 % | 71.4 % |
-| 60.0 % – 70.0 % | 9 | 64.0 % | 55.6 % | 9 | 66.7 % | 44.4 % |
-| 70.0 % – 100.0 % | 20 | 77.0 % | 70.0 % | 17 | 76.4 % | 76.5 % |
+| 50.0 % – 55.0 % | 9 | 52.1 % | 66.7 % | 9 | 53.2 % | 55.6 % |
+| 55.0 % – 60.0 % | 4 | 56.0 % | 50.0 % | 7 | 58.3 % | 71.4 % |
+| 60.0 % – 70.0 % | 12 | 65.8 % | 50.0 % | 9 | 66.7 % | 44.4 % |
+| 70.0 % – 100.0 % | 17 | 76.5 % | 76.5 % | 17 | 76.4 % | 76.5 % |
 
 ## How even were the real popflash teams
 
 Scored with the default model. Popflash teams were not balanced by any algorithm.
 
-- Mean imbalance of the real lineups: **17.3 pp** (median 17.4 pp, i.e. a 67.4 % favourite).
-- The engine's most even split for the same 10 players: mean 0.55 pp.
-- Median rank of the real lineup among the 126 splits: 43.5.
+- Mean imbalance of the real lineups: **16.3 pp** (median 17.6 pp, i.e. a 67.6 % favourite).
+- The engine's most even split for the same 10 players: mean 0.37 pp.
+- Median rank of the real lineup among the 126 splits: 48.
 - Maps where the real lineup was a clear mismatch (> 10 pp): 29; the favourite won 19 of them.
-- Round difference vs predicted gap (Spearman): 0.41.
+- Round difference vs predicted gap (Spearman): 0.39.
 
 ## What the terms did (default model)
 
 | Contribution | Mean abs. | Min | Max | Non-zero |
 |---|---|---|---|---|
 | F (form) | 3.4 | -29 | 53 | 92 of 420 |
-| M (mix form) | 45.5 | -100 | 100 | 396 of 420 |
+| M (mix form) | 19.3 | -41 | 100 | 393 of 420 |
 | A (activity) | 8.5 | -30 | 8 | 361 of 420 |
 
 Form status per player-map: no-recent-matches 303, ok 104, thin-baseline 13. F hit its clamp 0 times.
@@ -122,26 +122,26 @@ Players with at least 5 used maps. *Mixer Rating* is Mixer Rating 2 from popflas
 
 | Player | Maps | Mean S (default) | Mean E | Mixer Rating | Win % |
 |---|---|---|---|---|---|
-| smileyz | 25 | 2129 | 2042 | 1.53 | 64.0 % |
+| smileyz | 25 | 2045 | 2042 | 1.53 | 64.0 % |
 | jawor | 11 | 1534 | 1510 | 1.33 | 63.6 % |
-| fontek | 20 | 2245 | 2189 | 1.31 | 45.0 % |
-| CRACKH3AD | 24 | 1661 | 1582 | 1.29 | 54.2 % |
-| czopo (owner) | 42 | 1827 | 1797 | 1.20 | 52.4 % |
-| FadeClrs | 11 | 1293 | 1317 | 1.11 | 54.5 % |
-| coma | 20 | 1115 | 1126 | 1.10 | 50.0 % |
-| loownn | 35 | 1387 | 1389 | 1.08 | 31.4 % |
-| windxore | 13 | 1246 | 1277 | 1.07 | 53.8 % |
-| chelmut | 34 | 1408 | 1409 | 1.05 | 52.9 % |
-| lukasek_ | 7 | 1889 | 1866 | 1.00 | 28.6 % |
-| stan | 23 | 1406 | 1420 | 0.94 | 60.9 % |
-| janex | 42 | 1378 | 1414 | 0.91 | 40.5 % |
-| roevs | 37 | 1206 | 1248 | 0.87 | 56.8 % |
-| KenGuuu | 7 | 791 | 845 | 0.87 | 42.9 % |
-| IShoQ | 9 | 983 | 1052 | 0.82 | 22.2 % |
-| nefcio | 41 | 871 | 938 | 0.81 | 43.9 % |
-| Czibll | 5 | 922 | 989 | 0.50 | 0.0 % |
+| fontek | 20 | 2187 | 2189 | 1.31 | 45.0 % |
+| CRACKH3AD | 24 | 1650 | 1582 | 1.29 | 54.2 % |
+| czopo (owner) | 42 | 1812 | 1797 | 1.20 | 52.4 % |
+| FadeClrs | 11 | 1300 | 1317 | 1.11 | 54.5 % |
+| coma | 20 | 1121 | 1126 | 1.10 | 50.0 % |
+| loownn | 35 | 1398 | 1389 | 1.08 | 31.4 % |
+| windxore | 13 | 1261 | 1277 | 1.07 | 53.8 % |
+| chelmut | 34 | 1418 | 1409 | 1.05 | 52.9 % |
+| lukasek_ | 7 | 1866 | 1866 | 1.00 | 28.6 % |
+| stan | 23 | 1423 | 1420 | 0.94 | 60.9 % |
+| janex | 42 | 1404 | 1414 | 0.91 | 40.5 % |
+| roevs | 37 | 1236 | 1248 | 0.87 | 56.8 % |
+| KenGuuu | 7 | 815 | 845 | 0.87 | 42.9 % |
+| IShoQ | 9 | 1030 | 1052 | 0.82 | 22.2 % |
+| nefcio | 41 | 921 | 938 | 0.81 | 43.9 % |
+| Czibll | 5 | 958 | 989 | 0.50 | 0.0 % |
 
-Spearman(mean S, Mixer Rating) = 0.77; Spearman(mean E, Mixer Rating) = 0.75.
+Spearman(mean S, Mixer Rating) = 0.76; Spearman(mean E, Mixer Rating) = 0.75.
 
 ## Sensitivity: weights grid
 
@@ -149,9 +149,9 @@ Log-loss of the default model with other weights (rows: wF, columns: wM; wA = 1)
 
 | wF \ wM | 0 | 0.5 | 1 |
 |---|---|---|---|
-| 0 | 0.641 | 0.639 | 0.641 |
-| 0.5 | 0.642 | 0.639 | 0.641 |
-| 1 | 0.642 | 0.639 | 0.641 |
-| 1.5 | 0.642 | 0.640 | 0.641 |
-| 2 | 0.643 | 0.640 | 0.641 |
+| 0 | 0.641 | 0.642 | 0.644 |
+| 0.5 | 0.642 | 0.642 | 0.644 |
+| 1 | 0.642 | 0.642 | 0.644 |
+| 1.5 | 0.642 | 0.643 | 0.645 |
+| 2 | 0.643 | 0.643 | 0.645 |
 

@@ -47,7 +47,14 @@ export interface BalanceConfig {
     /** Sorted by `sessions`; linear between anchors, flat outside. */
     anchors: ActivityAnchor[];
   };
-  mix: { maps: number; shrinkK: number; gamma: number; max: number };
+  mix: {
+    maps: number;
+    shrinkK: number;
+    gamma: number;
+    max: number;
+    /** Like `form.asymmetry`, for mix form (D32): same idea, tuned separately. */
+    asymmetry: AsymmetryAnchor[];
+  };
   /**
    * A top (bottom) duo exists only when p1–p2 (p9–p10) are within `maxGap` of each other
    * and at least `minSeparation` away from p3 (p8). Only then do the pair rules apply.
@@ -88,7 +95,17 @@ export const DEFAULT_BALANCE_CONFIG: BalanceConfig = {
       { sessions: 6, value: 15 },
     ],
   },
-  mix: { maps: 10, shrinkK: 5, gamma: 1000, max: 200 },
+  mix: {
+    maps: 10,
+    shrinkK: 5,
+    gamma: 1000,
+    max: 200,
+    asymmetry: [
+      { elo: 1000, up: 1.5, down: 0.3 },
+      { elo: 1500, up: 1.0, down: 0.45 },
+      { elo: 2000, up: 0.1, down: 0.6 },
+    ],
+  },
   outlierPair: { maxGap: 100, minSeparation: 200 },
   rules: {
     topPair: { mode: "hard", weight: 3 },

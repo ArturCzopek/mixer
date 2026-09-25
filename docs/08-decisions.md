@@ -273,3 +273,11 @@ Owner wants a link to show the group a real example. `/demo` replays the popflas
 backtest fixtures): real players, lineup, map scores and per-player lines; join times and votes are
 made up and the page says so. It is a static JSON in the repo, served read-only; D25 still holds:
 no popflash data goes into any database.
+
+## D32. Mix form M uses the same ELO asymmetry as F, Accepted (2026-09-25)
+Owner: mix form should work like FACEIT form. A slump costs weaker players less and even slightly
+good form lifts them more; for top players the opposite. `mixForm` now scales its raw value by
+m+(E) / m−(E) from `config.mix.asymmetry` (same anchors as `form.asymmetry` by default, tuned
+separately). Backtest on the 2024 popflash maps: log-loss 0.633 → 0.635 for E + F + 0.5·M, well
+inside the noise (90 % CI of the difference includes 0), so this is a fairness choice the data
+neither supports nor rules out. Owner noted the spread between strong and weak players grows.
