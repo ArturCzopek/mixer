@@ -4,7 +4,7 @@
   "eloNow": 1510,
   "levelNow": 7,
   "window": {
-    "from": "2024-03-01T00:00:00.000Z",
+    "from": "2023-09-01T00:00:00.000Z",
     "to": "2025-01-31T00:00:00.000Z"
   },
   "stats": [
@@ -487,6 +487,97 @@
       "assists": 3,
       "rounds": 20,
       "adr": 87.7,
+      "won": false
+    },
+    {
+      "matchId": "1-96f39b29-2b46-4ce3-8d42-79c67216a929",
+      "finishedAt": "2024-02-20T18:44:58.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_inferno",
+      "kills": 13,
+      "deaths": 11,
+      "assists": 5,
+      "rounds": 20,
+      "adr": null,
+      "won": true
+    },
+    {
+      "matchId": "1-5c38eba7-0caa-4897-98db-9c4839b63dc0",
+      "finishedAt": "2024-02-17T00:24:15.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_inferno",
+      "kills": 13,
+      "deaths": 15,
+      "assists": 2,
+      "rounds": 21,
+      "adr": null,
+      "won": false
+    },
+    {
+      "matchId": "1-0782453d-223f-4997-975a-d00490f4567e",
+      "finishedAt": "2024-02-16T23:38:42.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_mirage",
+      "kills": 10,
+      "deaths": 14,
+      "assists": 4,
+      "rounds": 20,
+      "adr": null,
+      "won": false
+    },
+    {
+      "matchId": "1-41198557-588d-49da-a3d3-caf5244a52d7",
+      "finishedAt": "2024-02-16T22:58:07.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_nuke",
+      "kills": 15,
+      "deaths": 14,
+      "assists": 4,
+      "rounds": 23,
+      "adr": null,
+      "won": false
+    },
+    {
+      "matchId": "1-2f2bdfd4-c2e0-46b4-a4dc-875f0b2254f7",
+      "finishedAt": "2024-02-15T21:41:00.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_mirage",
+      "kills": 22,
+      "deaths": 15,
+      "assists": 4,
+      "rounds": 22,
+      "adr": null,
+      "won": true
+    },
+    {
+      "matchId": "1-3c4b1507-837e-4d72-b0f5-32a599ba4edb",
+      "finishedAt": "2023-12-31T00:06:39.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_mirage",
+      "kills": 17,
+      "deaths": 15,
+      "assists": 4,
+      "rounds": 20,
+      "adr": null,
+      "won": false
+    },
+    {
+      "matchId": "1-7255e530-6f96-4f67-82bd-b03486518fc2",
+      "finishedAt": "2023-11-19T00:25:33.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_nuke",
+      "kills": 17,
+      "deaths": 20,
+      "assists": 6,
+      "rounds": 30,
+      "adr": null,
       "won": false
     }
   ]

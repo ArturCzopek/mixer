@@ -1,35 +1,35 @@
 {
-  "recordedAt": "2026-09-25T15:27:05.265Z",
+  "recordedAt": "2026-09-25T15:35:30.846Z",
   "players": [
     {
       "steamId": "76561197993187687",
       "nickname": "czopo",
       "elo": 1797,
-      "stats": 300
+      "stats": 318
     },
     {
       "steamId": "76561197990797581",
       "nickname": "J4neX",
       "elo": 1414,
-      "stats": 300
+      "stats": 322
     },
     {
       "steamId": "76561198144253703",
       "nickname": "Nefcio",
       "elo": 938,
-      "stats": 246
+      "stats": 249
     },
     {
       "steamId": "76561198063581077",
       "nickname": "roevs",
       "elo": 1248,
-      "stats": 175
+      "stats": 178
     },
     {
       "steamId": "76561197999931838",
       "nickname": "loownn",
       "elo": 1389,
-      "stats": 159
+      "stats": 164
     },
     {
       "steamId": "76561197976084038",
@@ -41,19 +41,19 @@
       "steamId": "76561198004045444",
       "nickname": "CRACKH3AD",
       "elo": 1582,
-      "stats": 25
+      "stats": 34
     },
     {
       "steamId": "76561198004643533",
       "nickname": "sm1leyz",
       "elo": 2042,
-      "stats": 7
+      "stats": 10
     },
     {
       "steamId": "76561199126921648",
       "nickname": "mrhsmrcyg",
       "elo": 1126,
-      "stats": 27
+      "stats": 30
     },
     {
       "steamId": "76561197960551471",
@@ -88,7 +88,7 @@
       "steamId": "76561197990522246",
       "nickname": "jawOla21",
       "elo": 1510,
-      "stats": 37
+      "stats": 44
     },
     {
       "steamId": "76561198317971663",
@@ -100,7 +100,7 @@
       "steamId": "76561198015784703",
       "nickname": "IShoQ",
       "elo": 1052,
-      "stats": 6
+      "stats": 21
     },
     {
       "steamId": "76561198857565139",
@@ -123,13 +123,13 @@
       "steamId": "76561197995838560",
       "nickname": "Libra_XD",
       "elo": 1571,
-      "stats": 11
+      "stats": 14
     },
     {
       "steamId": "76561198049630339",
       "nickname": "bozenasz51",
       "elo": 1938,
-      "stats": 3
+      "stats": 8
     },
     {
       "steamId": "76561198065842803",
@@ -153,7 +153,7 @@
       "steamId": "76561198132232950",
       "nickname": "takash1ge",
       "elo": 2262,
-      "stats": 235
+      "stats": 495
     }
   ]
 }

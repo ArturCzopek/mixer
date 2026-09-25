@@ -4,7 +4,7 @@
   "eloNow": 1126,
   "levelNow": 5,
   "window": {
-    "from": "2024-03-01T00:00:00.000Z",
+    "from": "2023-09-01T00:00:00.000Z",
     "to": "2025-01-31T00:00:00.000Z"
   },
   "stats": [
@@ -358,6 +358,45 @@
       "rounds": 30,
       "adr": null,
       "won": true
+    },
+    {
+      "matchId": "1-48cc719a-c4fb-48fb-a304-4552ac4b92f3",
+      "finishedAt": "2023-11-05T21:09:43.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_ancient",
+      "kills": 29,
+      "deaths": 8,
+      "assists": 1,
+      "rounds": 18,
+      "adr": null,
+      "won": true
+    },
+    {
+      "matchId": "1-1a1cf859-4f1c-4843-8570-cdc986a0e758",
+      "finishedAt": "2023-11-05T20:33:23.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_overpass",
+      "kills": 17,
+      "deaths": 6,
+      "assists": 8,
+      "rounds": 13,
+      "adr": null,
+      "won": true
+    },
+    {
+      "matchId": "1-545becaa-829e-4b29-a91d-6eb58c99e98e",
+      "finishedAt": "2023-11-05T20:09:21.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_nuke",
+      "kills": 3,
+      "deaths": 16,
+      "assists": 3,
+      "rounds": 16,
+      "adr": null,
+      "won": false
     }
   ]
 }

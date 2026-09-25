@@ -4,7 +4,7 @@
   "eloNow": 1571,
   "levelNow": 8,
   "window": {
-    "from": "2024-03-01T00:00:00.000Z",
+    "from": "2023-09-01T00:00:00.000Z",
     "to": "2025-01-31T00:00:00.000Z"
   },
   "stats": [
@@ -150,6 +150,45 @@
       "rounds": 22,
       "adr": null,
       "won": true
+    },
+    {
+      "matchId": "1-d4e44eda-e803-433a-b0cb-5c3ffe24640c",
+      "finishedAt": "2024-01-02T21:42:59.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_vertigo",
+      "kills": 13,
+      "deaths": 17,
+      "assists": 6,
+      "rounds": 22,
+      "adr": null,
+      "won": false
+    },
+    {
+      "matchId": "1-e26a7191-98c1-4434-8740-fc66c8368ca3",
+      "finishedAt": "2024-01-02T20:59:49.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_vertigo",
+      "kills": 10,
+      "deaths": 14,
+      "assists": 4,
+      "rounds": 16,
+      "adr": null,
+      "won": false
+    },
+    {
+      "matchId": "1-5d73618c-9772-426a-9cdb-759917b43334",
+      "finishedAt": "2024-01-02T20:23:30.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_mirage",
+      "kills": 10,
+      "deaths": 18,
+      "assists": 5,
+      "rounds": 22,
+      "adr": null,
+      "won": false
     }
   ]
 }

@@ -4,7 +4,7 @@
   "eloNow": 1389,
   "levelNow": 7,
   "window": {
-    "from": "2024-03-01T00:00:00.000Z",
+    "from": "2023-09-01T00:00:00.000Z",
     "to": "2025-01-31T00:00:00.000Z"
   },
   "stats": [
@@ -2074,6 +2074,71 @@
       "rounds": 23,
       "adr": null,
       "won": false
+    },
+    {
+      "matchId": "1-48cc719a-c4fb-48fb-a304-4552ac4b92f3",
+      "finishedAt": "2023-11-05T21:09:43.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_ancient",
+      "kills": 15,
+      "deaths": 8,
+      "assists": 3,
+      "rounds": 18,
+      "adr": null,
+      "won": true
+    },
+    {
+      "matchId": "1-1a1cf859-4f1c-4843-8570-cdc986a0e758",
+      "finishedAt": "2023-11-05T20:33:23.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_overpass",
+      "kills": 10,
+      "deaths": 4,
+      "assists": 2,
+      "rounds": 13,
+      "adr": null,
+      "won": true
+    },
+    {
+      "matchId": "1-545becaa-829e-4b29-a91d-6eb58c99e98e",
+      "finishedAt": "2023-11-05T20:09:21.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_nuke",
+      "kills": 17,
+      "deaths": 12,
+      "assists": 1,
+      "rounds": 16,
+      "adr": null,
+      "won": false
+    },
+    {
+      "matchId": "1-eca8395e-ca6d-4cc4-b871-658a31ff0785",
+      "finishedAt": "2023-10-08T14:44:06.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_mirage",
+      "kills": 25,
+      "deaths": 20,
+      "assists": 8,
+      "rounds": 29,
+      "adr": null,
+      "won": false
+    },
+    {
+      "matchId": "1-c9fd86b3-e81c-4ccf-b67e-a442c67fa21f",
+      "finishedAt": "2023-10-08T13:46:34.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_mirage",
+      "kills": 14,
+      "deaths": 6,
+      "assists": 0,
+      "rounds": 18,
+      "adr": null,
+      "won": true
     }
   ]
 }
