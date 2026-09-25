@@ -49,14 +49,20 @@ flowchart LR
 
 ## Auth
 
-1. `GET /api/auth/steam` redirects to `https://steamcommunity.com/openid/login` with our return URL.
-2. `GET /api/auth/steam/callback` verifies the assertion server-side (`openid.mode=check_authentication`
-   back to Steam), then extracts the SteamID64 from `openid.claimed_id`.
-3. Upsert `players` by `steam_id` (claims an admin-created record if it exists), set a signed,
-   httpOnly session cookie (`jose` JWT: `player_id`, `steam_id`, `is_site_admin`, 30-day expiry).
-4. `players.is_site_admin` lives in the DB; the bootstrap site admin comes from the env var `ADMIN_STEAM_IDS`.
-   Group roles (`group_members.role`: `admin` / `member`) are read per request, not stored in the cookie,
-   so promotions and removals apply immediately.
+Implemented in M1-1 (`lib/auth/`):
+
+1. `GET /auth/steam` redirects to `https://steamcommunity.com/openid/login` with our return URL
+   (`APP_URL` in Production, the request's own origin on preview deploys) and an optional `next` path.
+2. `GET /auth/steam/callback` verifies the assertion (`lib/auth/openid.ts`): namespace, `id_res`,
+   Steam's `op_endpoint`, `return_to` = this callback, `claimed_id` = `identity` = a Steam profile URL,
+   the required fields signed, nonce younger than 5 min, then `check_authentication` back to Steam.
+3. Upsert `players` by `steam_id` (claims an admin-created record, no duplicate), refresh name and
+   avatar from the Steam Web API, set `is_site_admin` for SteamIDs in `ADMIN_STEAM_IDS` (never
+   demotes), set an httpOnly `SameSite=Lax` cookie `mixer_session`: HS256 JWT (`jose`) with only
+   `sub` = player id and `steamId`, 30 days.
+4. `getSession()` reads the cookie and loads the player **from the DB on every request**, so
+   `is_site_admin` and group roles (`requireGroupRole(groupId, 'admin' | 'member')`, active
+   memberships only) apply immediately. `POST /auth/logout` clears the cookie.
 
 Players who are not members of a group can log in but only get guest rights in that group until a
 group admin adds them (or the group has an open join link, later).
@@ -124,7 +130,7 @@ mixer/
     (public)/mixes/[id]/
     (public)/players/[steamId]/
     admin/
-    api/auth/steam/
+    auth/steam/            # login, callback; auth/logout
     api/mixes/
     api/matches/
     api/cron/keepalive/

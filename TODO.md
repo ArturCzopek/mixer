@@ -25,9 +25,11 @@ Task IDs refer to [docs/07-roadmap.md](docs/07-roadmap.md).
 - [ ] *(optional)* FACEIT developer terms: docs.faceit.com is blocked for Claude; D20 accepts the risk
       (we store only derived stats). If you see a clause against storing match stats, tell Claude.
 - [x] Vercel project created
-- [ ] Vercel env vars (**not needed yet**, only from the first preview deploy of M1-1 / P0-4): check which Supabase vars the integration
-      added, then add `FACEIT_API_KEY`, `STEAM_WEB_API_KEY`, `LEETIFY_API_KEY`, `ADMIN_STEAM_IDS=76561197993187687`,
-      `SESSION_SECRET` and `CRON_SECRET` (each: `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`), `APP_URL` (the Vercel URL).
+- [ ] **Vercel env vars (needed now: M1-1 login code is on `main`)**: check which Supabase vars the integration
+      added (`NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SECRET_KEY` are used), then add `STEAM_WEB_API_KEY`,
+      `ADMIN_STEAM_IDS=76561197993187687`, `SESSION_SECRET` and `CRON_SECRET` (each: `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`),
+      `FACEIT_API_KEY`, `LEETIFY_API_KEY`; `APP_URL` **only for Production** (previews use their own URL).
+      Then open a preview deploy, "Sign In Through Steam", and tell Claude whether you land back logged in as site admin.
       Keys shown only once can be regenerated (FACEIT App Studio, Steam dev page, Supabase API keys).
 - [ ] *(optional, for demo extras M4-6)* **S4 browser test:** once the demo spike page exists, run it
       locally (`npm run dev`), drop the demo `.dem` in the browser and note parse time + memory.
@@ -59,7 +61,7 @@ Task IDs refer to [docs/07-roadmap.md](docs/07-roadmap.md).
    labels, Leetify preview card, 5 maps with per-map scoreboards), **M1-4b** (engine explains every
    number: weights, ELO-based form asymmetry, activity A), **T-2 + T-1** (popflash export and the
    backtest module `backtest/`, findings in `backtest/README.md`). Next: **M1-1** (Steam login,
-   `is_site_admin` + group role guards), **M1-G** (groups UI, seed our group), P0-4.
+   `is_site_admin` + group role guards: code done, needs the owner's preview test), **M1-G** (groups UI, seed our group), P0-4.
    Live FACEIT data from the cloud: workflows **API spike** and **Backtest data** (`probe` / `popflash` / `faceit`).
 5. Before M1-9: **P0-6** separate prod Supabase project (current one becomes dev).
 6. Windows: the repo forces LF (`.gitattributes`); keep `core.autocrlf=false`.
