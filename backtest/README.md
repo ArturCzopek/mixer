@@ -107,6 +107,27 @@ change per match depends on the teams' ELO gap. So: **keep today's ELO for this 
 test of F and A needs the real ELO per match (FACEIT site API, local only, see Next steps) or our
 own mixes, where `skill_snapshot` stores E at balancing time.
 
+### Real ELO per map (local run, 2026-09-25)
+
+Real FACEIT ELO at every map (ELO after each match, from FACEIT's site API in a browser; kept in
+`backtest/.local/`, never committed; `npm run backtest:real-elo` → `backtest/.local/REPORT-real-elo.md`).
+Same 42 maps with FACEIT for all ten players:
+
+| Model | ELO today | ELO rebuilt (±25) | ELO real |
+|---|---|---|---|
+| E only | **0.634** | 0.694 | 0.695 |
+| E + F + 0.5·M (no A) | **0.633** | 0.685 | 0.684 |
+| Default (E + F + 0.5·M + 0.5·A) | **0.636** | 0.687 | 0.682 |
+
+(log-loss, lower is better; coin flip 0.693.) **Today's ELO predicts 2024 mixes better than the real
+2024 ELO did.** In 2024 many of us were far below our level on FACEIT (CS2 ELO was still climbing
+after the switch: e.g. czopo 961 → 1529 during 2024, 1797 today; janex 768–950 in 2024, 1414 today),
+so the ELO of the day under-rated players who already played at their later level in our mixes. Mean
+gap today vs real: 286 ELO; the ±25 rebuild was closer to real (222) but just as bad a predictor.
+Conclusion: keep FACEIT ELO **today** as E (what the app does anyway), and do not try to rebuild
+history. With real ELO the best Elo scale k is ~0.5 (predictions too confident), another sign that
+the ELO of the day was noisy for us.
+
 ## Next steps
 
 - **ELO at the time of a map.** (a) From now on the app stores E per mix in `skill_snapshot`, which

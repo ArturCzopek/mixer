@@ -72,12 +72,7 @@ push straight to `main`; run test, lint, typecheck, format:check and build befor
   `backtest/elo-history.ts`, ±25 per EU-queue match walked back from today's ELO).
 - Findings in `backtest/README.md`. Rebuilding 2024 ELO from results (±25) was **tried and is
   worse than today's ELO** (log-loss 0.694 vs 0.634), so the backtest keeps today's ELO for now.
-- **Local-only next step (owner OK'd using other sources temporarily):** FACEIT's site API has real
-  ELO per match (`https://api.faceit.com/stats/v1/stats/time/users/{faceit player_id}/games/cs2?page=0&size=100`,
-  field names unknown). GitHub runners are blocked there, a home IP probably is not. Keep such data
-  **out of git** (e.g. `backtest/.local/`, add to `.gitignore`), compare real vs rebuilt ELO, and
-  re-run the report. Leetify has only the last ~100 matches (from 2026-07) and no ELO per match:
-  useless for 2024.
+- **Done 2026-09-25 (local):** real FACEIT ELO per map from the site API (browser, `backtest/.local/`, not in git). Today's ELO predicts the 2024 mixes better than the real 2024 ELO (log-loss 0.634 vs 0.695): keep ELO today. Details in `backtest/README.md`.
 
 ### Next tasks, in order
 1. **M1-1** finish with the owner (env vars, local login, preview deploy test), tick it.
