@@ -27,7 +27,7 @@ Task IDs refer to [docs/07-roadmap.md](docs/07-roadmap.md).
 - [x] Vercel project created
 - [ ] Vercel env vars (**not needed yet**, only from the first preview deploy of M1-1 / P0-4): check which Supabase vars the integration
       added, then add `FACEIT_API_KEY`, `STEAM_WEB_API_KEY`, `LEETIFY_API_KEY`, `ADMIN_STEAM_IDS=76561197993187687`,
-      `SESSION_SECRET` and `CRON_SECRET` (each `openssl rand -base64 32`), `APP_URL` (the Vercel URL).
+      `SESSION_SECRET` and `CRON_SECRET` (each: `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`), `APP_URL` (the Vercel URL).
       Keys shown only once can be regenerated (FACEIT App Studio, Steam dev page, Supabase API keys).
 - [ ] *(optional, for demo extras M4-6)* **S4 browser test:** once the demo spike page exists, run it
       locally (`npm run dev`), drop the demo `.dem` in the browser and note parse time + memory.
