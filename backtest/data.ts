@@ -4,7 +4,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import type { MatchResult } from "./elo-history";
+import type { MatchResult, RealEloRow } from "./elo-history";
 
 const FIX = join(__dirname, "../lib/balance/__fixtures__");
 
@@ -79,6 +79,8 @@ export interface BacktestData {
   faceit: Map<string, FaceitHistory>;
   /** Every FACEIT result up to the recording day, for rebuilding ELO at a map (may be empty). */
   results: Map<string, FaceitResults>;
+  /** Real ELO history from backtest/.local/faceit-elo.json (local only, never committed); empty without it. */
+  realElo: Map<string, RealEloRow[]>;
 }
 
 const readJson = <T>(path: string): T =>
@@ -113,7 +115,18 @@ export function loadBacktestData(): BacktestData {
     if (!p.mergeInto)
       nameOf.set(id, p.who ?? faceit.get(id)?.nickname ?? p.name);
   }
+  const realElo = new Map<string, RealEloRow[]>();
+  const realFile = join(__dirname, ".local/faceit-elo.json");
+  if (existsSync(realFile))
+    for (const [id, rows] of Object.entries(
+      JSON.parse(readFileSync(realFile, "utf8")) as Record<
+        string,
+        RealEloRow[]
+      >,
+    ))
+      realElo.set(id, rows);
   return {
+    realElo,
     matches: [...matches].sort((a, b) => a.date.localeCompare(b.date)),
     steamIdOf,
     nameOf,

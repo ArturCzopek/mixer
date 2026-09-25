@@ -22,7 +22,7 @@ import type {
   PopflashLine,
   PopflashMatch,
 } from "./data";
-import { eloAt } from "./elo-history";
+import { eloAt, realEloAt } from "./elo-history";
 import { spearman, type Prediction } from "./metrics";
 
 export interface Model {
@@ -108,7 +108,7 @@ export function inputAt(
   data: BacktestData,
   earlier: PopflashMatch[],
   fallbackElo: number | null = null,
-  elo: "now" | "rebuilt" = "now",
+  elo: "now" | "rebuilt" | "real" = "now",
 ): PlayerInput | null {
   const h = data.faceit.get(steamId) ?? {
     eloNow: null,
@@ -131,10 +131,13 @@ export function inputAt(
     .filter((x) => x.line && x.line.rounds > 0)
     .reverse(); // most recent first
   const results = data.results.get(steamId);
+  const real = data.realElo.get(steamId);
   const faceitElo =
     elo === "rebuilt" && h.eloNow !== null && results
       ? eloAt(h.eloNow, results.results, at).elo
-      : h.eloNow;
+      : elo === "real" && real
+        ? (realEloAt(real, at) ?? h.eloNow)
+        : h.eloNow;
   return {
     steamId,
     faceitElo,
@@ -156,7 +159,7 @@ export function inputAt(
 export function evaluate(
   data: BacktestData,
   config: BalanceConfig,
-  opts: { fallbackElo?: number; elo?: "now" | "rebuilt" } = {},
+  opts: { fallbackElo?: number; elo?: "now" | "rebuilt" | "real" } = {},
 ): EvaluateResult {
   const maps: MapEval[] = [];
   const skipped: EvaluateResult["skipped"] = [];

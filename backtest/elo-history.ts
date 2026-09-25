@@ -52,3 +52,33 @@ export function eloAt(
   }
   return { elo: Math.max(ELO_FLOOR, elo), matchesWalkedBack: n, rebuilt: true };
 }
+
+/**
+ * One FACEIT match from the site's history (local-only data, backtest/.local/): finish time in
+ * seconds, ELO after the match, the change it made (null when unknown).
+ */
+export type RealEloRow = [
+  t: number,
+  eloAfter: number,
+  delta: number | null,
+  fiveVsFive: 0 | 1,
+  competition: string | null,
+];
+
+/**
+ * The player's real FACEIT ELO just before `at`: ELO after the last match before it, or, when the
+ * history starts later, ELO before the first match after it. Null without any row.
+ */
+export function realEloAt(rows: RealEloRow[], at: Date): number | null {
+  const t = at.getTime() / 1000;
+  let before: RealEloRow | null = null;
+  let after: RealEloRow | null = null;
+  for (const r of rows) {
+    if (r[0] < t) {
+      if (!before || r[0] > before[0]) before = r;
+    } else if (!after || r[0] < after[0]) after = r;
+  }
+  if (before) return before[1];
+  if (after) return after[1] - (after[2] ?? 0);
+  return null;
+}

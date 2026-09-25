@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_BALANCE_CONFIG } from "@/lib/balance";
 import { loadBacktestData } from "./data";
-import { EU_QUEUE, eloAt } from "./elo-history";
+import { realEloAt, type RealEloRow, EU_QUEUE, eloAt } from "./elo-history";
 import { evaluate, fitScale, inputAt, lineRating } from "./evaluate";
 import {
   brier,
@@ -138,5 +138,21 @@ describe("ELO reconstruction", () => {
     expect(
       eloAt(500, [first, ...wins], new Date("2024-06-30T12:00:00Z")).elo,
     ).toBe(100);
+  });
+});
+
+describe("realEloAt", () => {
+  const rows: RealEloRow[] = [
+    [Date.parse("2024-12-20T20:00:00Z") / 1000, 1520, 20, 1, null],
+    [Date.parse("2024-12-10T20:00:00Z") / 1000, 1500, -25, 1, null],
+  ];
+  it("takes the ELO after the last match before the moment", () => {
+    expect(realEloAt(rows, new Date("2024-12-15T00:00:00Z"))).toBe(1500);
+  });
+  it("uses the ELO before the first later match when nothing is earlier", () => {
+    expect(realEloAt(rows, new Date("2024-12-01T00:00:00Z"))).toBe(1525);
+  });
+  it("is null without history", () => {
+    expect(realEloAt([], new Date())).toBeNull();
   });
 });
