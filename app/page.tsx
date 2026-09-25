@@ -3,12 +3,14 @@ import Link from "next/link";
 import { VButton, Well, Window } from "@/components/vgui";
 import { getSession, type Session } from "@/lib/auth/server";
 
-const authConfigured = () =>
-  Boolean(
-    process.env.SESSION_SECRET &&
-    process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    process.env.SUPABASE_SECRET_KEY,
-  );
+/** Env vars login needs on the server. Only their names are ever shown, never values. */
+const AUTH_ENV = [
+  "SESSION_SECRET",
+  "NEXT_PUBLIC_SUPABASE_URL",
+  "SUPABASE_SECRET_KEY",
+] as const;
+const missingAuthEnv = () => AUTH_ENV.filter((name) => !process.env[name]);
+const authConfigured = () => missingAuthEnv().length === 0;
 
 export default async function Home({ searchParams }: PageProps<"/">) {
   const { login } = await searchParams;
@@ -29,7 +31,8 @@ export default async function Home({ searchParams }: PageProps<"/">) {
           <Account session={session} />
         ) : (
           <p className="text-dim mb-2 text-[11px]">
-            Login is not configured on this deployment.
+            Login is not configured on this deployment. Missing:{" "}
+            {missingAuthEnv().join(", ")}.
           </p>
         )}
         <Link
