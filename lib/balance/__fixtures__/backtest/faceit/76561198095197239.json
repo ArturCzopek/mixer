@@ -1,0 +1,64 @@
+{
+  "steamId": "76561198095197239",
+  "nickname": "daro5g",
+  "eloNow": 681,
+  "levelNow": 2,
+  "window": {
+    "from": "2024-03-01T00:00:00.000Z",
+    "to": "2025-01-31T00:00:00.000Z"
+  },
+  "stats": [
+    {
+      "matchId": "1-cdf6701d-e778-4721-afe6-a7f6a2e2040f",
+      "finishedAt": "2024-04-24T20:10:01.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_anubis",
+      "kills": 11,
+      "deaths": 18,
+      "assists": 6,
+      "rounds": 22,
+      "adr": null,
+      "won": false
+    },
+    {
+      "matchId": "1-f0ac236a-54cf-4852-b287-1163e0c245f5",
+      "finishedAt": "2024-04-24T19:26:51.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_overpass",
+      "kills": 17,
+      "deaths": 15,
+      "assists": 6,
+      "rounds": 21,
+      "adr": null,
+      "won": false
+    },
+    {
+      "matchId": "1-5a2f9e8e-c357-48f5-917c-5182d2680054",
+      "finishedAt": "2024-04-22T21:27:03.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_overpass",
+      "kills": 17,
+      "deaths": 12,
+      "assists": 7,
+      "rounds": 21,
+      "adr": null,
+      "won": true
+    },
+    {
+      "matchId": "1-250954a3-293e-4e23-befd-3399008c3892",
+      "finishedAt": "2024-04-22T20:43:07.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_inferno",
+      "kills": 8,
+      "deaths": 0,
+      "assists": 2,
+      "rounds": 7,
+      "adr": null,
+      "won": true
+    }
+  ]
+}

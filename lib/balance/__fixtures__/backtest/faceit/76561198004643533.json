@@ -1,0 +1,103 @@
+{
+  "steamId": "76561198004643533",
+  "nickname": "sm1leyz",
+  "eloNow": 2042,
+  "levelNow": 10,
+  "window": {
+    "from": "2024-03-01T00:00:00.000Z",
+    "to": "2025-01-31T00:00:00.000Z"
+  },
+  "stats": [
+    {
+      "matchId": "1-708363dc-93ad-4f25-b8cd-f6d6bf6b0206",
+      "finishedAt": "2024-12-03T20:52:59.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_inferno",
+      "kills": 12,
+      "deaths": 16,
+      "assists": 9,
+      "rounds": 21,
+      "adr": 82.1,
+      "won": true
+    },
+    {
+      "matchId": "1-a8ee5b0e-1bdd-4a16-84d6-77022ea51960",
+      "finishedAt": "2024-12-03T20:14:35.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_dust2",
+      "kills": 20,
+      "deaths": 14,
+      "assists": 2,
+      "rounds": 21,
+      "adr": 80.6,
+      "won": false
+    },
+    {
+      "matchId": "1-6ac8cd78-8601-42f7-8bda-3b11ada89db0",
+      "finishedAt": "2024-09-25T16:36:02.000Z",
+      "gameMode": "5v5",
+      "competitionId": "3c83c518-d2a8-475c-a32b-8f895255ac46",
+      "map": "de_inferno",
+      "kills": 5,
+      "deaths": 14,
+      "assists": 1,
+      "rounds": 14,
+      "adr": 43.8,
+      "won": false
+    },
+    {
+      "matchId": "1-ebf3240f-e5bb-4bac-99de-47987faa6b7e",
+      "finishedAt": "2024-05-19T21:08:33.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_nuke",
+      "kills": 14,
+      "deaths": 15,
+      "assists": 4,
+      "rounds": 18,
+      "adr": null,
+      "won": false
+    },
+    {
+      "matchId": "1-8dd76385-d91e-4c17-8f6a-c0e30225e43a",
+      "finishedAt": "2024-05-19T20:24:36.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_mirage",
+      "kills": 16,
+      "deaths": 6,
+      "assists": 6,
+      "rounds": 15,
+      "adr": null,
+      "won": true
+    },
+    {
+      "matchId": "1-4208f4f6-3de4-4d14-ab1b-ead610da72eb",
+      "finishedAt": "2024-05-19T19:39:20.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_inferno",
+      "kills": 8,
+      "deaths": 15,
+      "assists": 6,
+      "rounds": 18,
+      "adr": null,
+      "won": false
+    },
+    {
+      "matchId": "1-78f4e7d7-b675-4904-91a4-1f48e1c44800",
+      "finishedAt": "2024-05-19T18:53:05.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_anubis",
+      "kills": 30,
+      "deaths": 9,
+      "assists": 3,
+      "rounds": 18,
+      "adr": null,
+      "won": true
+    }
+  ]
+}

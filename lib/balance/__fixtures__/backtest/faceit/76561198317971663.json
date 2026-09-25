@@ -1,0 +1,116 @@
+{
+  "steamId": "76561198317971663",
+  "nickname": "KenGuuu",
+  "eloNow": 845,
+  "levelNow": 3,
+  "window": {
+    "from": "2024-03-01T00:00:00.000Z",
+    "to": "2025-01-31T00:00:00.000Z"
+  },
+  "stats": [
+    {
+      "matchId": "1-3a9ed52a-82f4-45bd-bc59-369ce441ce41",
+      "finishedAt": "2024-12-29T21:43:37.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_anubis",
+      "kills": 8,
+      "deaths": 13,
+      "assists": 4,
+      "rounds": 22,
+      "adr": 37,
+      "won": true
+    },
+    {
+      "matchId": "1-393cd5e6-98fc-4566-aad7-e5c8d86f6cd2",
+      "finishedAt": "2024-12-29T21:01:29.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_mirage",
+      "kills": 8,
+      "deaths": 11,
+      "assists": 8,
+      "rounds": 23,
+      "adr": 44.6,
+      "won": true
+    },
+    {
+      "matchId": "1-b847c350-9445-435d-ac5e-0d67bd30d7b3",
+      "finishedAt": "2024-12-29T20:18:31.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_anubis",
+      "kills": 5,
+      "deaths": 17,
+      "assists": 2,
+      "rounds": 19,
+      "adr": 39.5,
+      "won": false
+    },
+    {
+      "matchId": "1-504ca1a1-a569-4ac2-a5fa-5f47aa691c4c",
+      "finishedAt": "2024-08-01T20:59:03.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_mirage",
+      "kills": 13,
+      "deaths": 16,
+      "assists": 5,
+      "rounds": 24,
+      "adr": 61,
+      "won": true
+    },
+    {
+      "matchId": "1-44b089b2-ba4d-41ae-bf7f-de917c07e9e3",
+      "finishedAt": "2024-08-01T20:13:24.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_nuke",
+      "kills": 14,
+      "deaths": 16,
+      "assists": 7,
+      "rounds": 22,
+      "adr": 71.5,
+      "won": true
+    },
+    {
+      "matchId": "1-6308ab6f-154e-4c25-91b0-26760a5fb395",
+      "finishedAt": "2024-08-01T19:22:25.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_mirage",
+      "kills": 5,
+      "deaths": 14,
+      "assists": 0,
+      "rounds": 14,
+      "adr": 41.5,
+      "won": false
+    },
+    {
+      "matchId": "1-a750e3a3-41b8-4f65-ac0e-ec5aa316b2b5",
+      "finishedAt": "2024-06-20T20:43:00.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_vertigo",
+      "kills": 10,
+      "deaths": 17,
+      "assists": 5,
+      "rounds": 21,
+      "adr": 59,
+      "won": false
+    },
+    {
+      "matchId": "1-501c00ac-9442-463d-bab6-768292ecb7af",
+      "finishedAt": "2024-05-29T22:06:58.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_anubis",
+      "kills": 13,
+      "deaths": 33,
+      "assists": 8,
+      "rounds": 42,
+      "adr": null,
+      "won": true
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "steamId": "76561198049630339",
+  "nickname": "bozenasz51",
+  "eloNow": 1938,
+  "levelNow": 9,
+  "window": {
+    "from": "2024-03-01T00:00:00.000Z",
+    "to": "2025-01-31T00:00:00.000Z"
+  },
+  "stats": [
+    {
+      "matchId": "1-f2420f90-5c54-4ce8-9d70-65322d5c2090",
+      "finishedAt": "2024-08-12T18:27:52.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_mirage",
+      "kills": 20,
+      "deaths": 21,
+      "assists": 4,
+      "rounds": 24,
+      "adr": 79.7,
+      "won": false
+    },
+    {
+      "matchId": "1-92d32fc9-e56c-47b2-a525-ab9538f0e1d9",
+      "finishedAt": "2024-03-28T20:07:02.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_vertigo",
+      "kills": 18,
+      "deaths": 22,
+      "assists": 10,
+      "rounds": 34,
+      "adr": null,
+      "won": true
+    },
+    {
+      "matchId": "1-e0a97c73-c822-4f19-9266-ce5174b5a402",
+      "finishedAt": "2024-03-19T20:53:46.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_vertigo",
+      "kills": 16,
+      "deaths": 19,
+      "assists": 7,
+      "rounds": 22,
+      "adr": null,
+      "won": true
+    }
+  ]
+}

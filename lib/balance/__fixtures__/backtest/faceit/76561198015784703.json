@@ -1,0 +1,90 @@
+{
+  "steamId": "76561198015784703",
+  "nickname": "IShoQ",
+  "eloNow": 1052,
+  "levelNow": 5,
+  "window": {
+    "from": "2024-03-01T00:00:00.000Z",
+    "to": "2025-01-31T00:00:00.000Z"
+  },
+  "stats": [
+    {
+      "matchId": "1-57ab0409-8219-4bac-99b4-7e98e35f82dd",
+      "finishedAt": "2024-04-21T18:52:00.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_vertigo",
+      "kills": 7,
+      "deaths": 15,
+      "assists": 1,
+      "rounds": 19,
+      "adr": null,
+      "won": false
+    },
+    {
+      "matchId": "1-ad7b9134-789e-4f26-8d9b-fc44f36e6f34",
+      "finishedAt": "2024-04-21T18:15:21.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_inferno",
+      "kills": 13,
+      "deaths": 18,
+      "assists": 3,
+      "rounds": 22,
+      "adr": null,
+      "won": false
+    },
+    {
+      "matchId": "1-764cb56e-26e1-4b32-b307-ea84eeba7a2c",
+      "finishedAt": "2024-04-21T12:11:05.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_mirage",
+      "kills": 16,
+      "deaths": 14,
+      "assists": 0,
+      "rounds": 18,
+      "adr": null,
+      "won": false
+    },
+    {
+      "matchId": "1-c4ac9578-559e-4b8c-923c-3092422b4fc8",
+      "finishedAt": "2024-04-21T11:27:54.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_vertigo",
+      "kills": 12,
+      "deaths": 15,
+      "assists": 1,
+      "rounds": 21,
+      "adr": null,
+      "won": false
+    },
+    {
+      "matchId": "1-bc2cc0d9-c4a2-4bd1-801c-a82d09e6793a",
+      "finishedAt": "2024-03-30T14:18:10.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_mirage",
+      "kills": 11,
+      "deaths": 15,
+      "assists": 5,
+      "rounds": 21,
+      "adr": null,
+      "won": true
+    },
+    {
+      "matchId": "1-0a9bab58-83c5-4adf-a5ff-c81bc25eee5c",
+      "finishedAt": "2024-03-28T19:14:56.000Z",
+      "gameMode": "5v5",
+      "competitionId": "f4148ddd-bce8-41b8-9131-ee83afcdd6dd",
+      "map": "de_inferno",
+      "kills": 10,
+      "deaths": 13,
+      "assists": 3,
+      "rounds": 15,
+      "adr": null,
+      "won": false
+    }
+  ]
+}
