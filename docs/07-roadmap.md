@@ -41,9 +41,9 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done
 | [ ] **M1-8** | Public read-only pages: mixes list, mix page (any state), roster; nav, empty states, mobile layout | M1-7 | Logged-out user can view everything, sees no action buttons; works at 375 px width |
 | [ ] **P0-6** | Separate **prod** Supabase project (the current one stays as dev): create it, run migrations, point Vercel Production env at it and Preview/local at dev; `DB migrate` workflow migrates both (dev on push, prod on push to main after dev succeeds) | P0-4 | Prod project has all migrations; a preview deploy never touches prod data |
 | [ ] **M1-9** 👤 | **Release MVP**: production deploy, owner adds roster, dry-run mix with the group | M1-8, P0-6 | One real mix balanced + voted in the app |
-| [ ] **T-1** *(parallel)* | Balancing backtest: fixtures from real mixes (FACEIT profiles, real lineups, results) → report where real split ranks. Data source: our old **popflash** club (`popflash.site/-/skarpeciarze-i-pantofle/matches`, 71 maps Oct–Dec 2024, per map lineups + K/A/D/ADR/KAST/FK/FD, see T-2). Assumption (owner, 2026-09-25): everyone's ELO then = FACEIT ELO now | M1-4, T-2 | Fixtures in `lib/balance/__fixtures__/` run as tests; short findings note in `docs/04` |
+| [x] **T-1** *(parallel)* | Balancing backtest: fixtures from real mixes (FACEIT profiles, real lineups, results) → report where real split ranks. Data source: our old **popflash** club (`popflash.site/-/skarpeciarze-i-pantofle/matches`, 71 maps Oct–Dec 2024, per map lineups + K/A/D/ADR/KAST/FK/FD, see T-2). Assumption (owner, 2026-09-25): everyone's ELO then = FACEIT ELO now | M1-4, T-2 | Fixtures in `lib/balance/__fixtures__/` run as tests; short findings note in `docs/04`. **Done:** module `backtest/` (`npm run backtest`, method in `backtest/README.md`), findings in docs/04 |
 
-| [ ] **T-2** *(parallel)* | Popflash history export: one-off local script (polite, ~80 pages) → `lib/balance/__fixtures__/popflash/*.json` (map, score, date, both lineups with per-player stats); player → SteamID64 mapping already in `popflash/players.json` (27 players, from profile pages; second accounts via `mergeInto`) | – | JSON for all 71 matches; players resolved through `players.json`. **Tests only (D25):** never imported into any database; players may be added to the group, match history may not |
+| [x] **T-2** *(parallel)* | Popflash history export: `scripts/backtest-data.mjs popflash` via the **Backtest data** workflow (popflash blocks the sandbox) → `lib/balance/__fixtures__/popflash/*.json` (map, score, date, both lineups with per-player stats); player → SteamID64 mapping already in `popflash/players.json` (27 players, from profile pages; second accounts via `mergeInto`) | – | JSON for all 71 matches; players resolved through `players.json`. **Tests only (D25):** never imported into any database; players may be added to the group, match history may not |
 
 ## Phase 2: results & stats (FACEIT-first, see D17)
 
@@ -155,7 +155,7 @@ P0-2 → S3 → M1-2 → M1-3
 M1-9 → M2-1 → M2-7 (manual results) → M2-2 → M2-3 → M2-4 (stats from FACEIT)
 ```
 
-**Unblocked right now (no owner input needed):** T-2, T-1 (backtest, after T-2), M1-1 (Steam login; preview deploy needs the Vercel env vars), M1-G, P0-4.
+**Unblocked right now (no owner input needed):** M1-1 (Steam login; preview deploy needs the Vercel env vars), M1-G, P0-4.
 **Where keys live:** GitHub Actions secrets (used by the `API spike` / `DB migrate` workflows) and Vercel. The cloud sandbox has none and cannot reach `open.faceit.com` (Cloudflare challenge), so live FACEIT calls always go through a workflow or a deploy.
 **Owner inputs that unblock the rest:** FACEIT Club + one mix (S5), confirming the popflash → Steam mapping (T-2).
 

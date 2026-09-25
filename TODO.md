@@ -55,10 +55,11 @@ Task IDs refer to [docs/07-roadmap.md](docs/07-roadmap.md).
      (≥ 8/10 participants, 6 h window, admin confirms), demos only as links + in-browser parse,
      lists in **join order**, no duo badges, results for **N maps**, Worms-style awards (M2-8),
      Leetify preview card (M3-2), per-group on/off per term (M4-7).
-4. Done: **M1-2** (`lib/external/`), **UI-0** (VGUI look, preview at `/design/mix`; join order, no duo
-   badges, 5 maps with per-map scoreboards), **M1-4b** (engine explains every number: weights, ELO-based
-   form asymmetry, activity A; the preview runs on the real engine). Next: **M1-1** (Steam login,
-   `is_site_admin` + group role guards), **M1-G** (groups UI, seed our group), P0-4. **T-2** (popflash
-   export) can run any time, then **T-1** backtest (tune the asymmetry / activity anchors on real mixes).
+4. Done: **M1-2** (`lib/external/`), **UI-0** (VGUI look, preview at `/design/mix`; join order, variant
+   labels, Leetify preview card, 5 maps with per-map scoreboards), **M1-4b** (engine explains every
+   number: weights, ELO-based form asymmetry, activity A), **T-2 + T-1** (popflash export and the
+   backtest module `backtest/`, findings in `backtest/README.md`). Next: **M1-1** (Steam login,
+   `is_site_admin` + group role guards), **M1-G** (groups UI, seed our group), P0-4.
+   Live FACEIT data from the cloud: workflows **API spike** and **Backtest data** (`probe` / `popflash` / `faceit`).
 5. Before M1-9: **P0-6** separate prod Supabase project (current one becomes dev).
 6. Windows: the repo forces LF (`.gitattributes`); keep `core.autocrlf=false`.

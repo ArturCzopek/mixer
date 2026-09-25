@@ -15,13 +15,20 @@ export interface FaceitMatchStats {
 export const ASSUMED_KAST = 72;
 
 export function faceitMatchRating(s: FaceitMatchStats): number {
+  return mixerRating2({ ...s, kastPct: ASSUMED_KAST });
+}
+
+/** Mixer Rating 2 (docs/05 "Rating") with a real KAST %, e.g. from a demo or popflash. */
+export function mixerRating2(
+  s: FaceitMatchStats & { kastPct: number },
+): number {
   if (s.rounds <= 0) throw new Error("rounds must be > 0");
   const kpr = s.kills / s.rounds;
   const dpr = s.deaths / s.rounds;
   const apr = s.assists / s.rounds;
   const impact = 2.13 * kpr + 0.42 * apr - 0.41;
   return (
-    0.0073 * ASSUMED_KAST +
+    0.0073 * s.kastPct +
     0.3591 * kpr -
     0.5329 * dpr +
     0.2372 * impact +

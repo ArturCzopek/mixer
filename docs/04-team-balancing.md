@@ -252,6 +252,16 @@ numbers) are stored in
 
 Per-group overrides and on/off switches per term (E / F / M / A) come later (M4-7).
 
+## Backtest findings (T-1, 2026-09-25)
+
+Module `backtest/` (method, caveats, numbers: `backtest/README.md`, `backtest/REPORT.md`), 42–64
+popflash maps from 2024. Short version: FACEIT ELO carries most of the signal (the favourite won
+64–72 %), mix form M is the only extra term that helps, F cannot be judged on 2024 data (the group
+barely played FACEIT then and E is today's ELO), and A made predictions slightly worse (probably an
+artefact of today's ELO). Real popflash teams were on average a 67 : 33 favourite; the engine's best
+split for the same players is ~50.3 : 49.7. Defaults unchanged until the owner decides (weight of A,
+weight of M).
+
 ## Backtest scenario (test data, later)
 
 Source for our group: the popflash history (T-2), **test fixtures only** (D25), never imported into the app database.
