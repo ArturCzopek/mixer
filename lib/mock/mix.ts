@@ -10,7 +10,7 @@ import {
   type SkillBreakdown,
   type Variant,
 } from "@/lib/balance";
-import type { MixViewData } from "@/lib/mix/view";
+import { previewVoters, type MixViewData } from "@/lib/mix/view";
 import { leetifySample } from "@/lib/mock/leetify";
 
 export interface MockPlayer {
@@ -370,6 +370,11 @@ const DAY_MS = 86_400_000;
 export function mockViewData(): MixViewData {
   const all = Object.values(players);
   const ids = (team: MockPlayer[]) => team.map((x) => x.steamId);
+  const voters = previewVoters(
+    participants.map((x) => x.player.steamId),
+    mix.waitingFor.steamId,
+    variants.map((v) => v.votes),
+  );
   return {
     mix: {
       number: mix.number,
@@ -388,9 +393,10 @@ export function mockViewData(): MixViewData {
     breakdowns: Object.fromEntries(all.map((x) => [x.steamId, explain(x)])),
     config,
     candidateCount,
-    variants: variants.map((v) => ({
+    variants: variants.map((v, i) => ({
       number: v.number,
       votes: v.votes,
+      voters: voters[i] ?? [],
       teamA: ids(v.teamA),
       teamB: ids(v.teamB),
       engine: v.engine,

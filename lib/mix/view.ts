@@ -17,6 +17,8 @@ export interface ViewVariant {
   teamA: string[];
   teamB: string[];
   votes: number;
+  /** Who voted for this variant, in vote order. Votes are public (owner, 2026-09-25). */
+  voters: string[];
   /** The engine's variant: averages, win chance, cost split, labels. */
   engine: Variant;
 }
@@ -95,4 +97,18 @@ export function totals(maps: ViewMap[]): ViewLine[] {
     t.rounds = rounds;
   }
   return [...byId.values()];
+}
+
+/**
+ * Made-up votes for previews: everyone except `waitingForId` votes, in join order, filling the
+ * variants with `counts` (e.g. [4, 3, 2]).
+ */
+export function previewVoters(
+  participantIds: string[],
+  waitingForId: string,
+  counts: number[],
+): string[][] {
+  const voters = participantIds.filter((id) => id !== waitingForId);
+  let i = 0;
+  return counts.map((n) => voters.slice(i, (i += n)));
 }

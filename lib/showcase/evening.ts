@@ -10,7 +10,7 @@ import {
   winProbability,
   type PlayerInput,
 } from "@/lib/balance";
-import type { MixViewData } from "@/lib/mix/view";
+import { previewVoters, type MixViewData } from "@/lib/mix/view";
 import evening from "./evening-2024-12-16.json";
 
 const OWNER = "76561197993187687";
@@ -54,6 +54,8 @@ export function showcaseViewData(): MixViewData {
     (id) => id !== OWNER,
   );
   joinOrder.splice(7, 0, OWNER);
+  const waitingForId = evening.teamB[evening.teamB.length - 1];
+  const voters = previewVoters(joinOrder, waitingForId, votes);
   const times = [
     "10:12",
     "10:40",
@@ -73,7 +75,7 @@ export function showcaseViewData(): MixViewData {
       when: "Mon 20:45",
       group: "Skarpeciarze i pantofle",
       meId: OWNER,
-      waitingForId: evening.teamB[evening.teamB.length - 1],
+      waitingForId,
     },
     mixAt: at.toISOString(),
     players: evening.players.map(({ steamId, name, avatar, level }) => ({
@@ -88,6 +90,7 @@ export function showcaseViewData(): MixViewData {
     variants: generated.variants.map((v, i) => ({
       number: i + 1,
       votes: votes[i] ?? 0,
+      voters: voters[i] ?? [],
       teamA: v.teamA.map((b) => b.steamId),
       teamB: v.teamB.map((b) => b.steamId),
       engine: v,

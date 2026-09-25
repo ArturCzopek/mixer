@@ -35,6 +35,7 @@
   --color-sheet: var(--vg-sheet);
   --color-well: var(--vg-well);
   --color-row: var(--vg-row);
+  --color-hover: var(--vg-hover);
   --color-gold: var(--vg-gold);
   --color-gold-deep: var(--vg-gold-deep);
   --color-text: var(--vg-text);
@@ -55,6 +56,8 @@
   --vg-sheet: #4a5742;
   --vg-well: #343b2e;
   --vg-row: #3f4838;
+  /* Hover fill for anything clickable: text 5.1:1, white 6.6:1. */
+  --vg-hover: #53614b;
   --vg-gold: #dccf6a;
   --vg-gold-deep: #7a6f22;
   --vg-text: #dfe4da;
@@ -99,6 +102,13 @@
     font-size: 13px;
     line-height: 1.4;
     font-variant-numeric: tabular-nums;
+  }
+  /* Everything clickable shows the hand; Tailwind v4 leaves buttons on the arrow. */
+  button:not(:disabled),
+  [role="tab"],
+  summary,
+  label:has(input) {
+    cursor: pointer;
   }
   ::selection {
     background: var(--vg-gold-deep);

@@ -49,7 +49,8 @@ export function VButton({
         "bevel bg-sheet px-3 py-2.5 text-[13px] font-bold whitespace-nowrap select-none",
         "active:border-t-lo active:border-r-hi active:border-b-hi active:border-l-lo active:bg-window active:pt-[11px] active:pb-[9px]",
         "disabled:text-dim disabled:cursor-not-allowed disabled:[text-shadow:1px_1px_0_var(--vg-hi)]",
-        primary ? "text-gold" : "text-text",
+        "enabled:hover:bg-hover",
+        primary ? "text-gold enabled:hover:text-white" : "text-text",
         className,
       )}
       {...props}

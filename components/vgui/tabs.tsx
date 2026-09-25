@@ -15,7 +15,7 @@ export function Tabs<T extends string | number>({
   label: string;
 }) {
   return (
-    <div role="tablist" aria-label={label} className="flex gap-0.5 px-1">
+    <div role="tablist" aria-label={label} className="flex gap-0.5">
       {items.map((item) => {
         const on = item.value === value;
         return (
@@ -28,7 +28,7 @@ export function Tabs<T extends string | number>({
               "bevel relative top-px min-w-0 flex-1 truncate border-b-0 px-1 whitespace-nowrap",
               on
                 ? "bg-sheet text-text z-10 pt-2 pb-1.5 font-bold"
-                : "bg-window text-dim pt-1.5 pb-1",
+                : "bg-window text-dim hover:bg-hover hover:text-text pt-1.5 pb-1",
             )}
           >
             {item.label}

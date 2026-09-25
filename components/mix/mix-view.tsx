@@ -280,7 +280,7 @@ function PlayerRow({
       aria-pressed={onSelect ? selected : undefined}
       className={cn(
         "border-row grid w-full grid-cols-[1fr_46%] items-center gap-2 border-b px-1.5 py-1 text-left",
-        selected ? "bg-gold-deep text-white" : onSelect && "hover:bg-row",
+        selected ? "bg-gold-deep text-white" : onSelect && "hover:bg-hover",
       )}
     >
       <span className="flex min-w-0 items-center gap-2">
@@ -465,7 +465,11 @@ function VariantBody({
   return (
     <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-3">
       <div>
-        <Odds {...variant.engine} />
+        <Odds
+          avgA={variant.engine.avgA}
+          avgB={variant.engine.avgB}
+          winProbA={variant.engine.winProbA}
+        />
         <Labels variant={variant} />
         <Teams
           teamA={variant.teamA}
@@ -526,7 +530,7 @@ function LeetifyCard({ player }: { player: Player }) {
     n > 0 ? `+${n.toFixed(2)}` : n < 0 ? `−${Math.abs(n).toFixed(2)}` : "0.00";
   return (
     <details open className="group mt-2.5">
-      <summary className="bevel bg-window flex cursor-pointer list-none items-center justify-between px-2 py-1.5 select-none">
+      <summary className="bevel bg-window hover:bg-hover flex cursor-pointer list-none items-center justify-between px-2 py-1.5 select-none">
         <span className="truncate">
           Leetify · FACEIT, 30 days before the mix{" "}
           <b className="text-text">{player.name}</b>
@@ -664,7 +668,7 @@ function Explanation({
 }) {
   return (
     <details open className="group mt-2.5">
-      <summary className="bevel bg-window flex cursor-pointer list-none items-center justify-between px-2 py-1.5 select-none">
+      <summary className="bevel bg-window hover:bg-hover flex cursor-pointer list-none items-center justify-between px-2 py-1.5 select-none">
         <span>
           How was this calculated? <b className="text-text">{player.name}</b>
         </span>
@@ -823,20 +827,54 @@ function Term({
   );
 }
 
+/** Public votes: who voted for which variant, and who has not voted yet. */
 function Tally() {
-  const { variants } = useMix();
+  const { variants, me, waitingFor, data } = useMix();
+  const byId = new Map(data.players.map((p) => [p.steamId, p]));
+  const top = Math.max(...variants.map((v) => v.votes));
   return (
-    <div className="mt-2.5 grid grid-cols-3 gap-1.5">
-      {variants.map((v) => (
-        <Well
-          key={v.number}
-          className="text-dim py-1.5 text-center text-[11px]"
-        >
-          <b className="text-text block text-[16px]">{v.votes}</b>
-          Variant {v.number}
-        </Well>
-      ))}
-    </div>
+    <section aria-label="Votes" className="mt-2.5">
+      <div className="grid grid-cols-3 gap-1.5">
+        {variants.map((v) => (
+          <Well key={v.number} className="min-w-0">
+            <div className="bg-window text-dim border-lo flex items-baseline justify-between border-b px-1.5 py-1 text-[10px] tracking-[0.06em] uppercase">
+              <span className="truncate">Variant {v.number}</span>
+              <b
+                className={cn(
+                  "text-[13px] tracking-normal",
+                  v.votes === top && top > 0 ? "text-gold" : "text-text",
+                )}
+              >
+                {v.votes}
+              </b>
+            </div>
+            <ul className="min-h-[104px] py-0.5">
+              {v.voters.map((id) => {
+                const p = byId.get(id)!;
+                return (
+                  <li
+                    key={id}
+                    className={cn(
+                      "flex items-center gap-1.5 px-1.5 py-0.5 text-[11px]",
+                      id === me.steamId && "text-gold font-bold",
+                    )}
+                  >
+                    <Avatar player={p} size={14} />
+                    <span className="truncate">
+                      {id === me.steamId ? "You" : p.name}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </Well>
+        ))}
+      </div>
+      <p className="text-dim mt-1.5 px-0.5 text-[11px]">
+        Votes are public. Not voted yet:{" "}
+        <b className="text-text">{waitingFor.name}</b>
+      </p>
+    </section>
   );
 }
 
@@ -845,7 +883,11 @@ function Locked() {
   return (
     <div className="mt-2.5 lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start lg:gap-3">
       <div>
-        <Odds {...locked} />
+        <Odds
+          avgA={locked.avgA}
+          avgB={locked.avgB}
+          winProbA={locked.winProbA}
+        />
         <Teams teamA={locked.teamA} teamB={locked.teamB} order="join" />
       </div>
       <Well className="mt-2.5 p-2 lg:mt-0">
@@ -936,7 +978,7 @@ function MapChip({
         "group/chip bevel px-2 py-1 text-[11px]",
         on
           ? "border-t-lo border-r-hi border-b-hi border-l-lo bg-gold-deep text-white"
-          : "bg-window hover:bg-row",
+          : "bg-window hover:bg-hover",
       )}
     >
       {children}
@@ -1020,19 +1062,34 @@ function Scoreboard({ lines }: { lines: Line[] }) {
 }
 
 function Quip({ state }: { state: MixState }) {
-  const { result, waitingFor } = useMix();
-  const mvp = [...result.all].sort((a, b) => b.rating - a.rating)[0];
+  const { result, waitingFor, skill } = useMix();
   const text = {
     lobby: "Last one in brings the energy drinks.",
     voting: `${waitingFor.name} is late. As tradition demands.`,
     locked: "Teams are final. Complaints go to the algorithm.",
-    played: mvp
-      ? `${mvp.player.name} carried. Screenshots or it didn't happen.`
-      : "",
+    played: playedQuip(result.all, skill),
   }[state];
   return (
     <p className="text-dim mt-2 px-2 text-center text-[11px] italic">{text}</p>
   );
+}
+
+/**
+ * One line about the evening, picked from what happened. "Carried" only when the best player was
+ * not one of the three strongest on paper; more lines come with the awards (M2-8).
+ */
+function playedQuip(all: Line[], skill: (p: Player) => number): string {
+  if (all.length === 0) return "";
+  const byRating = [...all].sort((a, b) => b.rating - a.rating);
+  const bySkill = [...all].sort((a, b) => skill(b.player) - skill(a.player));
+  const mvp = byRating[0];
+  const worst = byRating[byRating.length - 1];
+  const paperRank = bySkill.findIndex((l) => l === mvp) + 1;
+  if (paperRank > 3)
+    return `${mvp.player.name} carried. Screenshots or it didn't happen.`;
+  if (bySkill.slice(0, 3).includes(worst))
+    return `${mvp.player.name} did the job. ${worst.player.name} was only strong on paper tonight.`;
+  return `${mvp.player.name} top-fragged, exactly as the algorithm predicted. Boring, but correct.`;
 }
 
 function ActionBar({
