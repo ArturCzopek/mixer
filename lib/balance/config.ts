@@ -81,9 +81,10 @@ export const DEFAULT_BALANCE_CONFIG: BalanceConfig = {
     windowDays: 30,
     sessionGapHours: 6,
     anchors: [
-      { sessions: 0, value: -75 },
-      { sessions: 1, value: -35 },
-      { sessions: 2, value: 0 },
+      { sessions: 0, value: -60 },
+      { sessions: 1, value: -40 },
+      { sessions: 2, value: -20 },
+      { sessions: 3, value: 0 },
       { sessions: 6, value: 15 },
     ],
   },

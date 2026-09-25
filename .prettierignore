@@ -9,3 +9,5 @@ next-env.d.ts
 lib/external/__fixtures__/
 # Design mocks and impeccable state (teletext mock relies on exact whitespace)
 .impeccable/
+# Backtest fixtures (written by scripts/backtest-data.mjs, raw popflash pages)
+lib/balance/__fixtures__/

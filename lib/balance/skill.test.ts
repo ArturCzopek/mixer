@@ -182,27 +182,28 @@ describe("activity A (D26, docs/04 examples)", () => {
     expect(sessionEnds([], 6)).toEqual([]);
   });
 
-  it("three matches on one evening three weeks ago: s = 1, A = −35", () => {
+  it("three matches on one evening three weeks ago: s = 1, A = −40", () => {
     const a = activity(
       at(hoursAgo(21, 0), hoursAgo(21, 1), hoursAgo(21, 2)),
       NOW,
       cfg,
     );
-    expect(a).toMatchObject({ sessions: 1, A: -35, status: "ok" });
+    expect(a).toMatchObject({ sessions: 1, A: -40, status: "ok" });
   });
 
-  it("last match two months ago: s = 0, A = −75", () => {
+  it("last match two months ago: s = 0, A = −60", () => {
     const a = activity(at(daysAgo(60), daysAgo(61)), NOW, cfg);
-    expect(a).toMatchObject({ sessions: 0, A: -75 });
+    expect(a).toMatchObject({ sessions: 0, A: -60 });
     expect(a.lastPlayedAt).toBe(daysAgo(60));
   });
 
   it("interpolates between anchors and is flat above the last one", () => {
     const sessions = (n: number) =>
       at(...Array.from({ length: n }, (_, i) => daysAgo(i * 3 + 1)));
-    expect(activity(sessions(2), NOW, cfg).A).toBe(0);
-    expect(activity(sessions(3), NOW, cfg).A).toBeCloseTo(3.75);
-    expect(activity(sessions(4), NOW, cfg).A).toBeCloseTo(7.5);
+    expect(activity(sessions(2), NOW, cfg).A).toBe(-20);
+    expect(activity(sessions(3), NOW, cfg).A).toBe(0);
+    expect(activity(sessions(4), NOW, cfg).A).toBeCloseTo(5);
+    expect(activity(sessions(5), NOW, cfg).A).toBeCloseTo(10);
     expect(activity(sessions(6), NOW, cfg).A).toBe(15);
     expect(activity(sessions(8), NOW, cfg)).toMatchObject({
       sessions: 8,
@@ -299,11 +300,11 @@ describe("skillScore", () => {
   it("S = E + F + 0.5·M + A with default weights, contributions add up", () => {
     // E 1500, F +100 (m+ = 1 at 1500), M +100 × 0.5, A: 20 matches on one day = 1 session.
     const s = skillScore(full(), ctx, CFG);
-    expect(s).toMatchObject({ E: 1500, eSource: "faceit", A: -35 });
+    expect(s).toMatchObject({ E: 1500, eSource: "faceit", A: -40 });
     expect(s.F).toBeCloseTo(100);
     expect(s.M).toBeCloseTo(100);
-    expect(s.contributions).toEqual({ E: 1500, F: 100, M: 50, A: -35 });
-    expect(s.S).toBe(1615);
+    expect(s.contributions).toEqual({ E: 1500, F: 100, M: 50, A: -40 });
+    expect(s.S).toBe(1610);
     const c = s.contributions;
     expect(c.E + c.F + c.M + c.A).toBe(s.S);
     expect(s.weights).toEqual(CFG.weights);
@@ -323,7 +324,7 @@ describe("skillScore", () => {
     expect(s.contributions).toEqual({ E: 1500, F: 50, M: 100, A: 0 });
     expect(s.S).toBe(1650);
     // The term itself is still explained, only its weight is 0.
-    expect(s.A).toBe(-35);
+    expect(s.A).toBe(-40);
   });
 
   it("every contribution is a whole number and they always sum to S", () => {

@@ -107,11 +107,13 @@ Anchors (`activity.anchors`):
 
 | sessions in 30 days | 0 | 1 | 2 | 3 | 4 | 5 | ≥ 6 |
 |---|---|---|---|---|---|---|---|
-| A | **−75** | −35 | 0 | +3.75 | +7.5 | +11.25 | **+15** |
+| A | **−60** | −40 | −20 | 0 | +5 | +10 | **+15** |
+
+(Owner, 2026-09-25: three sessions a month is "normal", not playing at all costs at most −60.)
 
 Examples:
-- Played three matches on one evening three weeks ago and nothing since: s = 1, A = −35.
-- Last FACEIT match two months ago: s = 0, A = −75 (and F = 0, no matches in the window).
+- Played three matches on one evening three weeks ago and nothing since: s = 1, A = −40.
+- Last FACEIT match two months ago: s = 0, A = −60 (and F = 0, no matches in the window).
 - Plays twice a week (8 sessions): A = +15. Regular play also shows in F, so the bonus stays small.
 - No FACEIT history and no mix maps: A = 0, shown as "no activity data" (D21).
 
@@ -228,9 +230,10 @@ numbers) are stored in
   "activity": {
     "windowDays": 30, "sessionGapHours": 6,
     "anchors": [
-      { "sessions": 0, "value": -75 },
-      { "sessions": 1, "value": -35 },
-      { "sessions": 2, "value": 0 },
+      { "sessions": 0, "value": -60 },
+      { "sessions": 1, "value": -40 },
+      { "sessions": 2, "value": -20 },
+      { "sessions": 3, "value": 0 },
       { "sessions": 6, "value": 15 }
     ]
   },

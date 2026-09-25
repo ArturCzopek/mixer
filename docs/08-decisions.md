@@ -189,9 +189,12 @@ Definition (docs/04 §1 "A: activity"):
 - `s` = sessions that ended in the last `windowDays = 30` days. `A` is interpolated between anchors
   in config (`activity.anchors`) and flat outside them:
 
-  | sessions in 30 days | 0 | 1 | 2 | 4 | ≥ 6 |
-  |---|---|---|---|---|---|
-  | A (ELO) | −75 | −35 | 0 | +7.5 | +15 |
+  | sessions in 30 days | 0 | 1 | 2 | 3 | 4 | 5 | ≥ 6 |
+  |---|---|---|---|---|---|---|---|
+  | A (ELO) | −60 | −40 | −20 | 0 | +5 | +10 | +15 |
+
+  *Tuned by the owner the same day:* three sessions a month is neutral (was two) and not playing at
+  all costs at most −60 (was −75).
 
 - No data at all (no FACEIT history, no mix maps): A = 0, shown as "no activity data" (D21: never
   punish a missing FACEIT account).
