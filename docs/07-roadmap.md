@@ -29,7 +29,7 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done
 | ID | Task | Deps | Done when |
 |---|---|---|---|
 | [ ] **M1-1** | Steam OpenID login + session cookie (`jose`), logout, `ADMIN_STEAM_IDS` bootstrap of `is_site_admin`, `getSession()` helper, guards `requireSiteAdmin()` / `requireGroupRole(groupId, 'admin'\|'member')` | P0-5 | Log in with Steam on a preview deploy; site admin flag correct; group role read from DB per request; forged OpenID assertion rejected (unit test on verifier) |
-| [ ] **M1-2** | External clients: `lib/external/steam.ts` (summaries, vanity), `faceit.ts` (player by SteamID, ELO, 30-day matches, lifetime) with caching | S3 | Unit tests against fixtures; typed with Zod |
+| [x] **M1-2** | External clients: `lib/external/steam.ts` (summaries, vanity, input parsing), `faceit.ts` (player by SteamID, ELO, match stats with ms paging, form samples, lifetime) with caching (Next data cache: Steam 1 h, FACEIT 10 min) | S3 | Unit tests against fixtures; typed with Zod |
 | [ ] **M1-G** | Groups UI (generic: any group; ours is only seeded): any logged-in player creates a group (name, slug, optional **FACEIT Club link**), becomes its admin; group page; admins promote/demote admins, close memberships; group switcher in the nav; seed our group from `db/seed/roster.json` | M1-1 | Group created from the UI with a FACEIT link; a non-admin cannot manage it (server check); our 12 players seeded |
 | [ ] **M1-3** | Roster (per group): group admin adds player by SteamID64 / profile URL / vanity; auto-fill Steam name+avatar and FACEIT link; manual ELO override; deactivate player; first login claims record | M1-G, M1-2 | Adding by each input form works; a pre-added player logging in sees their own record, no duplicate |
 | [x] **M1-4** | Balancing engine `lib/balance` (pure TS): skill score E+F(+M=0), win prob, 126-split enumeration, hard/soft pair rules, cost, diverse top-3 selection, re-roll exclusion, config defaults | – *(can start right after P0-1)* | Unit tests cover: 40 candidates with both hard rules, distance function, tie handling, determinism, shrinkage examples from [docs/04](04-team-balancing.md) |
@@ -40,7 +40,7 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done
 | [ ] **M1-8** | Public read-only pages: mixes list, mix page (any state), roster; nav, empty states, mobile layout | M1-7 | Logged-out user can view everything, sees no action buttons; works at 375 px width |
 | [ ] **P0-6** | Separate **prod** Supabase project (the current one stays as dev): create it, run migrations, point Vercel Production env at it and Preview/local at dev; `DB migrate` workflow migrates both (dev on push, prod on push to main after dev succeeds) | P0-4 | Prod project has all migrations; a preview deploy never touches prod data |
 | [ ] **M1-9** 👤 | **Release MVP**: production deploy, owner adds roster, dry-run mix with the group | M1-8, P0-6 | One real mix balanced + voted in the app |
-| [ ] **T-1** *(parallel)* | Balancing backtest: fixtures from real mixes (FACEIT profiles, real lineups, results) → report where real split ranks. Data source: our old **popflash** club (`popflash.site/-/skarpeciarze-i-pantofle/matches`, 71 maps Oct–Dec 2024, per map lineups + K/A/D/ADR/KAST/FK/FD, see T-2) | M1-4, T-2 | Fixtures in `lib/balance/__fixtures__/` run as tests; short findings note in `docs/04` |
+| [ ] **T-1** *(parallel)* | Balancing backtest: fixtures from real mixes (FACEIT profiles, real lineups, results) → report where real split ranks. Data source: our old **popflash** club (`popflash.site/-/skarpeciarze-i-pantofle/matches`, 71 maps Oct–Dec 2024, per map lineups + K/A/D/ADR/KAST/FK/FD, see T-2). Assumption (owner, 2026-09-25): everyone's ELO then = FACEIT ELO now | M1-4, T-2 | Fixtures in `lib/balance/__fixtures__/` run as tests; short findings note in `docs/04` |
 | [ ] **T-2** *(parallel)* | Popflash history export: one-off local script (polite, ~80 pages) → `lib/balance/__fixtures__/popflash/*.json` (map, score, date, both lineups with per-player stats); player → SteamID64 mapping already in `popflash/players.json` (27 players, from profile pages; second accounts via `mergeInto`) | – | JSON for all 71 matches; players resolved through `players.json` |
 
 ## Phase 2: results & stats (FACEIT-first, see D17)
@@ -103,7 +103,7 @@ P0-2 → S3 → M1-2 → M1-3
 M1-9 → M2-1 → M2-7 (manual results) → M2-2 → M2-3 → M2-4 (stats from FACEIT)
 ```
 
-**Unblocked right now (no owner input needed):** M1-2 (clients on the S3 fixtures), M1-4b, T-2, M1-1 (Steam login; preview deploy needs the Vercel env vars), P0-4.
+**Unblocked right now (no owner input needed):** M1-4b, T-2, M1-1, M1-1 (Steam login; preview deploy needs the Vercel env vars), P0-4.
 **Where keys live:** GitHub Actions secrets (used by the `API spike` / `DB migrate` workflows) and Vercel. The cloud sandbox has none and cannot reach `open.faceit.com` (Cloudflare challenge), so live FACEIT calls always go through a workflow or a deploy.
 **Owner inputs that unblock the rest:** FACEIT Club + one mix (S5), confirming the popflash → Steam mapping (T-2).
 
