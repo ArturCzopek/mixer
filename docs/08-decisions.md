@@ -139,3 +139,18 @@ weight of each factor should be adjustable later, ideally per group.
 - Group admins (and the site admin) create and manage mixes of their group.
 - Any active group member can upload a demo for a mix of that group (parsed in their browser, D6);
   group admins can delete uploads. Earlier notes saying "the owner uploads" mean "a member uploads".
+
+## D24. Form weighs more than mix form, and asymmetrically by strength, Accepted (2026-09-25)
+Owner: mix form M gets the smallest weight, recent FACEIT form F more; a strong player in form gets
+little extra ELO but a slump costs more, and a weaker player with even average-plus form gets extra
+ELO (holding your own among stronger players is a lot), with a smaller penalty for a slump.
+- Defaults `weights = { elo: 1, faceitForm: 1, mixForm: 0.5 }`.
+- `F` is scaled by `1 ∓ a·p` where `p` is the player's ELO position in tonight's lobby (−1 … +1),
+  `a = form.asymmetry = 0.5` (docs/04 §1). Implemented in M1-4b, shown in the explanation panel.
+- Form uses our own FACEIT match rating, **not Leetify**: Leetify data must never be stored or
+  recalculated (hard constraint), and FACEIT per-match stats are already fetched (M1-2).
+
+## D25. Popflash history is test data only, Accepted (2026-09-25)
+The group's popflash matches (Oct–Dec 2024) are used only as test fixtures (`lib/balance/__fixtures__/`)
+for the balancing backtest (T-1, T-2). They are never imported into the dev or prod database. The
+players themselves may be members of the group; their old match history is not.

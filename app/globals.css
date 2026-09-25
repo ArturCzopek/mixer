@@ -1,13 +1,17 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
+/*
+ * Palette tuned for contrast: body text and dim text ≥ 4.5:1 on window, sheet and well.
+ * Visual world: 2003-era Steam / CS 1.6 VGUI (olive panels, 1 px bevels, dense Verdana-style type).
+ * Direction contract: .impeccable/surfaces/. One theme on purpose: the world is olive, not light/dark.
+ */
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: "DejaVu Sans", Tahoma, Verdana, sans-serif;
+  --font-mono: "DejaVu Sans Mono", "Lucida Console", monospace;
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
@@ -24,60 +28,123 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+
+  /* VGUI palette */
+  --color-ground: var(--vg-ground);
+  --color-window: var(--vg-window);
+  --color-sheet: var(--vg-sheet);
+  --color-well: var(--vg-well);
+  --color-row: var(--vg-row);
+  --color-gold: var(--vg-gold);
+  --color-gold-deep: var(--vg-gold-deep);
+  --color-text: var(--vg-text);
+  --color-dim: var(--vg-dim);
+  --color-hi: var(--vg-hi);
+  --color-lo: var(--vg-lo);
+  --color-alert: var(--vg-alert);
+
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-}
+  --vg-ground: #3a4234;
+  --vg-window: #434e3c;
+  --vg-sheet: #4a5742;
+  --vg-well: #343b2e;
+  --vg-row: #3f4838;
+  --vg-gold: #dccf6a;
+  --vg-gold-deep: #7a6f22;
+  --vg-text: #dfe4da;
+  --vg-dim: #c2cab7;
+  --vg-hi: #7f8d72;
+  --vg-lo: #262a20;
+  --vg-alert: #d8704f;
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --radius: 0;
+  --background: var(--vg-ground);
+  --foreground: var(--vg-text);
+  --card: var(--vg-window);
+  --card-foreground: var(--vg-text);
+  --popover: var(--vg-window);
+  --popover-foreground: var(--vg-text);
+  --primary: var(--vg-gold);
+  --primary-foreground: var(--vg-lo);
+  --secondary: var(--vg-sheet);
+  --secondary-foreground: var(--vg-text);
+  --muted: var(--vg-well);
+  --muted-foreground: var(--vg-dim);
+  --accent: var(--vg-gold-deep);
+  --accent-foreground: #fff;
+  --destructive: var(--vg-alert);
+  --border: var(--vg-lo);
+  --input: var(--vg-well);
+  --ring: var(--vg-gold);
+
+  color-scheme: dark;
+  scrollbar-color: var(--vg-sheet) var(--vg-well);
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
+  }
+  html {
+    -webkit-tap-highlight-color: transparent;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+    font-size: 13px;
+    line-height: 1.4;
+    font-variant-numeric: tabular-nums;
+  }
+  ::selection {
+    background: var(--vg-gold-deep);
+    color: #fff;
+  }
+  /* The old client's focus rectangle: a dotted gold outline, never a glow. */
+  :focus-visible {
+    outline: 1px dotted var(--vg-gold);
+    outline-offset: 2px;
+  }
+  a {
+    color: var(--vg-gold);
+    text-underline-offset: 2px;
+  }
+  ::-webkit-scrollbar {
+    width: 14px;
+    height: 14px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--vg-well);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--vg-sheet);
+    border: 1px solid;
+    border-color: var(--vg-hi) var(--vg-lo) var(--vg-lo) var(--vg-hi);
+  }
+}
+
+@layer utilities {
+  /* Raised: light top-left edge, dark bottom-right. */
+  .bevel {
+    border: 1px solid;
+    border-color: var(--vg-hi) var(--vg-lo) var(--vg-lo) var(--vg-hi);
+  }
+  /* Sunken well: the inverse. */
+  .sunk {
+    border: 1px solid;
+    border-color: var(--vg-lo) var(--vg-hi) var(--vg-hi) var(--vg-lo);
+    background-color: var(--vg-well);
+  }
+  /* Rule conflicts and badges: hatch, never colour alone. */
+  .hatch {
+    background-image: repeating-linear-gradient(
+      135deg,
+      var(--vg-window) 0 4px,
+      #4f5c47 4px 8px
+    );
   }
 }

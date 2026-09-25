@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mixer · Teletext mock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #000; color: #fff; font-family: VT323, monospace; min-height: 100vh; }
+  .tv { max-width: 430px; margin: 0 auto; padding: 10px 8px 90px; font-size: min(calc((100vw - 16px) / 20.2), 20.5px); line-height: 1.12; }
+  .l { white-space: pre; display: block; }
+  .dh { display: block; white-space: pre; transform: scaleY(2); transform-origin: top; margin-bottom: 1.12em; }
+  .w { color: #fff; } .y { color: #ffff00; } .c { color: #00ffff; } .g { color: #00ff00; } .r { color: #ff3030; } .m { color: #ff00ff; } .b { color: #4060ff; }
+  .bB { background: #0000d0; } .bR { background: #d00000; } .bY { background: #ffff00; color: #000; } .bC { background: #00c0c0; color: #000; } .bG { background: #00b000; color: #000; } .bM { background: #b000b0; }
+  .blink { animation: bl 1.1s steps(1) infinite; } @keyframes bl { 50% { opacity: 0; } }
+  .blk { display: inline-block; height: .78em; background: currentColor; vertical-align: -.05em; }
+  .hidden { color: transparent; }
+  .fastext { position: fixed; left: 0; right: 0; bottom: 0; background: #000; padding: 6px 6px 10px; }
+  .fastext .in { max-width: 430px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; font-size: 24px; }
+  .fastext div { text-align: center; padding: 10px 0 8px; font-family: VT323, monospace; }
+  .fastext .fr { color: #ff3030; } .fastext .fg { color: #00ff00; } .fastext .fy { color: #ffff00; } .fastext .fc { color: #00ffff; }
+  .fastext div { border-top: 3px solid currentColor; }
+</style>
+</head>
+<body>
+<div class="tv">
+<span class="l"><span class="w">P101  </span><span class="y">MIXER</span><span class="w">  101  </span><span class="c">Thu 25 Sep </span><span class="y">12:04:31</span></span>
+<span class="l bB"><span class="y">                                        </span></span>
+<span class="dh bB"><span class="y"> MIX 14 </span><span class="w">THURSDAY </span><span class="c">21:00        </span></span>
+<span class="l"><span class="g"> 10/10 IN   </span><span class="w">VOTING </span><span class="y">9/10   </span><span class="m">PAGE 1/3</span></span>
+<span class="l"> </span>
+<span class="l bR"><span class="w"> VARIANT 1          </span><span class="y">A 53% </span><span class="w">: </span><span class="y">47% B   </span></span>
+<span class="l"> </span>
+<span class="l"><span class="c"> TEAM A                    AVG </span><span class="y">1567</span></span>
+<span class="l"><span class="w"> fontek385   </span><span class="y">2229 </span><span class="c"><i class="blk" style="width:16ch"></i></span><span class="y">*</span></span>
+<span class="l"><span class="w"> jawOla21    </span><span class="y">1500 </span><span class="c"><i class="blk" style="width:11ch"></i></span></span>
+<span class="l"><span class="w"> stannn      </span><span class="y">1455 </span><span class="c"><i class="blk" style="width:10ch"></i></span></span>
+<span class="l"><span class="w"> botjacek    </span><span class="y">1424 </span><span class="c"><i class="blk" style="width:10ch"></i></span></span>
+<span class="l"><span class="w"> roevs       </span><span class="y">1228 </span><span class="c"><i class="blk" style="width:9ch"></i></span></span>
+<span class="l"> </span>
+<span class="l"><span class="g"> TEAM B                    AVG </span><span class="y">1547</span></span>
+<span class="l"><span class="w"> sm1leyz     </span><span class="y">2017 </span><span class="g"><i class="blk" style="width:14ch"></i></span><span class="y">*</span></span>
+<span class="l bM"><span class="w"> czopo       </span><span class="y">1857 </span><span class="w"><i class="blk" style="width:13ch"></i>           </span></span>
+<span class="l"><span class="w"> J4neX       </span><span class="y">1374 </span><span class="g"><i class="blk" style="width:10ch"></i></span></span>
+<span class="l"><span class="w"> Windxore    </span><span class="y">1357 </span><span class="g"><i class="blk" style="width:10ch"></i></span></span>
+<span class="l"><span class="w"> mrhsmrcyg   </span><span class="y">1131 </span><span class="g"><i class="blk" style="width:8ch"></i></span></span>
+<span class="l"><span class="y"> * TOP DUO SPLIT</span></span>
+<span class="l"> </span>
+<span class="l bR"><span class="w"> [REVEAL] HOW WAS THIS CALCULATED?      </span></span>
+<span class="l"><span class="c"> CZOPO  </span><span class="w">S = E + F + M</span></span>
+<span class="l"><span class="y">        1857 = 1797 + 60 + 0</span></span>
+<span class="l"><span class="w"> E  </span><span class="c">FACEIT ELO               </span><span class="y">1797</span></span>
+<span class="l"><span class="w"> F  </span><span class="c">14 maps/30d 1.23 vs 1.02  </span><span class="y">+60</span></span>
+<span class="l"><span class="w">    </span><span class="c">ratio 1.21 -&gt; 1.12 x500</span></span>
+<span class="l"><span class="w"> M  </span><span class="c">no mix stats yet            </span><span class="y">0</span></span>
+<span class="l"> </span>
+<span class="l"><span class="w"> VOTES </span><span class="y">V1 </span><span class="c"><i class="blk" style="width:4ch"></i> 4  </span><span class="y">V2 </span><span class="c"><i class="blk" style="width:3ch"></i> 3  </span><span class="y">V3 </span><span class="c"><i class="blk" style="width:2ch"></i> 2</span></span>
+<span class="l"> </span>
+<span class="l"><span class="r blink"> mrhsmrcyg </span><span class="w">has not voted. Page held.</span></span>
+<span class="l"><span class="b"> Next: results on page 150</span></span>
+</div>
+<div class="fastext"><div class="in"><div class="fr">VAR 2</div><div class="fg">VAR 3</div><div class="fy">VOTE</div><div class="fc">LOBBY</div></div></div>
+</body>
+</html>

@@ -7,3 +7,5 @@ next-env.d.ts
 .claude/
 # Recorded API responses (written by scripts/faceit-spike.mjs)
 lib/external/__fixtures__/
+# Design mocks and impeccable state (teletext mock relies on exact whitespace)
+.impeccable/

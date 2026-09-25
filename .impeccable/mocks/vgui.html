@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mixer · VGUI mock</title>
+<style>
+  :root {
+    --bg: #3e4637; --panel: #4c5844; --panel-2: #5a6a50; --gold: #c4b550;
+    --text: #d8ded3; --dim: #a0aa95; --hi: #8c9a7e; --lo: #292e23; --sel: #958831;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { overflow-x: hidden; }
+  body { background: var(--bg); color: var(--text); font: 12px/1.35 Tahoma, Verdana, "DejaVu Sans", sans-serif; min-height: 100vh; }
+  .bevel { border: 1px solid; border-color: var(--hi) var(--lo) var(--lo) var(--hi); }
+  .sunk { border: 1px solid; border-color: var(--lo) var(--hi) var(--hi) var(--lo); background: #3a4233; }
+  .app { max-width: 430px; margin: 0 auto; padding: 8px 8px 88px; }
+  .titlebar { display: flex; align-items: center; gap: 8px; background: var(--panel); padding: 6px 8px; }
+  .titlebar b { color: var(--text); font-size: 13px; letter-spacing: .02em; }
+  .titlebar .count { margin-left: auto; color: var(--gold); font-weight: bold; }
+  .x { width: 16px; height: 14px; display: grid; place-items: center; font-size: 10px; color: var(--dim); }
+  .window { background: var(--panel); padding: 8px; margin-top: -1px; }
+  .status { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 5px 7px; color: var(--dim); font-size: 11px; }
+  .status .dot { width: 7px; height: 7px; background: var(--gold); }
+  .tabs { display: flex; gap: 2px; margin-top: 10px; padding-left: 4px; }
+  .tab { flex: 1; text-align: center; white-space: nowrap; padding: 5px 4px 4px; background: var(--panel); color: var(--dim); border-bottom: none; position: relative; top: 1px; }
+  .tab.on { background: var(--panel-2); color: var(--text); font-weight: bold; padding-top: 7px; top: 1px; z-index: 1; }
+  .tab small { color: var(--gold); font-weight: bold; }
+  .sheet { background: var(--panel-2); padding: 10px 8px 8px; }
+  .odds { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .odds .big { font-size: 22px; font-weight: bold; color: var(--gold); letter-spacing: -.02em; }
+  .odds .big span { color: var(--text); }
+  .odds .lbl { color: var(--dim); font-size: 11px; }
+  .badge { display: inline-block; margin-bottom: 8px; padding: 2px 6px; font-size: 10px; text-transform: uppercase; letter-spacing: .06em;
+    background: repeating-linear-gradient(135deg, #4c5844 0 4px, #56644c 4px 8px); color: var(--gold); }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  th { text-align: left; font-weight: normal; color: var(--dim); font-size: 10px; text-transform: uppercase; letter-spacing: .06em; padding: 3px 6px; background: var(--panel); border-bottom: 1px solid var(--lo); }
+  td { padding: 4px 6px; border-bottom: 1px solid #434d3b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  tr.team td { background: var(--panel); color: var(--gold); font-weight: bold; font-size: 11px; letter-spacing: .05em; text-transform: uppercase; }
+  tr.team td span { float: right; color: var(--text); }
+  tr.sel td { background: var(--sel); color: #fff; }
+  .p { display: flex; align-items: center; gap: 7px; }
+  .p img { width: 20px; height: 20px; image-rendering: auto; }
+  .p .lvl { color: var(--dim); font-size: 10px; }
+  .s { width: 44%; }
+  .bar { display: grid; grid-template-columns: 1fr 38px; align-items: center; gap: 6px; }
+  .bar i { display: block; height: 7px; background: var(--gold); }
+  .bar em { font-style: normal; font-variant-numeric: tabular-nums; min-width: 34px; text-align: right; }
+  .sel .bar i { background: #fff; }
+  .details { margin-top: 10px; }
+  .details summary { list-style: none; cursor: pointer; padding: 6px 8px; background: var(--panel); display: flex; justify-content: space-between; }
+  .details summary::after { content: "▼"; font-size: 9px; color: var(--dim); }
+  .prop { padding: 8px; }
+  .prop h4 { font-size: 11px; color: var(--gold); margin-bottom: 6px; }
+  .row { display: grid; grid-template-columns: 22px 1fr auto; gap: 6px; padding: 4px 0; border-bottom: 1px dotted #56644c; align-items: baseline; }
+  .row b { color: var(--gold); }
+  .row .v { font-weight: bold; font-variant-numeric: tabular-nums; }
+  .row p { color: var(--dim); font-size: 11px; grid-column: 2 / 4; }
+  .votes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
+  .votes div { padding: 6px; text-align: center; font-size: 11px; color: var(--dim); }
+  .votes b { display: block; color: var(--text); font-size: 16px; }
+  .footer { position: fixed; left: 0; right: 0; bottom: 0; background: var(--panel); border-top: 1px solid var(--hi); padding: 10px 8px; }
+  .footer .in { max-width: 430px; margin: 0 auto; display: flex; gap: 8px; }
+  .btn { flex: 1; padding: 12px 10px; background: var(--panel-2); color: var(--text); font: bold 13px Tahoma, Verdana, sans-serif; text-transform: uppercase; letter-spacing: .04em; }
+  .btn.primary { color: var(--gold); flex: 2; }
+  .quip { color: var(--dim); font-size: 11px; margin-top: 8px; text-align: center; font-style: italic; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="titlebar bevel"><span class="x bevel">◧</span><b>Mix #14 · Thu 21:00</b><span class="count">10/10</span></div>
+  <div class="window bevel">
+    <div class="status sunk"><span class="dot"></span>Voting · 9 of 10 voted · waiting for <b style="color:var(--text)">&nbsp;mrhsmrcyg</b></div>
+
+    <div class="tabs">
+      <div class="tab on bevel">Variant 1 <small>4</small></div>
+      <div class="tab bevel">Variant 2 <small>3</small></div>
+      <div class="tab bevel">Variant 3 <small>2</small></div>
+    </div>
+    <div class="sheet bevel">
+      <div class="odds">
+        <div><div class="lbl">Win chance A : B</div><div class="big">53<span> : 47</span></div></div>
+        <div style="text-align:right"><div class="lbl">Avg S</div><div><b>1567</b> vs <b>1547</b></div></div>
+      </div>
+      <span class="badge">Top duo split</span>
+      <table class="sunk">
+        <tr><th>Player</th><th class="s">Skill S</th></tr>
+        <tr class="team"><td colspan="2">Team A <span>1567</span></td></tr>
+        <tr><td><div class="p"><img src="https://avatars.steamstatic.com/31999d46685f965e7eedc9fe19174af090ba3de6_medium.jpg" alt="">fontek385 <span class="lvl">10</span></div></td><td><div class="bar"><i style="width:100%"></i><em>2229</em></div></td></tr>
+        <tr><td><div class="p"><img src="https://avatars.steamstatic.com/1df3535a6f4c9bcf76d310fff46700d18b98412c_medium.jpg" alt="">jawOla21 <span class="lvl">7</span></div></td><td><div class="bar"><i style="width:67%"></i><em>1500</em></div></td></tr>
+        <tr><td><div class="p"><img src="https://avatars.steamstatic.com/35dfb61aa54766bfb7e21c6e4c7c4be9e33746af_medium.jpg" alt="">stannn <span class="lvl">7</span></div></td><td><div class="bar"><i style="width:65%"></i><em>1455</em></div></td></tr>
+        <tr><td><div class="p"><img src="https://avatars.steamstatic.com/a86d93098a6f1da4e576e770feb1b8b90b27dd83_medium.jpg" alt="">botjacek <span class="lvl">7</span></div></td><td><div class="bar"><i style="width:64%"></i><em>1424</em></div></td></tr>
+        <tr><td><div class="p"><img src="https://avatars.steamstatic.com/19c6fa0ba96030c8cc25130dca324362ee965212_medium.jpg" alt="">roevs <span class="lvl">6</span></div></td><td><div class="bar"><i style="width:55%"></i><em>1228</em></div></td></tr>
+        <tr class="team"><td colspan="2">Team B <span>1547</span></td></tr>
+        <tr><td><div class="p"><img src="https://avatars.steamstatic.com/f55a27a898f5b4a904b6082336c5a400ad0745fc_medium.jpg" alt="">sm1leyz <span class="lvl">10</span></div></td><td><div class="bar"><i style="width:90%"></i><em>2017</em></div></td></tr>
+        <tr class="sel"><td><div class="p"><img src="https://avatars.steamstatic.com/d8a6babc2ce4607cbd84d1c8d0012ab306bf0a95_medium.jpg" alt="">czopo <span class="lvl">9</span></div></td><td><div class="bar"><i style="width:83%"></i><em>1857</em></div></td></tr>
+        <tr><td><div class="p"><img src="https://avatars.steamstatic.com/08308f69be2b8778624c99b4cbd22b6129b48ba9_medium.jpg" alt="">J4neX <span class="lvl">7</span></div></td><td><div class="bar"><i style="width:62%"></i><em>1374</em></div></td></tr>
+        <tr><td><div class="p"><img src="https://avatars.steamstatic.com/c6a7db2b413531b5985235b14426883116581969_medium.jpg" alt="">Windxore <span class="lvl">6</span></div></td><td><div class="bar"><i style="width:61%"></i><em>1357</em></div></td></tr>
+        <tr><td><div class="p"><img src="https://avatars.steamstatic.com/8dfe278c7493b6984540e57ecd57b791df13841e_medium.jpg" alt="">mrhsmrcyg <span class="lvl">5</span></div></td><td><div class="bar"><i style="width:51%"></i><em>1131</em></div></td></tr>
+      </table>
+
+      <details class="details" open>
+        <summary class="bevel">How was this calculated? — czopo</summary>
+        <div class="prop sunk">
+          <h4>S = E + F + M = 1797 + 60 + 0 = 1857</h4>
+          <div class="row"><b>E</b><span>FACEIT ELO</span><span class="v">1797</span></div>
+          <div class="row"><b>F</b><span>FACEIT form, last 30 days</span><span class="v">+60</span><p>14 maps · rating 1.23 vs 1.02 before · ratio 1.21 → 1.12 after shrinkage (k = 10) · 500 × 0.12</p></div>
+          <div class="row"><b>M</b><span>Mix form</span><span class="v">0</span><p>No mix maps with stats yet</p></div>
+        </div>
+      </details>
+
+      <div class="votes">
+        <div class="sunk"><b>4</b>Variant 1</div>
+        <div class="sunk"><b>3</b>Variant 2</div>
+        <div class="sunk"><b>2</b>Variant 3</div>
+      </div>
+      <p class="quip">mrhsmrcyg is late. As tradition demands.</p>
+    </div>
+  </div>
+</div>
+<div class="footer"><div class="in"><button class="btn bevel">Details</button><button class="btn primary bevel">Vote Variant 1</button></div></div>
+</body>
+</html>

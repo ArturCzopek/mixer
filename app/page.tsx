@@ -1,22 +1,25 @@
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { Window } from "@/components/vgui";
 
 export default function Home() {
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col items-start justify-center gap-6 px-4 py-16">
-      <h1 className="text-3xl font-semibold tracking-tight">mixer</h1>
-      <p className="text-muted-foreground max-w-prose">
-        CS2 10-man mix organizer: balanced 5v5 lineups, live voting and stats
-        across mixes.
-      </p>
-      <Button asChild variant="outline">
-        <a
-          href="https://github.com/ArturCzopek/mixer"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Project on GitHub
-        </a>
-      </Button>
+    <main className="mx-auto w-full max-w-[460px] px-2 py-6">
+      <Window title="mixer">
+        <p className="mb-2">
+          CS2 10-man mixes for our crew: balanced 5v5 lineups, live voting and
+          stats across mixes.
+        </p>
+        <p className="text-dim">
+          Design preview: <Link href="/design/mix">mix page</Link> ·{" "}
+          <a
+            href="https://github.com/ArturCzopek/mixer"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            source
+          </a>
+        </p>
+      </Window>
     </main>
   );
 }

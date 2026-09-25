@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mixer · Sticker album mock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --blue: #1f3fbf; --navy: #0e1a4d; --yellow: #ffd400; --red: #e4002b; --white: #fff; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Barlow Condensed", sans-serif; color: var(--navy); min-height: 100vh;
+    background-color: var(--blue); background-image: radial-gradient(circle at 20% 10%, #2a4fd6 0 30%, transparent 31%), repeating-linear-gradient(45deg, rgba(255,255,255,.05) 0 12px, transparent 12px 24px); }
+  .app { max-width: 430px; margin: 0 auto; padding: 14px 12px 100px; }
+  .band { background: var(--yellow); padding: 10px 14px 8px; transform: rotate(-1.2deg); box-shadow: 4px 4px 0 var(--navy); }
+  .band .k { font-weight: 800; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; }
+  .band h1 { font-family: Anton, sans-serif; font-size: 44px; line-height: .95; letter-spacing: .01em; text-transform: uppercase; }
+  .band h1 span { color: var(--red); }
+  .meta { color: #fff; font-weight: 600; font-size: 15px; margin: 12px 2px 0; display: flex; justify-content: space-between; }
+  .meta b { color: var(--yellow); }
+  .pages { display: flex; gap: 6px; margin: 16px 90px 0 0; }
+  .pg { flex: 1; background: rgba(255,255,255,.15); color: #fff; text-align: center; padding: 8px 4px 6px; font-weight: 800; font-size: 15px; letter-spacing: .06em; text-transform: uppercase; border-radius: 10px 10px 0 0; }
+  .pg.on { background: #f4f1e8; color: var(--navy); }
+  .pg small { display: block; font-size: 11px; font-weight: 600; letter-spacing: .04em; opacity: .8; }
+  .spread { background: #f4f1e8; border-radius: 0 0 14px 14px; padding: 14px 10px 16px; position: relative; }
+  .stamp { position: absolute; right: 8px; top: -34px; width: 78px; height: 78px; border-radius: 50%; background: var(--red); color: #fff;
+    display: grid; place-items: center; text-align: center; transform: rotate(9deg); box-shadow: 0 0 0 4px #f4f1e8, 0 0 0 6px var(--red); }
+  .stamp b { font-family: Anton, sans-serif; font-size: 28px; line-height: 1; display: block; }
+  .stamp small { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+  .team { margin-bottom: 14px; }
+  .team h2 { font-family: Anton, sans-serif; font-size: 22px; text-transform: uppercase; display: flex; align-items: baseline; gap: 8px; }
+  .team h2 i { font-style: normal; width: 14px; height: 14px; display: inline-block; }
+  .team h2 small { font-family: "Barlow Condensed"; font-weight: 700; font-size: 14px; opacity: .7; }
+  .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; margin-top: 8px; }
+  .st { background: #fff; border-radius: 7px; padding: 4px 4px 0; box-shadow: 0 2px 0 rgba(14,26,77,.25), 0 6px 10px rgba(14,26,77,.12); position: relative; }
+  .st:nth-child(odd) { transform: rotate(-2deg); } .st:nth-child(3n) { transform: rotate(1.5deg); }
+  .st img { width: 100%; aspect-ratio: 1; display: block; border-radius: 4px; }
+  .st .n { font-weight: 800; font-size: 12px; text-align: center; padding: 3px 0 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .st .s { position: absolute; top: -7px; left: -5px; background: var(--navy); color: var(--yellow); font-family: Anton, sans-serif; font-size: 13px; padding: 1px 5px; border-radius: 4px; }
+  .a .st { border-bottom: 6px solid var(--red); } .b .st { border-bottom: 6px solid var(--yellow); }
+  .shiny { background: conic-gradient(from 200deg, #fff, #cfe7ff, #ffe6f6, #fff7c2, #d6ffe9, #fff) !important; }
+  .shiny::after { content: "★"; position: absolute; right: 3px; top: 3px; color: var(--yellow); font-size: 13px; text-shadow: 0 0 2px var(--navy); }
+  .me { outline: 3px dashed var(--red); outline-offset: 2px; }
+  .back { margin-top: 6px; background: #fff; border: 2px solid var(--navy); border-radius: 10px; padding: 10px 12px; position: relative; }
+  .back .k { font-weight: 800; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--red); }
+  .back h3 { font-family: Anton, sans-serif; font-size: 20px; text-transform: uppercase; margin: 2px 0 6px; }
+  .eq { display: flex; gap: 6px; align-items: stretch; }
+  .eq div { flex: 1; background: #f4f1e8; border-radius: 6px; padding: 6px; text-align: center; }
+  .eq b { display: block; font-family: Anton, sans-serif; font-size: 22px; }
+  .eq span { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; opacity: .7; }
+  .eq .op { flex: 0; background: none; align-self: center; font-family: Anton; font-size: 20px; padding: 0; }
+  .back p { font-size: 14px; font-weight: 500; margin-top: 8px; line-height: 1.25; }
+  .tally { display: flex; gap: 8px; margin-top: 14px; color: #fff; font-weight: 700; font-size: 15px; }
+  .tally div { flex: 1; background: rgba(255,255,255,.14); border-radius: 8px; padding: 6px 8px; }
+  .tally b { font-family: Anton; font-size: 22px; color: var(--yellow); margin-right: 4px; }
+  .quip { color: #fff; opacity: .85; text-align: center; margin-top: 12px; font-size: 15px; font-weight: 600; }
+  .cta { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px; background: linear-gradient(transparent, rgba(14,26,77,.6) 40%); }
+  .cta button { display: block; max-width: 406px; margin: 0 auto; width: 100%; background: var(--red); color: #fff; border: 0; border-radius: 12px;
+    font-family: Anton, sans-serif; font-size: 22px; letter-spacing: .04em; text-transform: uppercase; padding: 14px; box-shadow: 0 5px 0 #8f001b; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="band"><div class="k">Skarpeciarze i pantofle · Mix #14</div><h1>Thursday <span>21:00</span></h1></div>
+  <div class="meta"><span>10/10 stuck in</span><span><b>9</b> of 10 voted</span></div>
+
+  <div class="pages">
+    <div class="pg on">Page 1<small>4 votes</small></div>
+    <div class="pg">Page 2<small>3 votes</small></div>
+    <div class="pg">Page 3<small>2 votes</small></div>
+  </div>
+  <div class="spread">
+    <div class="stamp"><div><b>53%</b><small>Team A wins</small></div></div>
+    <div class="team a"><h2><i style="background:var(--red)"></i>Team A <small>avg 1567</small></h2>
+      <div class="grid">
+        <div class="st shiny"><span class="s">2229</span><img src="https://avatars.steamstatic.com/31999d46685f965e7eedc9fe19174af090ba3de6_medium.jpg" alt=""><div class="n">fontek385</div></div>
+        <div class="st"><span class="s">1500</span><img src="https://avatars.steamstatic.com/1df3535a6f4c9bcf76d310fff46700d18b98412c_medium.jpg" alt=""><div class="n">jawOla21</div></div>
+        <div class="st"><span class="s">1455</span><img src="https://avatars.steamstatic.com/35dfb61aa54766bfb7e21c6e4c7c4be9e33746af_medium.jpg" alt=""><div class="n">stannn</div></div>
+        <div class="st"><span class="s">1424</span><img src="https://avatars.steamstatic.com/a86d93098a6f1da4e576e770feb1b8b90b27dd83_medium.jpg" alt=""><div class="n">botjacek</div></div>
+        <div class="st"><span class="s">1228</span><img src="https://avatars.steamstatic.com/19c6fa0ba96030c8cc25130dca324362ee965212_medium.jpg" alt=""><div class="n">roevs</div></div>
+      </div>
+    </div>
+    <div class="team b"><h2><i style="background:var(--yellow)"></i>Team B <small>avg 1547</small></h2>
+      <div class="grid">
+        <div class="st shiny"><span class="s">2017</span><img src="https://avatars.steamstatic.com/f55a27a898f5b4a904b6082336c5a400ad0745fc_medium.jpg" alt=""><div class="n">sm1leyz</div></div>
+        <div class="st me"><span class="s">1857</span><img src="https://avatars.steamstatic.com/d8a6babc2ce4607cbd84d1c8d0012ab306bf0a95_medium.jpg" alt=""><div class="n">czopo</div></div>
+        <div class="st"><span class="s">1374</span><img src="https://avatars.steamstatic.com/08308f69be2b8778624c99b4cbd22b6129b48ba9_medium.jpg" alt=""><div class="n">J4neX</div></div>
+        <div class="st"><span class="s">1357</span><img src="https://avatars.steamstatic.com/c6a7db2b413531b5985235b14426883116581969_medium.jpg" alt=""><div class="n">Windxore</div></div>
+        <div class="st"><span class="s">1131</span><img src="https://avatars.steamstatic.com/8dfe278c7493b6984540e57ecd57b791df13841e_medium.jpg" alt=""><div class="n">mrhsmrcyg</div></div>
+      </div>
+    </div>
+
+    <div class="back">
+      <div class="k">Back of the sticker · how was this calculated?</div>
+      <h3>czopo = 1857</h3>
+      <div class="eq">
+        <div><b>1797</b><span>FACEIT ELO</span></div><div class="op">+</div>
+        <div><b>+60</b><span>Form 30d</span></div><div class="op">+</div>
+        <div><b>0</b><span>Mix form</span></div>
+      </div>
+      <p>14 maps in 30 days, rating 1.23 vs his usual 1.02. Hot streak, but 14 maps is not much, so we trust it halfway: ×500 → +60. No mix stats yet.</p>
+    </div>
+  </div>
+
+  <div class="tally"><div><b>4</b>Page 1</div><div><b>3</b>Page 2</div><div><b>2</b>Page 3</div></div>
+  <p class="quip">Missing sticker: mrhsmrcyg. Every album has one.</p>
+</div>
+<div class="cta"><button>Stick my vote on page 1</button></div>
+</body>
+</html>

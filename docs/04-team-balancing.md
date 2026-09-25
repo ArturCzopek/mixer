@@ -11,7 +11,7 @@ All weights are config (stored per mix in `mixes.balance_config`) so we can tune
 Everything is expressed in **FACEIT ELO points**, so the result stays readable ("this player counts as 2 150").
 
 ```
-S = wE·E + wF·F + wM·M        # weights from config, all 1 by default (D22)
+S = wE·E + wF·F + wM·M        # weights from config (D22): wE = 1, wF = 1, wM = 0.5 (D24)
 ```
 
 | Term | Meaning | Source |
@@ -42,6 +42,21 @@ Defaults: `β = 500`, `F_max = 150`, `k = 10`, `minBaseline = 10`. The same +30%
 - over 20 matches: ratio^ = 1.20, so F = +100 ELO;
 - over 2 matches: ratio^ = 1.05, so F = +25 ELO. A lucky evening counts little.
 - 0 matches in 30 days, or fewer than 10 older matches for a baseline, gives F = 0 (ELO only).
+
+**Asymmetry by strength (D24).** Form counts differently for strong and weak players of *this* lobby.
+A strong player in good form gets only a small boost (they are already near their ceiling), but a slump
+costs them more; a weak player with even average-plus form gets a bigger boost (holding your own among
+stronger players is worth more), and a slump costs them less:
+
+```
+p     = clamp( (E − Ē_lobby) / 400, −1, +1 )        # −1 weakest … +1 strongest tonight
+F_raw = β · (ratio^ − 1)
+F     = F_raw · (1 − a · p)   if F_raw ≥ 0           # a = 0.5 (config form.asymmetry)
+F     = F_raw · (1 + a · p)   if F_raw < 0
+F     = clamp( F, −F_max, +F_max )
+```
+Examples (a = 0.5): strongest player (p = +1) in +60 form → +30, in −60 form → −90; weakest (p = −1)
+with a modest 1.05 ratio^ (F_raw = +25) → +37, in −60 form → −30.
 
 The FACEIT client must fetch enough history to have a baseline before the window (paginate if all
 of the last 100 matches fall inside 30 days). Exact FACEIT field names are confirmed in spike S3.
@@ -143,8 +158,8 @@ At generation time, each participant's inputs (E, F, M, S) are stored in
 
 ```json
 {
-  "weights": { "elo": 1, "faceitForm": 1, "mixForm": 1 },
-  "form": { "windowDays": 30, "shrinkK": 10, "beta": 500, "max": 150, "minBaseline": 10 },
+  "weights": { "elo": 1, "faceitForm": 1, "mixForm": 0.5 },
+  "form": { "asymmetry": 0.5, "windowDays": 30, "shrinkK": 10, "beta": 500, "max": 150, "minBaseline": 10 },
   "mix":  { "maps": 10, "shrinkK": 5, "gamma": 1000, "max": 200 },
   "outlierPair": { "maxGap": 100, "minSeparation": 200 },
   "rules": {
@@ -159,6 +174,9 @@ At generation time, each participant's inputs (E, F, M, S) are stored in
 ```
 
 ## Backtest scenario (test data, later)
+
+Source for our group: the popflash history (T-2), **test fixtures only** (D25), never imported into the app database.
+
 
 Take past mixes where we know the real lineups and results, plus the FACEIT profiles of the players:
 1. Run the engine on those 10 players.
