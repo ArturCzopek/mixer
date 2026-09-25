@@ -1,0 +1,421 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-25T11:51:37.968Z",
+  "title": "Design System: mixer",
+  "extensions": {
+    "colorMeta": {
+      "olive-ground": {
+        "role": "neutral",
+        "displayName": "Olive Ground",
+        "canonical": "#3a4234",
+        "cssVar": "--vg-ground",
+        "tonalRamp": [
+          "#23281f",
+          "#3a4234",
+          "#555c4f",
+          "#6f756a",
+          "#898e85",
+          "#abafa9",
+          "#d0d2ce",
+          "#f2f2f1"
+        ]
+      },
+      "olive-window": {
+        "role": "neutral",
+        "displayName": "Olive Window",
+        "canonical": "#434e3c",
+        "cssVar": "--vg-window",
+        "tonalRamp": [
+          "#22281f",
+          "#394333",
+          "#525d4c",
+          "#6d7668",
+          "#888f83",
+          "#aaafa7",
+          "#cfd2cd",
+          "#f2f3f1"
+        ]
+      },
+      "olive-sheet": {
+        "role": "neutral",
+        "displayName": "Olive Sheet",
+        "canonical": "#4a5742",
+        "cssVar": "--vg-sheet",
+        "tonalRamp": [
+          "#22281f",
+          "#394333",
+          "#515d49",
+          "#6c7665",
+          "#868f81",
+          "#a9afa5",
+          "#cfd2cd",
+          "#f2f3f1"
+        ]
+      },
+      "olive-well": {
+        "role": "neutral",
+        "displayName": "Olive Well",
+        "canonical": "#343b2e",
+        "cssVar": "--vg-well",
+        "tonalRamp": [
+          "#23281f",
+          "#3b4236",
+          "#555b50",
+          "#70746b",
+          "#8a8e86",
+          "#acaea9",
+          "#d0d2cf",
+          "#f2f2f2"
+        ]
+      },
+      "olive-row": {
+        "role": "neutral",
+        "displayName": "Olive Row",
+        "canonical": "#3f4838",
+        "cssVar": "--vg-row",
+        "tonalRamp": [
+          "#23281f",
+          "#3a4334",
+          "#545c4e",
+          "#6e7569",
+          "#898e84",
+          "#abafa8",
+          "#d0d2ce",
+          "#f2f2f1"
+        ]
+      },
+      "hatch-stripe": {
+        "role": "neutral",
+        "displayName": "Hatch Stripe",
+        "canonical": "#4a5641",
+        "tonalRamp": [
+          "#22281f",
+          "#394334",
+          "#515d49",
+          "#6b7665",
+          "#868f81",
+          "#a9afa5",
+          "#cfd2cd",
+          "#f2f3f1"
+        ]
+      },
+      "bevel-hi": {
+        "role": "neutral",
+        "displayName": "Bevel Hi",
+        "canonical": "#7f8d72",
+        "cssVar": "--vg-hi",
+        "tonalRamp": [
+          "#242820",
+          "#3b4235",
+          "#535c4b",
+          "#6b7760",
+          "#839177",
+          "#a7b19e",
+          "#ced3c9",
+          "#f1f3f0"
+        ]
+      },
+      "bevel-lo": {
+        "role": "neutral",
+        "displayName": "Bevel Lo",
+        "canonical": "#262a20",
+        "cssVar": "--vg-lo",
+        "tonalRamp": [
+          "#24281e",
+          "#3e4138",
+          "#575a53",
+          "#71746d",
+          "#8b8d88",
+          "#acaeaa",
+          "#d1d1cf",
+          "#f2f2f2"
+        ]
+      },
+      "client-gold": {
+        "role": "primary",
+        "displayName": "Client Gold",
+        "canonical": "#dccf6a",
+        "cssVar": "--vg-gold",
+        "tonalRamp": [
+          "#2a2714",
+          "#454121",
+          "#615b2f",
+          "#7d753c",
+          "#988f49",
+          "#bcb15b",
+          "#e0d57d",
+          "#f7f3db"
+        ]
+      },
+      "gold-deep": {
+        "role": "primary",
+        "displayName": "Deep Gold",
+        "canonical": "#7a6f22",
+        "cssVar": "--vg-gold-deep",
+        "tonalRamp": [
+          "#2b270c",
+          "#484214",
+          "#655c1c",
+          "#80762c",
+          "#978f53",
+          "#b5af85",
+          "#d6d2ba",
+          "#f3f3ec"
+        ]
+      },
+      "pale-text": {
+        "role": "neutral",
+        "displayName": "Pale Text",
+        "canonical": "#dfe4da",
+        "cssVar": "--vg-text",
+        "tonalRamp": [
+          "#262725",
+          "#3f403d",
+          "#585a56",
+          "#71746f",
+          "#8a8d87",
+          "#abafa7",
+          "#ced3ca",
+          "#f1f3ef"
+        ]
+      },
+      "dim-text": {
+        "role": "neutral",
+        "displayName": "Dim Text",
+        "canonical": "#c2cab7",
+        "cssVar": "--vg-dim",
+        "tonalRamp": [
+          "#252723",
+          "#3e413b",
+          "#575b52",
+          "#70756a",
+          "#898e81",
+          "#a9b0a0",
+          "#cdd4c4",
+          "#f1f3ef"
+        ]
+      },
+      "alert-rust": {
+        "role": "tertiary",
+        "displayName": "Alert Rust",
+        "canonical": "#d8704f",
+        "cssVar": "--vg-alert",
+        "tonalRamp": [
+          "#3f2117",
+          "#693626",
+          "#924c36",
+          "#bc6245",
+          "#db7a5b",
+          "#e5a08a",
+          "#f0cabd",
+          "#fbf0ed"
+        ]
+      },
+      "white": {
+        "role": "neutral",
+        "displayName": "White",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#262626",
+          "#404040",
+          "#595959",
+          "#737373",
+          "#8c8c8c",
+          "#adadad",
+          "#d1d1d1",
+          "#f2f2f2"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Result Score",
+        "purpose": "Final maps-won score only."
+      },
+      "headline": {
+        "displayName": "Readout",
+        "purpose": "Win-chance readout at top-left of a variant sheet."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Window titles, button labels, active tab, emphasised figures."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "List rows, names, explanation terms."
+      },
+      "meta": {
+        "displayName": "Meta",
+        "purpose": "Status line, readout captions, notes, quip."
+      },
+      "label": {
+        "displayName": "Column Label",
+        "purpose": "Uppercase list column headers and hatch badges only."
+      }
+    },
+    "shadows": [
+      {
+        "name": "bevel-raised",
+        "value": "border: 1px solid; border-color: var(--vg-hi) var(--vg-lo) var(--vg-lo) var(--vg-hi)",
+        "purpose": "Raised surfaces: window, sheet, button, tab, chip."
+      },
+      {
+        "name": "bevel-sunk",
+        "value": "border: 1px solid; border-color: var(--vg-lo) var(--vg-hi) var(--vg-hi) var(--vg-lo); background: var(--vg-well)",
+        "purpose": "Sunken wells and pressed buttons."
+      },
+      {
+        "name": "engraved-disabled",
+        "value": "text-shadow: 1px 1px 0 var(--vg-hi)",
+        "purpose": "Disabled button labels only."
+      },
+      {
+        "name": "focus-dotted",
+        "value": "outline: 1px dotted var(--vg-gold); outline-offset: 2px",
+        "purpose": "The only focus treatment."
+      },
+      {
+        "name": "hatch",
+        "value": "repeating-linear-gradient(135deg, var(--vg-window) 0 4px, #4a5641 4px 8px)",
+        "purpose": "Badges and rule conflicts; never colour alone."
+      }
+    ],
+    "motion": [
+      {
+        "name": "instant",
+        "value": "none",
+        "purpose": "No transitions: tabs switch and buttons sink instantly. The explanation chevron flips 180deg when open, without easing."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "md",
+        "value": "768px",
+        "purpose": "Content column widens from 460px to 520px."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Bevelled gold-label action; one per action bar at double width. Sinks on press.",
+      "html": "<button class=\"ds-btn ds-btn-primary\">Join mix</button>",
+      "css": ":host{--vg-ground:#3a4234;--vg-window:#434e3c;--vg-sheet:#4a5742;--vg-well:#343b2e;--vg-row:#3f4838;--vg-gold:#dccf6a;--vg-gold-deep:#7a6f22;--vg-text:#dfe4da;--vg-dim:#c2cab7;--vg-hi:#7f8d72;--vg-lo:#262a20;--vg-alert:#d8704f;} .ds-btn{font-family:'DejaVu Sans',Tahoma,Verdana,sans-serif;font-variant-numeric:tabular-nums;border:1px solid;border-color:var(--vg-hi) var(--vg-lo) var(--vg-lo) var(--vg-hi);background:var(--vg-sheet);color:var(--vg-text);padding:10px 12px;font-size:13px;font-weight:700;white-space:nowrap;user-select:none;border-radius:0;cursor:pointer;} .ds-btn:focus-visible{outline:1px dotted var(--vg-gold);outline-offset:2px;} .ds-btn:active{border-color:var(--vg-lo) var(--vg-hi) var(--vg-hi) var(--vg-lo);background:var(--vg-window);padding-top:11px;padding-bottom:9px;} .ds-btn:disabled{color:var(--vg-dim);text-shadow:1px 1px 0 var(--vg-hi);cursor:not-allowed;} .ds-btn-primary{color:var(--vg-gold);}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "Same bevelled button with a pale label; the flex-1 partner in the action bar.",
+      "html": "<button class=\"ds-btn\">Share</button> <button class=\"ds-btn\" disabled>Re-roll</button>",
+      "css": ":host{--vg-ground:#3a4234;--vg-window:#434e3c;--vg-sheet:#4a5742;--vg-well:#343b2e;--vg-row:#3f4838;--vg-gold:#dccf6a;--vg-gold-deep:#7a6f22;--vg-text:#dfe4da;--vg-dim:#c2cab7;--vg-hi:#7f8d72;--vg-lo:#262a20;--vg-alert:#d8704f;} .ds-btn{font-family:'DejaVu Sans',Tahoma,Verdana,sans-serif;font-variant-numeric:tabular-nums;border:1px solid;border-color:var(--vg-hi) var(--vg-lo) var(--vg-lo) var(--vg-hi);background:var(--vg-sheet);color:var(--vg-text);padding:10px 12px;font-size:13px;font-weight:700;white-space:nowrap;user-select:none;border-radius:0;cursor:pointer;} .ds-btn:focus-visible{outline:1px dotted var(--vg-gold);outline-offset:2px;} .ds-btn:active{border-color:var(--vg-lo) var(--vg-hi) var(--vg-hi) var(--vg-lo);background:var(--vg-window);padding-top:11px;padding-bottom:9px;} .ds-btn:disabled{color:var(--vg-dim);text-shadow:1px 1px 0 var(--vg-hi);cursor:not-allowed;}"
+    },
+    {
+      "name": "Property-Sheet Tabs",
+      "kind": "nav",
+      "refersTo": "tab-active",
+      "description": "Equal-width raised tabs over a sheet; active tab taller and bold; instant switch.",
+      "html": "<div class=\"ds-tabs\"><button class=\"ds-tab ds-on\">Variant 1 <b>4</b></button><button class=\"ds-tab\">Variant 2 <b>3</b></button><button class=\"ds-tab\">Variant 3 <b>2</b></button></div><div class=\"ds-sheet\">Sheet body</div>",
+      "css": ":host{--vg-ground:#3a4234;--vg-window:#434e3c;--vg-sheet:#4a5742;--vg-well:#343b2e;--vg-row:#3f4838;--vg-gold:#dccf6a;--vg-gold-deep:#7a6f22;--vg-text:#dfe4da;--vg-dim:#c2cab7;--vg-hi:#7f8d72;--vg-lo:#262a20;--vg-alert:#d8704f;} .ds-tabs{display:flex;gap:2px;padding:0 4px;font-family:'DejaVu Sans',Tahoma,Verdana,sans-serif;font-variant-numeric:tabular-nums;font-size:13px;} .ds-tab{border:1px solid;border-color:var(--vg-hi) var(--vg-lo) var(--vg-lo) var(--vg-hi);border-bottom:0;position:relative;top:1px;flex:1;background:var(--vg-window);color:var(--vg-dim);padding:6px 4px 4px;font:inherit;cursor:pointer;} .ds-tab b{color:var(--vg-gold);} .ds-tab.ds-on{background:var(--vg-sheet);color:var(--vg-text);font-weight:700;padding:8px 4px 6px;z-index:1;} .ds-tab:focus-visible{outline:1px dotted var(--vg-gold);outline-offset:2px;} .ds-sheet{border:1px solid;border-color:var(--vg-hi) var(--vg-lo) var(--vg-lo) var(--vg-hi);background:var(--vg-sheet);color:var(--vg-text);padding:8px;font-family:'DejaVu Sans',Tahoma,Verdana,sans-serif;font-variant-numeric:tabular-nums;font-size:13px;}"
+    },
+    {
+      "name": "Window",
+      "kind": "card",
+      "refersTo": "window",
+      "description": "Raised olive window with title bar and gold readout at right; the container for every page.",
+      "html": "<section class=\"ds-win\"><header><h1>Mix #14 · Fri 20:30</h1><span>7<i>/10</i></span></header><div class=\"ds-win-body\">Window body</div></section>",
+      "css": ":host{--vg-ground:#3a4234;--vg-window:#434e3c;--vg-sheet:#4a5742;--vg-well:#343b2e;--vg-row:#3f4838;--vg-gold:#dccf6a;--vg-gold-deep:#7a6f22;--vg-text:#dfe4da;--vg-dim:#c2cab7;--vg-hi:#7f8d72;--vg-lo:#262a20;--vg-alert:#d8704f;} .ds-win{border:1px solid;border-color:var(--vg-hi) var(--vg-lo) var(--vg-lo) var(--vg-hi);background:var(--vg-window);color:var(--vg-text);font-family:'DejaVu Sans',Tahoma,Verdana,sans-serif;font-variant-numeric:tabular-nums;font-size:13px;} .ds-win header{display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--vg-lo);} .ds-win h1{margin:0;font-size:13px;font-weight:700;} .ds-win header span{margin-left:auto;color:var(--vg-gold);font-weight:700;} .ds-win header i{font-style:normal;color:var(--vg-dim);} .ds-win-body{border-top:1px solid var(--vg-hi);padding:8px;}"
+    },
+    {
+      "name": "Server-Browser List",
+      "kind": "custom",
+      "refersTo": "list-row-selected",
+      "description": "Sunken well with dim uppercase column headers, team strip and rows; selected row is deep gold.",
+      "html": "<div class=\"ds-well\"><div class=\"ds-head\"><span>Player</span><span>Skill S</span></div><div class=\"ds-team\">Team A<span>1612</span></div><button class=\"ds-row\">chelmut<span class=\"ds-bar\"><i style=\"width:62%\"></i></span></button><button class=\"ds-row ds-sel\">pantofel<span class=\"ds-bar\"><i style=\"width:48%\"></i></span></button></div>",
+      "css": ":host{--vg-ground:#3a4234;--vg-window:#434e3c;--vg-sheet:#4a5742;--vg-well:#343b2e;--vg-row:#3f4838;--vg-gold:#dccf6a;--vg-gold-deep:#7a6f22;--vg-text:#dfe4da;--vg-dim:#c2cab7;--vg-hi:#7f8d72;--vg-lo:#262a20;--vg-alert:#d8704f;} .ds-well{border:1px solid;border-color:var(--vg-lo) var(--vg-hi) var(--vg-hi) var(--vg-lo);background:var(--vg-well);color:var(--vg-text);font-family:'DejaVu Sans',Tahoma,Verdana,sans-serif;font-variant-numeric:tabular-nums;font-size:13px;} .ds-head{display:flex;justify-content:space-between;background:var(--vg-window);color:var(--vg-dim);border-bottom:1px solid var(--vg-lo);padding:4px 6px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;} .ds-team{display:flex;justify-content:space-between;background:var(--vg-window);color:var(--vg-gold);padding:4px 6px;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;} .ds-team span{color:var(--vg-text);} .ds-row{display:grid;grid-template-columns:1fr 46%;gap:8px;align-items:center;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--vg-row);padding:4px 6px;color:inherit;font:inherit;cursor:pointer;} .ds-row:hover{background:var(--vg-row);} .ds-row:focus-visible{outline:1px dotted var(--vg-gold);outline-offset:2px;} .ds-sel,.ds-sel:hover{background:var(--vg-gold-deep);color:#fff;} .ds-bar{display:block;height:7px;background:rgba(38,42,32,.4);} .ds-bar i{display:block;height:100%;background:var(--vg-gold);} .ds-sel .ds-bar i{background:#fff;}"
+    },
+    {
+      "name": "Skill Bar",
+      "kind": "custom",
+      "refersTo": "client-gold",
+      "description": "The one S ramp: gold fill scaled 800-2300 (min 4%), bold right-aligned figure.",
+      "html": "<div class=\"ds-skill\"><span><i style=\"width:55%\"></i></span><b>1625</b></div>",
+      "css": ":host{--vg-ground:#3a4234;--vg-window:#434e3c;--vg-sheet:#4a5742;--vg-well:#343b2e;--vg-row:#3f4838;--vg-gold:#dccf6a;--vg-gold-deep:#7a6f22;--vg-text:#dfe4da;--vg-dim:#c2cab7;--vg-hi:#7f8d72;--vg-lo:#262a20;--vg-alert:#d8704f;} .ds-skill{display:grid;grid-template-columns:1fr 2.6rem;gap:6px;align-items:center;color:var(--vg-text);font-family:'DejaVu Sans',Tahoma,Verdana,sans-serif;font-variant-numeric:tabular-nums;font-size:13px;} .ds-skill span{height:7px;background:rgba(38,42,32,.4);} .ds-skill i{display:block;height:100%;background:var(--vg-gold);} .ds-skill b{text-align:right;}"
+    },
+    {
+      "name": "Hatch Badge",
+      "kind": "chip",
+      "refersTo": "badge",
+      "description": "Hatched gold uppercase tag for variant properties and rule conflicts.",
+      "html": "<span class=\"ds-badge\">Duo kept</span> <span class=\"ds-badge\">Rule conflict</span>",
+      "css": ":host{--vg-ground:#3a4234;--vg-window:#434e3c;--vg-sheet:#4a5742;--vg-well:#343b2e;--vg-row:#3f4838;--vg-gold:#dccf6a;--vg-gold-deep:#7a6f22;--vg-text:#dfe4da;--vg-dim:#c2cab7;--vg-hi:#7f8d72;--vg-lo:#262a20;--vg-alert:#d8704f;} .ds-badge{display:inline-block;font-family:'DejaVu Sans',Tahoma,Verdana,sans-serif;font-variant-numeric:tabular-nums;background-image:repeating-linear-gradient(135deg,var(--vg-window) 0 4px,#4a5641 4px 8px);color:var(--vg-gold);padding:2px 6px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;}"
+    },
+    {
+      "name": "Status Line",
+      "kind": "custom",
+      "refersTo": "well",
+      "description": "Sunken 11px dim line with a 7px square indicator; gold while live.",
+      "html": "<div class=\"ds-status\"><span></span>Voting · 9 of 10 voted · waiting for <b>chelmut</b></div>",
+      "css": ":host{--vg-ground:#3a4234;--vg-window:#434e3c;--vg-sheet:#4a5742;--vg-well:#343b2e;--vg-row:#3f4838;--vg-gold:#dccf6a;--vg-gold-deep:#7a6f22;--vg-text:#dfe4da;--vg-dim:#c2cab7;--vg-hi:#7f8d72;--vg-lo:#262a20;--vg-alert:#d8704f;} .ds-status{border:1px solid;border-color:var(--vg-lo) var(--vg-hi) var(--vg-hi) var(--vg-lo);background:var(--vg-well);display:flex;align-items:center;gap:6px;padding:6px 8px;color:var(--vg-dim);font-family:'DejaVu Sans',Tahoma,Verdana,sans-serif;font-variant-numeric:tabular-nums;font-size:11px;} .ds-status span{width:7px;height:7px;flex-shrink:0;background:var(--vg-gold);} .ds-status b{color:var(--vg-text);}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Server You Join",
+    "overview": "mixer is a 2003-era Steam / Counter-Strike 1.6 VGUI client window: olive panels, one-pixel bevels, sunken list wells, property-sheet tabs and server-browser lists with column headers. It rejects the dark esports dashboard with neon accents and the FACEIT / popflash look. Its lineage is the old client, not the modern platform.\n\nThe world is dense and small-typed on purpose. Body type sits at 13px, meta at 11px, and column headers at 10px, all in one humanist sans (DejaVu Sans, from the Verdana and Tahoma family). Depth comes only from bevel edges, never from blur shadows. Gold is the client's highlight colour: it marks key figures, the primary action, focus and the skill bar, and nothing decorative. There is one theme and no light/dark split. The world is olive, and that is deliberate.\n\nPersonality lives in copy (status lines and the italic quip under the window). The chrome stays literal: square corners, instant state changes, numbers in fixed positions.",
+    "keyCharacteristics": [
+      "Olive tonal layering: ground < window < sheet for raised surfaces, well below ground for sunken lists.",
+      "1px two-tone bevels (light top-left, dark bottom-right); inverted for sunken and pressed.",
+      "Zero radius everywhere.",
+      "One gold for key figures and the primary action; one skill ramp for S.",
+      "Small, dense, tabular-numeral type in a single family at weights 400 and 700.",
+      "Instant state changes: no fades and no easing."
+    ],
+    "rules": [
+      {
+        "name": "The Gold Means Look Here Rule",
+        "body": "Gold goes only on a figure or action the user must read or press first: the primary button label, the lead readout, the S bar. If everything on a screen is gold, nothing is.",
+        "section": "colors"
+      },
+      {
+        "name": "The Contrast Floor Rule",
+        "body": "Any new text/background pair keeps at least 4.5:1. Pale and dim text already pass on window, sheet and well. Dim text on olive-row or the hatch stripe is the lower bound; do not add darker surfaces under dim text.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Family Rule",
+        "body": "Only DejaVu Sans, at only 400 and 700. Get emphasis from weight and colour. Do not add another face or weight.",
+        "section": "typography"
+      },
+      {
+        "name": "The Uppercase Belongs To Columns Rule",
+        "body": "Tracked uppercase is for list column headers, team group strips and badges: the places the old client used it. Captions on readouts stay in sentence case, in dim 11px.",
+        "section": "typography"
+      },
+      {
+        "name": "The Bevel Is The Shadow Rule",
+        "body": "Elevation is expressed only by bevel direction and olive tone. Raised means a light top-left edge. Sunken means a dark top-left edge on the well colour. Nothing floats.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do build every surface from Window, Sheet, Well, Tabs, VButton, ListHead, Badge and SkillBar before adding anything new.",
+      "Do express raised and sunken with the 1px bevel pair (bevel-hi top-left / bevel-lo bottom-right, inverted for wells and pressed buttons).",
+      "Do render every S value with the one SkillBar ramp (min 800, max 2300, gold fill).",
+      "Do keep focus as the 1px dotted gold outline offset 2px.",
+      "Do mark conflicts and badges with the hatch plus text, never with colour alone.",
+      "Do keep humour in status and quip copy (11px dim italic under the window). Keep data, labels and actions plain.",
+      "Do use lucide-react line icons sparingly at 12-14px, in dim or the surrounding text colour, always aria-hidden next to a text label."
+    ],
+    "donts": [
+      "Don't round any corner. The radius is 0 everywhere.",
+      "Don't use blur shadows, glows, gradients (other than the hatch) or neon. The world has none.",
+      "Don't fade, slide or ease state changes. Tabs switch and buttons sink instantly.",
+      "Don't add a light theme or a second palette. The world is one olive theme.",
+      "Don't introduce a second typeface or weights beyond 400 and 700.",
+      "Don't use gold for decoration or body copy. It marks the lead figure and the primary action.",
+      "Don't put small tracked uppercase captions above headings or readouts. Uppercase is reserved for column headers, team strips and badges."
+    ]
+  }
+}

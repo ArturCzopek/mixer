@@ -447,9 +447,7 @@ function Played() {
   return (
     <div className="mt-2.5">
       <Well className="px-2 pt-2 pb-3 text-center">
-        <div className="text-dim text-[11px] tracking-[0.06em] uppercase">
-          Maps won · Team A : Team B
-        </div>
+        <div className="text-dim text-[11px]">Maps won, Team A : Team B</div>
         <div className="text-gold text-[64px] leading-[1.05] font-bold tracking-[-0.04em]">
           {wonA}
           <span className="text-dim"> : </span>
@@ -534,7 +532,7 @@ function ActionBar({
           <>
             <VButton className="flex-1">Share</VButton>
             <VButton primary className="flex-[2]">
-              Join mix
+              Join Mix
             </VButton>
           </>
         )}
@@ -542,7 +540,7 @@ function ActionBar({
           <>
             <VButton className="flex-1">Re-roll</VButton>
             <VButton primary className="flex-[2]">
-              Vote variant {variantNo}
+              Vote Variant {variantNo}
             </VButton>
           </>
         )}
@@ -559,9 +557,9 @@ function ActionBar({
         )}
         {state === "played" && (
           <>
-            <VButton className="flex-1">Upload demo</VButton>
+            <VButton className="flex-1">Upload Demo</VButton>
             <VButton primary className="flex-[2]">
-              Full scoreboard
+              Full Scoreboard
             </VButton>
           </>
         )}
