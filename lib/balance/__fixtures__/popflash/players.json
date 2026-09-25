@@ -1,0 +1,196 @@
+{
+  "$comment": "Popflash club skarpeciarze-i-pantofle (71 maps, Oct-Dec 2024). SteamID64 read from each popflash profile page (2026-09-25). mergeInto: owner says this account belongs to the same person as the roster account (second account). Players without a roster entry are former / occasional players, kept with their own SteamID for the backtest.",
+  "players": [
+    {
+      "popflashId": "1686566",
+      "name": "katus `iksdel0l~",
+      "steamId": "76561197993187687",
+      "maps": 71,
+      "who": "czopo (owner)"
+    },
+    {
+      "popflashId": "2038546",
+      "name": "13hp",
+      "steamId": "76561197990797581",
+      "maps": 65,
+      "who": "janex"
+    },
+    {
+      "popflashId": "2038537",
+      "name": "Nefcio",
+      "steamId": "76561198144253703",
+      "maps": 64,
+      "who": "nefcio"
+    },
+    {
+      "popflashId": "2038738",
+      "name": "Majkz",
+      "steamId": "76561198063581077",
+      "maps": 62,
+      "who": "roevs"
+    },
+    {
+      "popflashId": "2038547",
+      "name": "loowN.",
+      "steamId": "76561197999931838",
+      "maps": 54,
+      "who": null
+    },
+    {
+      "popflashId": "1114658",
+      "name": "stan",
+      "steamId": "76561197976084038",
+      "maps": 41,
+      "who": "stan"
+    },
+    {
+      "popflashId": "2046631",
+      "name": "¯\_(ツ)_/¯",
+      "steamId": "76561198004045444",
+      "maps": 40,
+      "who": null
+    },
+    {
+      "popflashId": "2038746",
+      "name": "iZnoGouD",
+      "steamId": "76561198004643533",
+      "maps": 36,
+      "who": "smileyz"
+    },
+    {
+      "popflashId": "2038749",
+      "name": "WIOTKI-CHAN",
+      "steamId": "76561197973636234",
+      "maps": 35,
+      "who": "chelmut (probably)",
+      "mergeInto": "76561198148296203",
+      "confirmed": false
+    },
+    {
+      "popflashId": "2038781",
+      "name": "MrWho",
+      "steamId": "76561199126921648",
+      "maps": 32,
+      "who": "coma"
+    },
+    {
+      "popflashId": "2059305",
+      "name": "sexy, ya?",
+      "steamId": "76561197960551471",
+      "maps": 32,
+      "who": "fontek"
+    },
+    {
+      "popflashId": "2038624",
+      "name": "Landa",
+      "steamId": "76561198038068354",
+      "maps": 27,
+      "who": null
+    },
+    {
+      "popflashId": "2070066",
+      "name": "Windxore",
+      "steamId": "76561198014771816",
+      "maps": 27,
+      "who": "windxore"
+    },
+    {
+      "popflashId": "2177830",
+      "name": "CHELMÜT",
+      "steamId": "76561198148296203",
+      "maps": 20,
+      "who": "chelmut"
+    },
+    {
+      "popflashId": "1719566",
+      "name": "∫ƒ(x)dx",
+      "steamId": "76561197998021810",
+      "maps": 18,
+      "who": null
+    },
+    {
+      "popflashId": "1449487",
+      "name": "jawor.exe",
+      "steamId": "76561197990522246",
+      "maps": 16,
+      "who": "jawor"
+    },
+    {
+      "popflashId": "2046422",
+      "name": "Pszemo",
+      "steamId": "76561198317971663",
+      "maps": 13,
+      "who": null
+    },
+    {
+      "popflashId": "2059300",
+      "name": "VEGETA SSIJ 2",
+      "steamId": "76561198015784703",
+      "maps": 12,
+      "who": null
+    },
+    {
+      "popflashId": "2069207",
+      "name": "eNGie",
+      "steamId": "76561198857565139",
+      "maps": 12,
+      "who": null
+    },
+    {
+      "popflashId": "2067335",
+      "name": "Czimbele",
+      "steamId": "76561198004327296",
+      "maps": 10,
+      "who": null
+    },
+    {
+      "popflashId": "2177769",
+      "name": "Alimenciarz g4skins",
+      "steamId": "76561199092796223",
+      "maps": 5,
+      "who": null
+    },
+    {
+      "popflashId": "547388",
+      "name": "Libra",
+      "steamId": "76561197995838560",
+      "maps": 3,
+      "who": null
+    },
+    {
+      "popflashId": "579255",
+      "name": "bozenasz51",
+      "steamId": "76561198049630339",
+      "maps": 3,
+      "who": null
+    },
+    {
+      "popflashId": "899420",
+      "name": "SaKsU",
+      "steamId": "76561198065842803",
+      "maps": 3,
+      "who": null
+    },
+    {
+      "popflashId": "2070070",
+      "name": "Daro5G",
+      "steamId": "76561198095197239",
+      "maps": 3,
+      "who": null
+    },
+    {
+      "popflashId": "2177756",
+      "name": "piotr.k ™",
+      "steamId": "76561198313176516",
+      "maps": 3,
+      "who": null
+    },
+    {
+      "popflashId": "2184805",
+      "name": "depre??ed",
+      "steamId": "76561198132232950",
+      "maps": 3,
+      "who": null
+    }
+  ]
+}

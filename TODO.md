@@ -37,7 +37,8 @@ Task IDs refer to [docs/07-roadmap.md](docs/07-roadmap.md).
 - [ ] *(later, Phase 5)* Discord: create a Discord application + bot in the Developer Portal when we get to D-1
 - [x] "Jawor" in the 2026-09-20 mix = Steam `jawOla.exe` / FACEIT `jawOla21` (confirmed)
 - [x] Past mixes source: popflash club `skarpeciarze-i-pantofle` (T-2 exports it)
-- [ ] T-2: confirm the popflash nickname → Steam mapping Claude prepares
+- [x] T-2 mapping: popflash players → SteamID64 in `lib/balance/__fixtures__/popflash/players.json` (owner named them 2026-09-25)
+- [ ] Confirm WIOTKI-CHAN (`76561197973636234`) is chelmut's other account (currently merged, `confirmed: false`)
 
 ## Next Claude session: start here
 
