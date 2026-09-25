@@ -33,7 +33,8 @@ async function get(url, headers = {}) {
   for (let attempt = 0; attempt < 3; attempt++) {
     const res = await fetch(url, { headers: { "User-Agent": UA, ...headers } });
     const text = await res.text();
-    if (res.status === 429 || res.status >= 500) {
+    // Popflash sometimes answers the first request of a fresh client with a 403 challenge page.
+    if (res.status === 429 || res.status === 403 || res.status >= 500) {
       await sleep(2000 * (attempt + 1));
       continue;
     }
