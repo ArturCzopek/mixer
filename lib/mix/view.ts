@@ -1,0 +1,98 @@
+// Plain, serializable data behind the mix page (components/mix/mix-view.tsx). Built on the server
+// (design preview from lib/mock/mix.ts, showcase from lib/showcase/), later from the database.
+
+import type { BalanceConfig, SkillBreakdown, Variant } from "@/lib/balance";
+import type { LeetifyMatchSample } from "@/lib/mock/leetify";
+
+export interface ViewPlayer {
+  steamId: string;
+  name: string;
+  avatar: string | null;
+  /** FACEIT level (1–10); 0 when unknown. */
+  level: number;
+}
+
+export interface ViewVariant {
+  number: number;
+  teamA: string[];
+  teamB: string[];
+  votes: number;
+  /** The engine's variant: averages, win chance, cost split, labels. */
+  engine: Variant;
+}
+
+export interface ViewLine {
+  steamId: string;
+  team: "A" | "B";
+  k: number;
+  a: number;
+  d: number;
+  adr: number;
+  rounds: number;
+  /** Mixer Rating of the line. */
+  rating: number;
+}
+
+export interface ViewMap {
+  map: string;
+  a: number;
+  b: number;
+  lines: ViewLine[];
+}
+
+export interface MixViewData {
+  mix: {
+    number: number;
+    when: string;
+    group: string;
+    meId: string;
+    /** Who has not voted yet (voting state). */
+    waitingForId: string;
+  };
+  /** Start of the mix; every "last 30 days" window ends here (D30). */
+  mixAt: string;
+  players: ViewPlayer[];
+  breakdowns: Record<string, SkillBreakdown>;
+  config: BalanceConfig;
+  /** Splits left after hard rules, for "rank x of n". */
+  candidateCount: number;
+  variants: ViewVariant[];
+  /** Everyone in join order (D28); `joinedAt` is local time on mix day. */
+  participants: { steamId: string; joinedAt: string }[];
+  /** How many of `participants` are in the lobby state (everyone before `me`). */
+  lobbyCount: number;
+  /** The lineup that was played. */
+  locked: {
+    teamA: string[];
+    teamB: string[];
+    avgA: number;
+    avgB: number;
+    winProbA: number;
+    note: string;
+  };
+  result: { maps: ViewMap[]; source: string };
+  /** Leetify preview per player (FACEIT matches of the 30 days before the mix); null hides the card. */
+  leetify: Record<string, LeetifyMatchSample[]> | null;
+  /** Set on the showcase page: what is real and what is made up. */
+  showcase?: { title: string; notes: string[] };
+}
+
+/** Sums each player's lines over all maps (ADR and rating weighted by rounds). */
+export function totals(maps: ViewMap[]): ViewLine[] {
+  const byId = new Map<string, ViewLine>();
+  for (const line of maps.flatMap((m) => m.lines)) {
+    const t = byId.get(line.steamId);
+    if (!t) {
+      byId.set(line.steamId, { ...line });
+      continue;
+    }
+    const rounds = t.rounds + line.rounds;
+    t.adr = (t.adr * t.rounds + line.adr * line.rounds) / rounds;
+    t.rating = (t.rating * t.rounds + line.rating * line.rounds) / rounds;
+    t.k += line.k;
+    t.a += line.a;
+    t.d += line.d;
+    t.rounds = rounds;
+  }
+  return [...byId.values()];
+}

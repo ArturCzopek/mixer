@@ -1,10 +1,12 @@
 "use client";
 
-// Mix page in the VGUI world. Design preview only: data comes from lib/mock/mix.ts, buttons do
-// nothing yet. Real data and actions arrive with M1-5 (lobby), M1-6 (variants), M1-7 (voting).
+// Mix page in the VGUI world. Renders plain `MixViewData` built on the server: the design preview
+// (lib/mock/mix.ts), the showcase (lib/showcase/) and later the database (M1-5..M1-7). Buttons do
+// nothing yet.
 
 import * as React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { ChevronDown, ChevronRight, ExternalLink, Lock } from "lucide-react";
 import {
   BackgroundToggle,
@@ -17,129 +19,202 @@ import {
   Well,
   Window,
 } from "@/components/vgui";
+import type { SkillBreakdown } from "@/lib/balance";
 import {
-  byJoinOrder,
-  candidateCount,
-  config,
-  explain,
-  lobby,
-  mix,
-  NOW,
-  players,
-  result,
-  skill,
-  variants,
-  type MapLine,
-  type MockPlayer,
-  type MockVariant,
-} from "@/lib/mock/mix";
-import { leetifySample } from "@/lib/mock/leetify";
+  totals,
+  type MixViewData,
+  type ViewLine,
+  type ViewPlayer,
+  type ViewVariant,
+} from "@/lib/mix/view";
 import { cn } from "@/lib/utils";
 
 export type MixState = "lobby" | "voting" | "locked" | "played";
 
-const avg = (team: MockPlayer[]) =>
-  Math.round(team.reduce((s, p) => s + skill(p), 0) / team.length);
+type Player = ViewPlayer;
+type Line = Omit<ViewLine, "steamId"> & { player: Player };
+type MapResult = { map: string; a: number; b: number; lines: Line[] };
+type Variant = Omit<ViewVariant, "teamA" | "teamB"> & {
+  teamA: Player[];
+  teamB: Player[];
+};
 
-export function MixView({ state }: { state: MixState }) {
+/** The view data with ids resolved to players, plus the helpers every panel uses. */
+function resolve(data: MixViewData) {
+  const byId = new Map(data.players.map((p) => [p.steamId, p]));
+  const player = (id: string) => byId.get(id)!;
+  const team = (ids: string[]) => ids.map(player);
+  const explain = (p: Player): SkillBreakdown => data.breakdowns[p.steamId];
+  const skill = (p: Player) => explain(p).S;
+  const joinIndex = new Map(data.participants.map((x, i) => [x.steamId, i]));
+  const lines = (ls: ViewLine[]): Line[] =>
+    ls.map(({ steamId, ...l }) => ({ ...l, player: player(steamId) }));
+  const maps: MapResult[] = data.result.maps.map((m) => ({
+    ...m,
+    lines: lines(m.lines),
+  }));
+  return {
+    data,
+    now: new Date(data.mixAt),
+    explain,
+    skill,
+    avg: (t: Player[]) =>
+      Math.round(t.reduce((s, p) => s + skill(p), 0) / t.length),
+    nameOf: (id: string) => byId.get(id)?.name ?? id,
+    byJoinOrder: (t: Player[]) =>
+      [...t].sort(
+        (a, b) => joinIndex.get(a.steamId)! - joinIndex.get(b.steamId)!,
+      ),
+    me: player(data.mix.meId),
+    waitingFor: player(data.mix.waitingForId),
+    variants: data.variants.map((v): Variant => ({
+      ...v,
+      teamA: team(v.teamA),
+      teamB: team(v.teamB),
+    })),
+    lobby: data.participants.slice(0, data.lobbyCount).map((x) => ({
+      player: player(x.steamId),
+      joinedAt: x.joinedAt,
+    })),
+    locked: {
+      ...data.locked,
+      teamA: team(data.locked.teamA),
+      teamB: team(data.locked.teamB),
+    },
+    result: {
+      source: data.result.source,
+      maps,
+      all: lines(totals(data.result.maps)),
+    },
+  };
+}
+
+type Mix = ReturnType<typeof resolve>;
+const MixContext = React.createContext<Mix | null>(null);
+function useMix(): Mix {
+  const mix = React.useContext(MixContext);
+  if (!mix) throw new Error("useMix outside <MixView>");
+  return mix;
+}
+
+export function MixView({
+  state,
+  data,
+}: {
+  state: MixState;
+  data: MixViewData;
+}) {
+  const mix = React.useMemo(() => resolve(data), [data]);
   const [variantNo, setVariantNo] = React.useState(1);
-  const [focusId, setFocusId] = React.useState(mix.me.steamId);
-  const variant = variants.find((v) => v.number === variantNo)!;
-  const count = state === "lobby" ? lobby.length : 10;
+  const [focusId, setFocusId] = React.useState(data.mix.meId);
+  const variant = mix.variants.find((v) => v.number === variantNo)!;
+  const count = state === "lobby" ? mix.lobby.length : 10;
 
   return (
-    <div className="mx-auto flex w-full max-w-[460px] flex-1 flex-col pb-[76px] md:max-w-[760px] lg:max-w-[1180px]">
-      <MenuBar />
-      <div className="px-2">
-        <Window
-          title={`Mix #${mix.number} · ${mix.when}`}
-          right={
-            <span aria-label={`${count} of 10 players`}>
-              {count}
-              <span className="text-dim">/10</span>
-            </span>
-          }
-        >
-          <StatusLine
-            state={state}
-            variant={variant}
-            lobbyCount={lobby.length}
-          />
+    <MixContext.Provider value={mix}>
+      <div className="mx-auto flex w-full max-w-[460px] flex-1 flex-col pb-[76px] md:max-w-[760px] lg:max-w-[1180px]">
+        <MenuBar />
+        <div className="px-2">
+          {data.showcase && <ShowcaseNote />}
+          <Window
+            title={`Mix #${data.mix.number} · ${data.mix.when}`}
+            right={
+              <span aria-label={`${count} of 10 players`}>
+                {count}
+                <span className="text-dim">/10</span>
+              </span>
+            }
+          >
+            <StatusLine state={state} />
 
-          {state === "lobby" && <Lobby />}
+            {state === "lobby" && <Lobby />}
 
-          {state === "voting" && (
-            <div className="mt-2.5">
-              <Tabs
-                label="Variants"
-                value={variantNo}
-                onChange={setVariantNo}
-                items={variants.map((v) => ({
-                  value: v.number,
-                  label: (
-                    <>
-                      Variant {v.number}{" "}
-                      <span className="text-gold font-bold">{v.votes}</span>
-                    </>
-                  ),
-                }))}
-              />
-              <Sheet>
-                <VariantBody
-                  variant={variant}
-                  focusId={focusId}
-                  onFocus={setFocusId}
+            {state === "voting" && (
+              <div className="mt-2.5">
+                <Tabs
+                  label="Variants"
+                  value={variantNo}
+                  onChange={setVariantNo}
+                  items={mix.variants.map((v) => ({
+                    value: v.number,
+                    label: (
+                      <>
+                        Variant {v.number}{" "}
+                        <span className="text-gold font-bold">{v.votes}</span>
+                      </>
+                    ),
+                  }))}
                 />
-                <Tally />
-              </Sheet>
-            </div>
-          )}
+                <Sheet>
+                  <VariantBody
+                    variant={variant}
+                    focusId={focusId}
+                    onFocus={setFocusId}
+                  />
+                  <Tally />
+                </Sheet>
+              </div>
+            )}
 
-          {state === "locked" && <Locked variant={variants[0]} />}
-          {state === "played" && <Played />}
-        </Window>
-        <Quip state={state} />
+            {state === "locked" && <Locked />}
+            {state === "played" && <Played />}
+          </Window>
+          <Quip state={state} />
+        </div>
+        <ActionBar state={state} variantNo={variantNo} />
       </div>
-      <ActionBar state={state} variantNo={variantNo} />
-    </div>
+    </MixContext.Provider>
+  );
+}
+
+function ShowcaseNote() {
+  const { data } = useMix();
+  return (
+    <Well className="mb-2 px-2 py-1.5 text-[11px]">
+      <p className="text-gold font-bold">{data.showcase!.title}</p>
+      <ul className="text-dim mt-0.5 space-y-0.5">
+        {data.showcase!.notes.map((n) => (
+          <li key={n}>{n}</li>
+        ))}
+      </ul>
+    </Well>
   );
 }
 
 function MenuBar() {
+  const { data, me } = useMix();
   return (
     <nav className="flex items-center gap-1 px-2.5 pt-2 pb-2 text-[12px]">
-      <span className="text-gold font-bold tracking-wide">mixer</span>
-      <ChevronRight className="text-dim size-3" aria-hidden />
+      <Link href="/" className="text-gold font-bold tracking-wide no-underline">
+        mixer
+      </Link>
+      <ChevronRight className="text-dim size-3 shrink-0" aria-hidden />
       <a href="#" className="text-text truncate no-underline hover:underline">
-        {mix.group}
+        {data.mix.group}
       </a>
       <BackgroundToggle className="ml-auto" />
       <span className="text-dim ml-3 flex items-center gap-1.5">
-        {mix.me.name}
-        <Avatar player={mix.me} size={18} />
+        {me.name}
+        <Avatar player={me} size={18} />
       </span>
     </nav>
   );
 }
 
-function StatusLine({
-  state,
-  variant,
-  lobbyCount,
-}: {
-  state: MixState;
-  variant: MockVariant;
-  lobbyCount: number;
-}) {
+function StatusLine({ state }: { state: MixState }) {
+  const { data, lobby, waitingFor, result } = useMix();
+  const voted = data.variants.reduce((s, v) => s + v.votes, 0);
   const text = {
-    lobby: <>Open · {10 - lobbyCount} slots left · balancing starts at 10/10</>,
+    lobby: (
+      <>Open · {10 - lobby.length} slots left · balancing starts at 10/10</>
+    ),
     voting: (
       <>
-        Voting · 9 of 10 voted · waiting for{" "}
-        <b className="text-text">{mix.waitingFor.name}</b>
+        Voting · {voted} of 10 voted · waiting for{" "}
+        <b className="text-text">{waitingFor.name}</b>
       </>
     ),
-    locked: <>Lineup locked · Variant {variant.number} won with 4 votes</>,
+    locked: <>Lineup locked · {data.locked.note}</>,
     played: (
       <>
         Played · {result.maps.length} maps · result from {result.source}
@@ -160,7 +235,15 @@ function StatusLine({
   );
 }
 
-function Avatar({ player, size = 20 }: { player: MockPlayer; size?: number }) {
+function Avatar({ player, size = 20 }: { player: Player; size?: number }) {
+  if (!player.avatar)
+    return (
+      <span
+        aria-hidden
+        style={{ width: size, height: size }}
+        className="border-lo bg-well inline-block shrink-0 border"
+      />
+    );
   return (
     <Image
       src={player.avatar}
@@ -181,13 +264,14 @@ function PlayerRow({
   selected,
   onSelect,
 }: {
-  player: MockPlayer;
+  player: Player;
   index?: number;
   /** Join time (lobby tooltip); the lobby lists players in join order. */
   joinedAt?: string;
   selected?: boolean;
   onSelect?: () => void;
 }) {
+  const { skill } = useMix();
   const Tag = onSelect ? "button" : "div";
   return (
     <Tag
@@ -207,11 +291,13 @@ function PlayerRow({
         )}
         <Avatar player={player} />
         <span className="truncate">{player.name}</span>
-        <span
-          className={cn("text-[10px]", selected ? "text-white" : "text-dim")}
-        >
-          {player.level}
-        </span>
+        {player.level > 0 && (
+          <span
+            className={cn("text-[10px]", selected ? "text-white" : "text-dim")}
+          >
+            {player.level}
+          </span>
+        )}
       </span>
       <SkillBar value={skill(player)} selected={selected} />
     </Tag>
@@ -219,6 +305,7 @@ function PlayerRow({
 }
 
 function Lobby() {
+  const { lobby } = useMix();
   const slots: ((typeof lobby)[number] | null)[] = [
     ...lobby,
     ...Array(10 - lobby.length).fill(null),
@@ -262,12 +349,13 @@ function TeamList({
   onFocus,
 }: {
   label: string;
-  team: MockPlayer[];
+  team: Player[];
   /** `skill` in variant tabs (compare teams), `join` in the locked lineup (D28). */
   order: "skill" | "join";
   focusId?: string;
   onFocus?: (id: string) => void;
 }) {
+  const { avg, byJoinOrder, skill } = useMix();
   const sorted =
     order === "join"
       ? byJoinOrder(team)
@@ -292,12 +380,14 @@ function TeamList({
 
 /** Team A and Team B: stacked on phones, side by side from md. */
 function Teams({
-  variant,
+  teamA,
+  teamB,
   order,
   focusId,
   onFocus,
 }: {
-  variant: MockVariant;
+  teamA: Player[];
+  teamB: Player[];
   order: "skill" | "join";
   focusId?: string;
   onFocus?: (id: string) => void;
@@ -306,8 +396,8 @@ function Teams({
     <div className="grid gap-2.5 md:grid-cols-2">
       {(
         [
-          ["Team A", variant.teamA],
-          ["Team B", variant.teamB],
+          ["Team A", teamA],
+          ["Team B", teamB],
         ] as const
       ).map(([label, team]) => (
         <Well key={label}>
@@ -330,10 +420,16 @@ function Teams({
   );
 }
 
-function Odds({ variant }: { variant: MockVariant }) {
-  const a = Math.round(variant.engine.avgA);
-  const b = Math.round(variant.engine.avgB);
-  const pa = Math.round(variant.engine.winProbA * 100);
+function Odds({
+  avgA,
+  avgB,
+  winProbA,
+}: {
+  avgA: number;
+  avgB: number;
+  winProbA: number;
+}) {
+  const pa = Math.round(winProbA * 100);
   return (
     <div className="mb-2 flex items-end justify-between">
       <div>
@@ -346,7 +442,8 @@ function Odds({ variant }: { variant: MockVariant }) {
       <div className="text-right">
         <div className="text-dim text-[11px]">Avg S</div>
         <div>
-          <b>{a}</b> <span className="text-dim">vs</span> <b>{b}</b>
+          <b>{Math.round(avgA)}</b> <span className="text-dim">vs</span>{" "}
+          <b>{Math.round(avgB)}</b>
         </div>
       </div>
     </div>
@@ -358,27 +455,29 @@ function VariantBody({
   focusId,
   onFocus,
 }: {
-  variant: MockVariant;
+  variant: Variant;
   focusId: string;
   onFocus: (id: string) => void;
 }) {
+  const { data } = useMix();
   const everyone = [...variant.teamA, ...variant.teamB];
   const focused = everyone.find((p) => p.steamId === focusId) ?? everyone[0];
   return (
     <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-3">
       <div>
-        <Odds variant={variant} />
+        <Odds {...variant.engine} />
         <Labels variant={variant} />
         <Teams
-          variant={variant}
+          teamA={variant.teamA}
+          teamB={variant.teamB}
           order="skill"
           focusId={focused.steamId}
           onFocus={onFocus}
         />
       </div>
       <div className="lg:[&>details:first-child]:mt-0">
-        <Explanation player={focused} variant={variant} />
-        <LeetifyCard player={focused} />
+        <Explanation player={focused} everyone={everyone} variant={variant} />
+        {data.leetify && <LeetifyCard player={focused} />}
       </div>
     </div>
   );
@@ -386,8 +485,12 @@ function VariantBody({
 
 const LABELS = { "most-even": "Most even", fresh: "Fresh split" } as const;
 
-/** Variant labels (D28): engine's "Most even" / "Fresh split" plus "Leading" from the vote count. */
-function Labels({ variant }: { variant: MockVariant }) {
+/**
+ * Variant labels (D28): engine's "Most even" / "Fresh split" plus "Leading" from the vote count.
+ * The row keeps its height when a variant has no labels, so the teams never jump between tabs.
+ */
+function Labels({ variant }: { variant: Variant }) {
+  const { variants } = useMix();
   const top = Math.max(...variants.map((v) => v.votes));
   const leading =
     variant.votes === top &&
@@ -396,9 +499,8 @@ function Labels({ variant }: { variant: MockVariant }) {
     ...variant.engine.labels.map((l) => LABELS[l]),
     ...(leading ? ["Leading"] : []),
   ];
-  if (labels.length === 0) return null;
   return (
-    <div className="mb-2 flex flex-wrap gap-1">
+    <div className="mb-2 flex h-[19px] flex-wrap gap-1 overflow-hidden">
       {labels.map((l) => (
         <Badge key={l}>{l}</Badge>
       ))}
@@ -406,47 +508,42 @@ function Labels({ variant }: { variant: MockVariant }) {
   );
 }
 
+const LEETIFY_ROWS = 8;
+const LEETIFY_COLS = "grid-cols-[3rem_1fr_3rem_5.6rem]";
+
 /**
  * Leetify preview (M3-2) as an old-client property window: FACEIT matches of the 30 days before the
- * mix only (not before today, D30),
- * each with its Leetify Rating exactly as Leetify shows it. Nothing is averaged or recomputed
- * (Leetify terms). This preview uses invented sample numbers.
+ * mix only (D30), each with its Leetify Rating exactly as Leetify shows it. Nothing is averaged or
+ * recomputed (Leetify terms). Fixed height: always LEETIFY_ROWS rows, so switching players never
+ * moves the page. The preview uses invented sample numbers.
  */
-function LeetifyCard({ player }: { player: MockPlayer }) {
-  const matches = leetifySample(
-    player.steamId,
-    player.form.matches,
-    player.form.sessions,
-    player.form.before ? player.form.recent / player.form.before : 1,
-    NOW,
-  ).filter((m) => {
-    const t = Date.parse(m.finishedAt);
-    return t < NOW.getTime() && t >= NOW.getTime() - 30 * 86_400_000;
-  });
+function LeetifyCard({ player }: { player: Player }) {
+  const { data, now } = useMix();
+  const matches = data.leetify?.[player.steamId] ?? [];
   const won = matches.filter((m) => m.score[0] > m.score[1]).length;
-  const shown = matches.slice(0, 8);
+  const shown = matches.slice(0, LEETIFY_ROWS);
   const rating = (n: number) =>
     n > 0 ? `+${n.toFixed(2)}` : n < 0 ? `−${Math.abs(n).toFixed(2)}` : "0.00";
   return (
     <details open className="group mt-2.5">
       <summary className="bevel bg-window flex cursor-pointer list-none items-center justify-between px-2 py-1.5 select-none">
-        <span>
+        <span className="truncate">
           Leetify · FACEIT, 30 days before the mix{" "}
           <b className="text-text">{player.name}</b>
         </span>
         <ChevronDown
           aria-hidden
-          className="text-dim size-3.5 group-open:rotate-180"
+          className="text-dim size-3.5 shrink-0 group-open:rotate-180"
         />
       </summary>
-      <Well className="text-dim flex items-center gap-1.5 px-2 py-1.5 text-[11px]">
+      <Well className="text-dim flex h-[42px] items-center gap-1.5 px-2 text-[11px]">
         <span aria-hidden className="bg-gold size-[7px] shrink-0" />
         {matches.length === 0 ? (
-          `No FACEIT matches ${span(NOW)}.`
+          <span>No FACEIT matches {span(now)}.</span>
         ) : (
           <span>
             <b className="text-text">{matches.length}</b> FACEIT matches{" "}
-            {span(NOW)} ·{" "}
+            {span(now)} ·{" "}
             <b className="text-text">
               {won} W {matches.length - won} L
             </b>{" "}
@@ -454,61 +551,78 @@ function LeetifyCard({ player }: { player: MockPlayer }) {
           </span>
         )}
       </Well>
-      {matches.length > 0 && (
-        <>
-          <div
-            aria-label="Results, newest first"
-            className="mt-1.5 flex flex-wrap gap-0.5 px-0.5"
-          >
-            {matches.map((m, i) => (
-              <span
-                key={i}
-                title={`${m.map} ${m.score[0]}:${m.score[1]}`}
-                className={cn(
-                  "size-[7px]",
-                  m.score[0] > m.score[1] ? "bg-gold" : "bg-lo",
-                )}
-              />
-            ))}
-          </div>
-          <Well className="mt-1.5">
-            <div className="border-lo bg-window text-dim grid grid-cols-[3rem_1fr_3rem_5.6rem] gap-x-2 border-b px-1.5 py-1 text-[10px] tracking-[0.06em] uppercase">
-              <span>Date</span>
-              <span>Map</span>
-              <span className="text-right">Score</span>
-              <span className="text-right">Leetify Rating</span>
-            </div>
-            {shown.map((m, i) => (
+      <div
+        aria-label="Results, newest first"
+        className="mt-1.5 flex h-[16px] flex-wrap content-start gap-0.5 overflow-hidden px-0.5"
+      >
+        {matches.map((m, i) => (
+          <span
+            key={i}
+            title={`${m.map} ${m.score[0]}:${m.score[1]}`}
+            className={cn(
+              "size-[7px]",
+              m.score[0] > m.score[1] ? "bg-gold" : "bg-lo",
+            )}
+          />
+        ))}
+      </div>
+      <Well className="mt-1.5">
+        <div
+          className={cn(
+            "border-lo bg-window text-dim grid gap-x-2 border-b px-1.5 py-1 text-[10px] tracking-[0.06em] uppercase",
+            LEETIFY_COLS,
+          )}
+        >
+          <span>Date</span>
+          <span>Map</span>
+          <span className="text-right">Score</span>
+          <span className="text-right">Leetify Rating</span>
+        </div>
+        <div className="relative">
+          {Array.from({ length: LEETIFY_ROWS }, (_, i) => {
+            const m = shown[i];
+            return (
               <div
                 key={i}
-                className="border-row grid grid-cols-[3rem_1fr_3rem_5.6rem] items-center gap-x-2 border-b px-1.5 py-1"
+                className={cn(
+                  "border-row grid h-[27px] items-center gap-x-2 border-b px-1.5",
+                  LEETIFY_COLS,
+                )}
               >
-                <span className="text-dim text-[11px]">
-                  {m.finishedAt.slice(8, 10)}.{m.finishedAt.slice(5, 7)}
-                </span>
-                <span className="truncate">{m.map.replace("de_", "")}</span>
-                <span className="text-right">
-                  <b
-                    className={
-                      m.score[0] > m.score[1] ? "text-gold" : "text-text"
-                    }
-                  >
-                    {m.score[0]}
-                  </b>
-                  <span className="text-dim">:</span>
-                  {m.score[1]}
-                </span>
-                <b className="text-right">{rating(m.leetifyRating)}</b>
+                {m && (
+                  <>
+                    <span className="text-dim text-[11px]">
+                      {m.finishedAt.slice(8, 10)}.{m.finishedAt.slice(5, 7)}
+                    </span>
+                    <span className="truncate">{m.map.replace("de_", "")}</span>
+                    <span className="text-right">
+                      <b
+                        className={
+                          m.score[0] > m.score[1] ? "text-gold" : "text-text"
+                        }
+                      >
+                        {m.score[0]}
+                      </b>
+                      <span className="text-dim">:</span>
+                      {m.score[1]}
+                    </span>
+                    <b className="text-right">{rating(m.leetifyRating)}</b>
+                  </>
+                )}
               </div>
-            ))}
-            {matches.length > shown.length && (
-              <p className="text-dim px-1.5 py-1 text-[11px]">
-                and {matches.length - shown.length} more on Leetify
-              </p>
-            )}
-          </Well>
-        </>
-      )}
+            );
+          })}
+          {matches.length === 0 && (
+            <p className="text-dim absolute inset-0 grid place-items-center px-6 text-center text-[11px] italic">
+              {`No FACEIT in 30 days. ${player.name} is either touching grass or secretly grinding Premier.`}
+            </p>
+          )}
+        </div>
+        <p className="text-dim h-[24px] px-1.5 py-1 text-[11px]">
+          {matches.length > shown.length &&
+            `and ${matches.length - shown.length} more on Leetify`}
+        </p>
+      </Well>
       <a
         href="https://leetify.com/"
         target="_blank"
@@ -533,27 +647,21 @@ const span = (mixAt: Date) =>
 
 const signed = (n: number) =>
   n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : "0";
-const nameOf = (steamId: string) =>
-  Object.values(players).find((p) => p.steamId === steamId)?.name ?? steamId;
 
+/**
+ * "How was this calculated?" for the focused player. Every player's text is rendered in the same
+ * grid cell and only the focused one is visible, so the panel is always as tall as the longest
+ * explanation and the page never jumps when you tap through players.
+ */
 function Explanation({
   player,
+  everyone,
   variant,
 }: {
-  player: MockPlayer;
-  variant: MockVariant;
+  player: Player;
+  everyone: Player[];
+  variant: Variant;
 }) {
-  const x = explain(player);
-  const w = x.weights;
-  const c = x.contributions;
-  const v = variant.engine;
-  const weighted = (weight: number, k: string) =>
-    weight === 1 ? k : `${weight}·${k}`;
-  const penalties = v.penalties.reduce((s, p) => s + p.pp, 0);
-  const duos = [
-    v.duos.top && (["Top", v.duos.top] as const),
-    v.duos.bottom && (["Bottom", v.duos.bottom] as const),
-  ].filter((d) => !!d);
   return (
     <details open className="group mt-2.5">
       <summary className="bevel bg-window flex cursor-pointer list-none items-center justify-between px-2 py-1.5 select-none">
@@ -565,64 +673,102 @@ function Explanation({
           className="text-dim size-3.5 group-open:rotate-180"
         />
       </summary>
-      <Well className="p-2">
-        <p className="text-gold mb-1.5 text-[11px] font-bold">
-          S = {weighted(w.elo, "E")} + {weighted(w.faceitForm, "F")} +{" "}
-          {weighted(w.mixForm, "M")} + {weighted(w.activity, "A")} = {c.E}{" "}
-          {[c.F, c.M, c.A].map((n) => (n < 0 ? `− ${-n} ` : `+ ${n} `))}= {x.S}
-        </p>
-        <Term
-          k="E"
-          name="FACEIT ELO"
-          value={c.E}
-          note={
-            x.eSource === "faceit"
-              ? `Level ${player.level}, live from FACEIT`
-              : "No FACEIT account: the group admin's manual ELO"
-          }
-        />
-        <Term
-          k="F"
-          name={`FACEIT form, last ${config.form.windowDays} days`}
-          value={signed(c.F)}
-          note={formNote(x)}
-        />
-        <Term
-          k="M"
-          name={`Mix form${w.mixForm === 1 ? "" : ` · weight ${w.mixForm}`}`}
-          value={signed(c.M)}
-          note={
-            x.mix.status === "ok"
-              ? `${x.mix.maps} mix maps · Mixer Rating ${x.mix.playerRating!.toFixed(2)} vs group ${x.mix.groupRating!.toFixed(2)} → ${x.mix.shrunkRating!.toFixed(2)} after shrinkage`
-              : "No mix maps with stats yet"
-          }
-        />
-        <Term
-          k="A"
-          name={`Activity, last ${x.activity.windowDays} days`}
-          value={signed(c.A)}
-          note={activityNote(x)}
-        />
-        <p className="text-dim mt-2 text-[11px]">
-          Variant cost: {v.imbalance.toFixed(1)} pp imbalance + {penalties} pp
-          rule penalties = {v.cost.toFixed(1)}. Rank {v.rank} of{" "}
-          {candidateCount} possible splits; the three cheapest distinct ones are
-          shown.
-          {duos.map(([label, d]) => (
-            <React.Fragment key={label}>
-              {" "}
-              {label} duo {nameOf(d.ids[0])} + {nameOf(d.ids[1])}{" "}
-              {d.split ? "play on opposite teams" : "play together"} ({d.mode}{" "}
-              rule).
-            </React.Fragment>
-          ))}
-        </p>
+      <Well className="grid p-2">
+        {everyone.map((p) => (
+          <div
+            key={p.steamId}
+            aria-hidden={p.steamId !== player.steamId}
+            className={cn(
+              "[grid-area:1/1]",
+              p.steamId !== player.steamId && "invisible",
+            )}
+          >
+            <PlayerExplanation player={p} variant={variant} />
+          </div>
+        ))}
       </Well>
     </details>
   );
 }
 
-function formNote(x: ReturnType<typeof explain>) {
+function PlayerExplanation({
+  player,
+  variant,
+}: {
+  player: Player;
+  variant: Variant;
+}) {
+  const { data, explain, nameOf } = useMix();
+  const x = explain(player);
+  const w = x.weights;
+  const c = x.contributions;
+  const v = variant.engine;
+  const config = data.config;
+  const weighted = (weight: number, k: string) =>
+    weight === 1 ? k : `${weight}·${k}`;
+  const penalties = v.penalties.reduce((s, p) => s + p.pp, 0);
+  const duos = [
+    v.duos.top && (["Top", v.duos.top] as const),
+    v.duos.bottom && (["Bottom", v.duos.bottom] as const),
+  ].filter((d) => !!d);
+  return (
+    <>
+      <p className="text-gold mb-1.5 text-[11px] font-bold">
+        S = {weighted(w.elo, "E")} + {weighted(w.faceitForm, "F")} +{" "}
+        {weighted(w.mixForm, "M")} + {weighted(w.activity, "A")} = {c.E}{" "}
+        {[c.F, c.M, c.A].map((n) => (n < 0 ? `− ${-n} ` : `+ ${n} `))}= {x.S}
+      </p>
+      <Term
+        k="E"
+        name="FACEIT ELO"
+        value={c.E}
+        note={
+          x.eSource === "faceit"
+            ? `${player.level ? `Level ${player.level}, ` : ""}live from FACEIT`
+            : "No FACEIT account: the group admin's manual ELO"
+        }
+      />
+      <Term
+        k="F"
+        name={`FACEIT form, last ${config.form.windowDays} days`}
+        value={signed(c.F)}
+        note={formNote(x, config)}
+      />
+      <Term
+        k="M"
+        name={`Mix form${w.mixForm === 1 ? "" : ` · weight ${w.mixForm}`}`}
+        value={signed(c.M)}
+        note={
+          x.mix.status === "ok"
+            ? `${x.mix.maps} mix maps · Mixer Rating ${x.mix.playerRating!.toFixed(2)} vs group ${x.mix.groupRating!.toFixed(2)} → ${x.mix.shrunkRating!.toFixed(2)} after shrinkage`
+            : "No mix maps with stats yet"
+        }
+      />
+      <Term
+        k="A"
+        name={`Activity, last ${x.activity.windowDays} days`}
+        value={signed(c.A)}
+        note={activityNote(x, config)}
+      />
+      <p className="text-dim mt-2 text-[11px]">
+        Variant cost: {v.imbalance.toFixed(1)} pp imbalance + {penalties} pp
+        rule penalties = {v.cost.toFixed(1)}. Rank {v.rank} of{" "}
+        {data.candidateCount} possible splits; the three cheapest distinct ones
+        are shown.
+        {duos.map(([label, d]) => (
+          <React.Fragment key={label}>
+            {" "}
+            {label} duo {nameOf(d.ids[0])} + {nameOf(d.ids[1])}{" "}
+            {d.split ? "play on opposite teams" : "play together"} ({d.mode}{" "}
+            rule).
+          </React.Fragment>
+        ))}
+      </p>
+    </>
+  );
+}
+
+function formNote(x: SkillBreakdown, config: MixViewData["config"]) {
   const f = x.form;
   const cfg = config.form;
   if (f.status === "no-recent-matches")
@@ -639,7 +785,7 @@ function formNote(x: ReturnType<typeof explain>) {
   ].join(" · ");
 }
 
-function activityNote(x: ReturnType<typeof explain>) {
+function activityNote(x: SkillBreakdown, config: MixViewData["config"]) {
   const a = x.activity;
   if (a.status === "no-data")
     return "No FACEIT history: counts as 0, never a penalty.";
@@ -678,6 +824,7 @@ function Term({
 }
 
 function Tally() {
+  const { variants } = useMix();
   return (
     <div className="mt-2.5 grid grid-cols-3 gap-1.5">
       {variants.map((v) => (
@@ -693,12 +840,13 @@ function Tally() {
   );
 }
 
-function Locked({ variant }: { variant: MockVariant }) {
+function Locked() {
+  const { locked } = useMix();
   return (
     <div className="mt-2.5 lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start lg:gap-3">
       <div>
-        <Odds variant={variant} />
-        <Teams variant={variant} order="join" />
+        <Odds {...locked} />
+        <Teams teamA={locked.teamA} teamB={locked.teamB} order="join" />
       </div>
       <Well className="mt-2.5 p-2 lg:mt-0">
         <p className="text-gold mb-1 flex items-center gap-1.5 font-bold">
@@ -715,6 +863,7 @@ function Locked({ variant }: { variant: MockVariant }) {
 }
 
 function Played() {
+  const { result } = useMix();
   const [pick, setPick] = React.useState<string | null>(null);
   const wonA = result.maps.filter((m) => m.a > m.b).length;
   const wonB = result.maps.length - wonA;
@@ -810,7 +959,7 @@ function Figure({ win, children }: { win: boolean; children: number }) {
 
 const SCORE_COLS = "grid-cols-[1fr_repeat(4,2.3rem)_2.8rem]";
 
-function Scoreboard({ lines }: { lines: MapLine[] }) {
+function Scoreboard({ lines }: { lines: Line[] }) {
   const best = Math.max(...lines.map((l) => l.rating));
   return (
     <Well>
@@ -871,12 +1020,15 @@ function Scoreboard({ lines }: { lines: MapLine[] }) {
 }
 
 function Quip({ state }: { state: MixState }) {
+  const { result, waitingFor } = useMix();
   const mvp = [...result.all].sort((a, b) => b.rating - a.rating)[0];
   const text = {
     lobby: "Last one in brings the energy drinks.",
-    voting: `${mix.waitingFor.name} is late. As tradition demands.`,
+    voting: `${waitingFor.name} is late. As tradition demands.`,
     locked: "Teams are final. Complaints go to the algorithm.",
-    played: `${mvp.player.name} carried. Screenshots or it didn't happen.`,
+    played: mvp
+      ? `${mvp.player.name} carried. Screenshots or it didn't happen.`
+      : "",
   }[state];
   return (
     <p className="text-dim mt-2 px-2 text-center text-[11px] italic">{text}</p>

@@ -10,6 +10,8 @@ import {
   type SkillBreakdown,
   type Variant,
 } from "@/lib/balance";
+import type { MixViewData } from "@/lib/mix/view";
+import { leetifySample } from "@/lib/mock/leetify";
 
 export interface MockPlayer {
   steamId: string;
@@ -359,3 +361,79 @@ export const result = {
   all: totals(maps),
   source: "FACEIT",
 };
+
+// --- serializable view data for components/mix/mix-view.tsx -----------------------------------
+
+const DAY_MS = 86_400_000;
+
+/** Everything the mix page shows, as plain data (built on the server). */
+export function mockViewData(): MixViewData {
+  const all = Object.values(players);
+  const ids = (team: MockPlayer[]) => team.map((x) => x.steamId);
+  return {
+    mix: {
+      number: mix.number,
+      when: mix.when,
+      group: mix.group,
+      meId: mix.me.steamId,
+      waitingForId: mix.waitingFor.steamId,
+    },
+    mixAt: NOW.toISOString(),
+    players: all.map(({ steamId, name, avatar, level }) => ({
+      steamId,
+      name,
+      avatar,
+      level,
+    })),
+    breakdowns: Object.fromEntries(all.map((x) => [x.steamId, explain(x)])),
+    config,
+    candidateCount,
+    variants: variants.map((v) => ({
+      number: v.number,
+      votes: v.votes,
+      teamA: ids(v.teamA),
+      teamB: ids(v.teamB),
+      engine: v.engine,
+    })),
+    participants: participants.map((x) => ({
+      steamId: x.player.steamId,
+      joinedAt: x.joinedAt,
+    })),
+    lobbyCount: lobby.length,
+    locked: {
+      teamA: ids(locked.teamA),
+      teamB: ids(locked.teamB),
+      avgA: locked.engine.avgA,
+      avgB: locked.engine.avgB,
+      winProbA: locked.engine.winProbA,
+      note: `Variant ${locked.number} won with ${locked.votes} votes`,
+    },
+    result: {
+      source: result.source,
+      maps: maps.map((m) => ({
+        map: m.map,
+        a: m.a,
+        b: m.b,
+        lines: m.lines.map(({ player, ...line }) => ({
+          ...line,
+          steamId: player.steamId,
+        })),
+      })),
+    },
+    leetify: Object.fromEntries(
+      all.map((x) => [
+        x.steamId,
+        leetifySample(
+          x.steamId,
+          x.form.matches,
+          x.form.sessions,
+          x.form.before ? x.form.recent / x.form.before : 1,
+          NOW,
+        ).filter((m) => {
+          const t = Date.parse(m.finishedAt);
+          return t < NOW.getTime() && t >= NOW.getTime() - 30 * DAY_MS;
+        }),
+      ]),
+    ),
+  };
+}

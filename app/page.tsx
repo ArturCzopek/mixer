@@ -32,6 +32,12 @@ export default async function Home({ searchParams }: PageProps<"/">) {
             Login is not configured on this deployment.
           </p>
         )}
+        <Link
+          href="/demo"
+          className="bevel bg-sheet text-text mb-2 block px-3 py-2.5 text-center text-[13px] font-bold no-underline"
+        >
+          See a Real Mix: 16 Dec 2024
+        </Link>
         <p className="text-dim">
           Design preview: <Link href="/design/mix">mix page</Link> ·{" "}
           <a
