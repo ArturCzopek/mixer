@@ -55,7 +55,7 @@ Task IDs refer to [docs/07-roadmap.md](docs/07-roadmap.md).
      (≥ 8/10 participants, 6 h window, admin confirms), demos only as links + in-browser parse,
      lists in **join order**, no duo badges, results for **N maps**, Worms-style awards (M2-8),
      Leetify preview card (M3-2), per-group on/off per term (M4-7).
-4. Done: **M1-2** (`lib/external/`). Done: **UI-0** (VGUI look, preview at `/design/mix`). Next: **M1-4b** (balancing explanation, weights and form asymmetry, D22 + D24), then **M1-1** (Steam login, `is_site_admin` + group role guards),
+4. Done: **M1-2** (`lib/external/`). Done: **UI-0** (VGUI look, preview at `/design/mix`; join order, no duo badges, 5 maps with per-map scoreboards). Next: **M1-4b** (balancing explanation, weights and form asymmetry, D22 + D24), then **M1-1** (Steam login, `is_site_admin` + group role guards),
    **M1-G** (groups UI, seed our group), P0-4. **T-2** (popflash export) can run any time.
 5. Before M1-9: **P0-6** separate prod Supabase project (current one becomes dev).
 6. Windows: the repo forces LF (`.gitattributes`); keep `core.autocrlf=false`.

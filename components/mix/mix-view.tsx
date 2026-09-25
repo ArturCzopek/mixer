@@ -7,7 +7,6 @@ import * as React from "react";
 import Image from "next/image";
 import { ChevronDown, ChevronRight, ExternalLink, Lock } from "lucide-react";
 import {
-  Badge,
   ListHead,
   Sheet,
   SkillBar,
@@ -17,12 +16,14 @@ import {
   Window,
 } from "@/components/vgui";
 import {
+  byJoinOrder,
   formBreakdown,
   lobby,
   mix,
   result,
   skill,
   variants,
+  type MapLine,
   type MockPlayer,
   type MockVariant,
 } from "@/lib/mock/mix";
@@ -38,10 +39,7 @@ export function MixView({ state }: { state: MixState }) {
   const [variantNo, setVariantNo] = React.useState(1);
   const [focusId, setFocusId] = React.useState(mix.me.steamId);
   const variant = variants.find((v) => v.number === variantNo)!;
-  const joined = lobby.filter(
-    (p): p is MockPlayer => p !== null && p !== mix.me,
-  );
-  const count = state === "lobby" ? joined.length : 10;
+  const count = state === "lobby" ? lobby.length : 10;
 
   return (
     <div className="mx-auto flex w-full max-w-[460px] flex-1 flex-col pb-[76px] md:max-w-[520px]">
@@ -59,10 +57,10 @@ export function MixView({ state }: { state: MixState }) {
           <StatusLine
             state={state}
             variant={variant}
-            lobbyCount={joined.length}
+            lobbyCount={lobby.length}
           />
 
-          {state === "lobby" && <Lobby joined={joined} />}
+          {state === "lobby" && <Lobby />}
 
           {state === "voting" && (
             <div className="mt-2.5">
@@ -135,7 +133,11 @@ function StatusLine({
       </>
     ),
     locked: <>Lineup locked · Variant {variant.number} won with 4 votes</>,
-    played: <>Played · 3 maps · result from {result.source}</>,
+    played: (
+      <>
+        Played · {result.maps.length} maps · result from {result.source}
+      </>
+    ),
   }[state];
   return (
     <Well className="text-dim flex items-center gap-1.5 px-2 py-1.5 text-[11px]">
@@ -168,11 +170,14 @@ function Avatar({ player, size = 20 }: { player: MockPlayer; size?: number }) {
 function PlayerRow({
   player,
   index,
+  joinedAt,
   selected,
   onSelect,
 }: {
   player: MockPlayer;
   index?: number;
+  /** Join time (lobby tooltip); the lobby lists players in join order. */
+  joinedAt?: string;
   selected?: boolean;
   onSelect?: () => void;
 }) {
@@ -180,6 +185,7 @@ function PlayerRow({
   return (
     <Tag
       onClick={onSelect}
+      title={joinedAt && `Joined ${joinedAt}`}
       aria-pressed={onSelect ? selected : undefined}
       className={cn(
         "border-row grid w-full grid-cols-[1fr_46%] items-center gap-2 border-b px-1.5 py-1 text-left",
@@ -205,20 +211,25 @@ function PlayerRow({
   );
 }
 
-function Lobby({ joined }: { joined: MockPlayer[] }) {
-  const slots = [
-    ...joined,
-    ...Array(10 - joined.length).fill(null),
-  ] as (MockPlayer | null)[];
+function Lobby() {
+  const slots: ((typeof lobby)[number] | null)[] = [
+    ...lobby,
+    ...Array(10 - lobby.length).fill(null),
+  ];
   return (
     <Well className="mt-2.5">
       <ListHead>
-        <span className="flex-1 pl-6">Player</span>
+        <span className="flex-1 pl-6">Player · join order</span>
         <span className="w-[46%]">Skill S</span>
       </ListHead>
       {slots.map((p, i) =>
         p ? (
-          <PlayerRow key={p.steamId} player={p} index={i + 1} />
+          <PlayerRow
+            key={p.player.steamId}
+            player={p.player}
+            index={i + 1}
+            joinedAt={p.joinedAt}
+          />
         ) : (
           <div
             key={`free-${i}`}
@@ -237,21 +248,28 @@ function Lobby({ joined }: { joined: MockPlayer[] }) {
 function TeamList({
   label,
   team,
+  order,
   focusId,
   onFocus,
 }: {
   label: string;
   team: MockPlayer[];
+  /** `skill` in variant tabs (compare teams), `join` in the locked lineup (D28). */
+  order: "skill" | "join";
   focusId?: string;
   onFocus?: (id: string) => void;
 }) {
+  const sorted =
+    order === "join"
+      ? byJoinOrder(team)
+      : [...team].sort((a, b) => skill(b) - skill(a));
   return (
     <>
       <div className="bg-window text-gold flex justify-between px-1.5 py-1 text-[11px] font-bold tracking-[0.05em] uppercase">
         {label}
         <span className="text-text">{avg(team)}</span>
       </div>
-      {team.map((p) => (
+      {sorted.map((p) => (
         <PlayerRow
           key={p.steamId}
           player={p}
@@ -300,11 +318,6 @@ function VariantBody({
   return (
     <>
       <Odds variant={variant} />
-      <div className="mb-2 flex flex-wrap gap-1">
-        {variant.badges.map((b) => (
-          <Badge key={b}>{b}</Badge>
-        ))}
-      </div>
       <Well>
         <ListHead>
           <span className="flex-1">Player · tap for details</span>
@@ -313,12 +326,14 @@ function VariantBody({
         <TeamList
           label="Team A"
           team={variant.teamA}
+          order="skill"
           focusId={focused.steamId}
           onFocus={onFocus}
         />
         <TeamList
           label="Team B"
           team={variant.teamB}
+          order="skill"
           focusId={focused.steamId}
           onFocus={onFocus}
         />
@@ -424,8 +439,8 @@ function Locked({ variant }: { variant: MockVariant }) {
     <div className="mt-2.5">
       <Odds variant={variant} />
       <Well>
-        <TeamList label="Team A" team={variant.teamA} />
-        <TeamList label="Team B" team={variant.teamB} />
+        <TeamList label="Team A" team={variant.teamA} order="join" />
+        <TeamList label="Team B" team={variant.teamB} order="join" />
       </Well>
       <Well className="mt-2.5 p-2">
         <p className="text-gold mb-1 flex items-center gap-1.5 font-bold">
@@ -442,8 +457,11 @@ function Locked({ variant }: { variant: MockVariant }) {
 }
 
 function Played() {
+  const [pick, setPick] = React.useState<string | null>(null);
   const wonA = result.maps.filter((m) => m.a > m.b).length;
   const wonB = result.maps.length - wonA;
+  const map = result.maps.find((m) => m.map === pick);
+  const rounds = result.maps.reduce((s, m) => s + m.a + m.b, 0);
   return (
     <div className="mt-2.5">
       <Well className="px-2 pt-2 pb-3 text-center">
@@ -453,65 +471,152 @@ function Played() {
           <span className="text-dim"> : </span>
           <span className="text-text">{wonB}</span>
         </div>
-        <div className="mt-1 flex justify-center gap-1.5">
+        <div
+          role="group"
+          aria-label="Scoreboard for"
+          className="mt-1 flex flex-wrap justify-center gap-1.5"
+        >
+          <MapChip on={!map} onClick={() => setPick(null)}>
+            All maps
+          </MapChip>
           {result.maps.map((m) => (
-            <span key={m.map} className="bevel bg-window px-2 py-1 text-[11px]">
-              {m.map}{" "}
-              <b className={m.a > m.b ? "text-gold" : "text-text"}>{m.a}</b>
+            <MapChip key={m.map} on={m === map} onClick={() => setPick(m.map)}>
+              {m.map} <Figure win={m.a > m.b}>{m.a}</Figure>
               <span className="text-dim">:</span>
-              <b className={m.b > m.a ? "text-gold" : "text-text"}>{m.b}</b>
-            </span>
+              <Figure win={m.b > m.a}>{m.b}</Figure>
+            </MapChip>
           ))}
         </div>
       </Well>
-      <Well className="mt-2.5">
-        <div className="border-lo bg-window text-dim grid grid-cols-[1fr_repeat(4,2.4rem)_3rem] border-b px-1.5 py-1 text-[10px] tracking-[0.06em] uppercase">
-          <span>Top 5 · all maps</span>
-          <span className="text-right">K</span>
-          <span className="text-right">A</span>
-          <span className="text-right">D</span>
-          <span className="text-right">ADR</span>
-          <span className="text-right" title="Mixer Rating">
-            MR
-          </span>
-        </div>
-        {result.scoreboard.map((r, i) => (
-          <div
-            key={r.player.steamId}
-            className={cn(
-              "border-row grid grid-cols-[1fr_repeat(4,2.4rem)_3rem] items-center border-b px-1.5 py-1",
-              i === 0 && "bg-row",
-            )}
-          >
-            <span className="flex min-w-0 items-center gap-2">
-              <Avatar player={r.player} />
-              <span className="truncate">{r.player.name}</span>
-            </span>
-            <span className="text-right">{r.k}</span>
-            <span className="text-dim text-right">{r.a}</span>
-            <span className="text-right">{r.d}</span>
-            <span className="text-right">{r.adr.toFixed(0)}</span>
-            <b
-              className={cn(
-                "text-right",
-                r.rating >= 1 ? "text-gold" : "text-text",
-              )}
-            >
-              {r.rating.toFixed(2)}
-            </b>
-          </div>
-        ))}
-      </Well>
+      <p className="text-dim mt-2.5 mb-1 px-0.5 text-[11px]">
+        {map ? (
+          <>
+            {map.map} ·{" "}
+            <b className="text-text">
+              {map.a} : {map.b}
+            </b>{" "}
+            · Team {map.a > map.b ? "A" : "B"} won · {map.a + map.b} rounds
+          </>
+        ) : (
+          <>
+            All {result.maps.length} maps · {rounds} rounds · ADR and MR
+            weighted by rounds
+          </>
+        )}
+      </p>
+      <Scoreboard lines={map ? map.lines : result.all} />
     </div>
   );
 }
 
+/** Map score chip that doubles as the scoreboard picker; pressed = shown below. */
+function MapChip({
+  on,
+  onClick,
+  children,
+}: {
+  on: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      aria-pressed={on}
+      onClick={onClick}
+      className={cn(
+        "group/chip bevel px-2 py-1 text-[11px]",
+        on
+          ? "border-t-lo border-r-hi border-b-hi border-l-lo bg-gold-deep text-white"
+          : "bg-window hover:bg-row",
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+function Figure({ win, children }: { win: boolean; children: number }) {
+  return (
+    <b
+      className={cn(
+        "group-aria-pressed/chip:text-white",
+        win ? "text-gold" : "text-text",
+      )}
+    >
+      {children}
+    </b>
+  );
+}
+
+const SCORE_COLS = "grid-cols-[1fr_repeat(4,2.3rem)_2.8rem]";
+
+function Scoreboard({ lines }: { lines: MapLine[] }) {
+  const best = Math.max(...lines.map((l) => l.rating));
+  return (
+    <Well>
+      <div
+        className={cn(
+          "border-lo bg-window text-dim grid border-b px-1.5 py-1 text-[10px] tracking-[0.06em] uppercase",
+          SCORE_COLS,
+        )}
+      >
+        <span>Player</span>
+        <span className="text-right">K</span>
+        <span className="text-right">A</span>
+        <span className="text-right">D</span>
+        <span className="text-right">ADR</span>
+        <span className="text-right" title="Mixer Rating">
+          MR
+        </span>
+      </div>
+      {(["A", "B"] as const).map((team) => (
+        <React.Fragment key={team}>
+          <div className="bg-window text-gold px-1.5 py-1 text-[11px] font-bold tracking-[0.05em] uppercase">
+            Team {team}
+          </div>
+          {lines
+            .filter((l) => l.team === team)
+            .sort((x, y) => y.rating - x.rating)
+            .map((r) => (
+              <div
+                key={r.player.steamId}
+                className={cn(
+                  "border-row grid items-center border-b px-1.5 py-1",
+                  SCORE_COLS,
+                  r.rating === best && "bg-row",
+                )}
+              >
+                <span className="flex min-w-0 items-center gap-2">
+                  <Avatar player={r.player} />
+                  <span className="truncate">{r.player.name}</span>
+                </span>
+                <span className="text-right">{r.k}</span>
+                <span className="text-dim text-right">{r.a}</span>
+                <span className="text-right">{r.d}</span>
+                <span className="text-right">{r.adr.toFixed(0)}</span>
+                <b
+                  className={cn(
+                    "text-right",
+                    r.rating >= 1 ? "text-gold" : "text-text",
+                  )}
+                >
+                  {r.rating.toFixed(2)}
+                </b>
+              </div>
+            ))}
+        </React.Fragment>
+      ))}
+    </Well>
+  );
+}
+
 function Quip({ state }: { state: MixState }) {
+  const mvp = [...result.all].sort((a, b) => b.rating - a.rating)[0];
   const text = {
     lobby: "Last one in brings the energy drinks.",
     voting: `${mix.waitingFor.name} is late. As tradition demands.`,
     locked: "Teams are final. Complaints go to the algorithm.",
-    played: `${result.scoreboard[0].player.name} carried. Screenshots or it didn't happen.`,
+    played: `${mvp.player.name} carried. Screenshots or it didn't happen.`,
   }[state];
   return (
     <p className="text-dim mt-2 px-2 text-center text-[11px] italic">{text}</p>

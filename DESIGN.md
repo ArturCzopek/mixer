@@ -221,7 +221,11 @@ Bevelled and literal: they press in.
 ### Chips (badges)
 - **Style:** hatch background, gold bold 10px uppercase, tracked 0.06em, 2px 6px padding, no border.
 - **Use:** variant properties and rule conflicts only.
-- **Map score chip:** a raised bevel on olive-window, 11px, with the winning figure in gold.
+- **Map score chip:** a raised bevel on olive-window, 11px, with the winning figure in gold. On a
+  played mix the chips (plus an "All maps" chip) double as the scoreboard picker, because they wrap
+  for any number of maps where tabs would truncate: the pressed chip inverts its bevel and takes the
+  selection fill (gold-deep, white text and figures).
+- **No variant badges for duo rules** (D28): the duo rule is explained in the explanation panel instead.
 
 ### Cards / Containers
 - **Window:** raised bevel on olive-window. The title bar has a bold 13px title at left and an optional gold readout (such as x/10) at right. A bevel-lo line under the title bar and a bevel-hi line over the 8px body.
@@ -237,6 +241,9 @@ There are no shipped inputs yet. The token wiring maps input to olive-well, so f
 
 ### Server-Browser List
 A well holding a column header row (olive-window, dim 10px uppercase) and 1px olive-row-divided rows at 4px 6px padding. Rows carry a 20px square avatar in a bevel-lo frame, the name, a dim level, and the skill bar. Tappable rows turn olive-row on hover and gold-deep with white text when selected. Team groups get an olive-window strip with a bold gold uppercase 11px label and the team average in pale at the right.
+
+Player order: lobby and locked lineup list players in **join order** (D28); variant tabs sort each
+team by S. Scoreboards group rows by team, sorted by Mixer Rating, the evening's best row on olive-row.
 
 ### Skill Bar
 S is always rendered with the same bar: a 7px track (bevel-lo at 40%) with a gold fill scaled linearly from 800 to 2300 (never under 4% wide), and a 2.6rem right-aligned bold figure. The fill turns white on a selected row. The bar has no other colour, scale or shape.

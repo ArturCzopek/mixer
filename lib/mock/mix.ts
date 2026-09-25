@@ -1,6 +1,8 @@
 // Illustrative data for the design preview (`/design/mix`). Real names and ELO from the recorded
 // fixtures; form numbers, votes and the result are made up. Replaced by DB data in M1-5..M1-7.
 
+import { faceitMatchRating } from "@/lib/balance/faceit-rating";
+
 export interface MockPlayer {
   steamId: string;
   name: string;
@@ -124,7 +126,6 @@ export interface MockVariant {
   teamA: MockPlayer[];
   teamB: MockPlayer[];
   votes: number;
-  badges: string[];
 }
 
 const p = players;
@@ -132,38 +133,44 @@ export const variants: MockVariant[] = [
   {
     number: 1,
     votes: 4,
-    badges: ["Top duo split"],
     teamA: [p.fontek, p.jawola, p.stan, p.chelmut, p.roevs],
     teamB: [p.smiley, p.czopo, p.janex, p.windxore, p.coma],
   },
   {
     number: 2,
     votes: 3,
-    badges: ["Top duo split", "Bottom duo split"],
     teamA: [p.fontek, p.stan, p.janex, p.windxore, p.coma],
     teamB: [p.smiley, p.czopo, p.jawola, p.chelmut, p.roevs],
   },
   {
     number: 3,
     votes: 2,
-    badges: ["Top duo split"],
     teamA: [p.fontek, p.jawola, p.janex, p.windxore, p.roevs],
     teamB: [p.smiley, p.czopo, p.stan, p.chelmut, p.coma],
   },
 ];
 
-export const lobby: (MockPlayer | null)[] = [
-  p.czopo,
-  p.fontek,
-  p.stan,
-  p.janex,
-  p.windxore,
-  p.jawola,
-  p.coma,
-  p.roevs,
-  null,
-  null,
+/** Everyone in the mix, in join order (D28); `joinedAt` is local time on mix day. */
+export const participants: { player: MockPlayer; joinedAt: string }[] = [
+  { player: p.fontek, joinedAt: "11:02" },
+  { player: p.stan, joinedAt: "11:15" },
+  { player: p.janex, joinedAt: "11:40" },
+  { player: p.windxore, joinedAt: "12:03" },
+  { player: p.jawola, joinedAt: "12:30" },
+  { player: p.coma, joinedAt: "13:10" },
+  { player: p.roevs, joinedAt: "13:45" },
+  { player: p.czopo, joinedAt: "14:20" },
+  { player: p.smiley, joinedAt: "15:05" },
+  { player: p.chelmut, joinedAt: "16:30" },
 ];
+
+/** Players sorted by when they joined the mix. */
+export const byJoinOrder = (team: MockPlayer[]) =>
+  [...team].sort(
+    (a, b) =>
+      participants.findIndex((x) => x.player === a) -
+      participants.findIndex((x) => x.player === b),
+  );
 
 export const mix = {
   number: 14,
@@ -174,42 +181,145 @@ export const mix = {
   me: p.czopo,
 };
 
+/** Lobby state: everyone who joined before `me` (who has not joined yet). */
+export const lobby = participants.slice(
+  0,
+  participants.findIndex((x) => x.player === mix.me),
+);
+
+// --- result (played state) --------------------------------------------------------------------
+
+export interface MapLine {
+  player: MockPlayer;
+  team: "A" | "B";
+  k: number;
+  a: number;
+  d: number;
+  adr: number;
+  /** Mixer Rating from FACEIT stats (KAST fixed until demo extras, M2-3). */
+  rating: number;
+  rounds: number;
+}
+
+export interface MapResult {
+  map: string;
+  a: number;
+  b: number;
+  lines: MapLine[];
+}
+
+const MAPS = [
+  { map: "Nuke", a: 16, b: 12 },
+  { map: "Anubis", a: 13, b: 10 },
+  { map: "Mirage", a: 10, b: 13 },
+  { map: "Ancient", a: 11, b: 13 },
+  { map: "Inferno", a: 13, b: 9 },
+];
+
+/** Deterministic pseudo-random numbers (mulberry32), so the preview never changes between renders. */
+function random(seed: number) {
+  return () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Splits `total` into integers proportional to `weights` (largest remainder). */
+function share(total: number, weights: number[]) {
+  const sum = weights.reduce((s, w) => s + w, 0);
+  const exact = weights.map((w) => (total * w) / sum);
+  const out = exact.map(Math.floor);
+  const order = exact
+    .map((x, i) => [x - Math.floor(x), i] as const)
+    .sort((x, y) => y[0] - x[0]);
+  for (let i = 0; i < total - out.reduce((s, x) => s + x, 0); i++)
+    out[order[i][1]]++;
+  return out;
+}
+
+/** Made-up but self-consistent scoreboards for the locked lineup (team kills = enemy deaths). */
+function simulate(teamA: MockPlayer[], teamB: MockPlayer[]): MapResult[] {
+  const rnd = random(14);
+  return MAPS.map(({ map, a, b }) => {
+    const rounds = a + b;
+    const side = (team: MockPlayer[], won: number, lost: number) => {
+      const kills = Math.round(4.2 * won + 2.4 * lost + rnd() * 6);
+      const strength = team.map(
+        (pl) => (skill(pl) / 1500) ** 2 * (0.6 + 0.8 * rnd()),
+      );
+      return { kills, strength };
+    };
+    const sa = side(teamA, a, b);
+    const sb = side(teamB, b, a);
+    const lines = (
+      team: MockPlayer[],
+      mine: typeof sa,
+      theirs: typeof sa,
+      label: "A" | "B",
+    ): MapLine[] => {
+      const k = share(mine.kills, mine.strength);
+      const d = share(
+        theirs.kills,
+        mine.strength.map((w) => 1 / (w + 0.4)),
+      );
+      return team.map((player, i) => {
+        const assists = Math.round(rounds * (0.08 + 0.14 * rnd()));
+        const adr =
+          Math.round(((k[i] / rounds) * 88 + 8 + 14 * rnd()) * 10) / 10;
+        return {
+          player,
+          team: label,
+          k: k[i],
+          a: assists,
+          d: d[i],
+          adr,
+          rounds,
+          rating: faceitMatchRating({
+            kills: k[i],
+            deaths: d[i],
+            assists,
+            rounds,
+            adr,
+          }),
+        };
+      });
+    };
+    return {
+      map,
+      a,
+      b,
+      lines: [...lines(teamA, sa, sb, "A"), ...lines(teamB, sb, sa, "B")],
+    };
+  });
+}
+
+/** Sums one player's lines over all maps (ADR and rating weighted by rounds). */
+export function totals(maps: MapResult[]): MapLine[] {
+  const byId = new Map<string, MapLine>();
+  for (const line of maps.flatMap((m) => m.lines)) {
+    const t = byId.get(line.player.steamId);
+    if (!t) {
+      byId.set(line.player.steamId, { ...line });
+      continue;
+    }
+    const rounds = t.rounds + line.rounds;
+    t.adr = (t.adr * t.rounds + line.adr * line.rounds) / rounds;
+    t.rating = (t.rating * t.rounds + line.rating * line.rounds) / rounds;
+    t.k += line.k;
+    t.a += line.a;
+    t.d += line.d;
+    t.rounds = rounds;
+  }
+  return [...byId.values()];
+}
+
+const locked = variants[0];
+const maps = simulate(locked.teamA, locked.teamB);
+
 export const result = {
-  maps: [
-    { map: "Nuke", a: 16, b: 12 },
-    { map: "Anubis", a: 13, b: 10 },
-    { map: "Mirage", a: 10, b: 13 },
-  ],
+  maps,
+  all: totals(maps),
   source: "FACEIT",
-  scoreboard: [
-    {
-      player: p.fontek,
-      team: "A",
-      k: 32,
-      a: 6,
-      d: 19,
-      adr: 125.2,
-      rating: 1.54,
-    },
-    {
-      player: p.windxore,
-      team: "B",
-      k: 27,
-      a: 6,
-      d: 20,
-      adr: 103.1,
-      rating: 1.31,
-    },
-    { player: p.czopo, team: "B", k: 22, a: 8, d: 18, adr: 81.5, rating: 1.12 },
-    { player: p.stan, team: "A", k: 20, a: 3, d: 19, adr: 85.9, rating: 1.08 },
-    {
-      player: p.jawola,
-      team: "A",
-      k: 17,
-      a: 2,
-      d: 20,
-      adr: 68.8,
-      rating: 0.94,
-    },
-  ],
 };
