@@ -71,6 +71,18 @@ describe("faceitForm: raw F (docs/04 shrinkage examples)", () => {
     expect(f.F).toBeCloseTo(0);
   });
 
+  it("the window is the 30 days before the mix (`now`), not before today", () => {
+    const f = form(withForm(20, 1.3));
+    expect(f.windowTo).toBe(NOW.toISOString());
+    expect(f.windowFrom).toBe(daysAgo(30));
+    // Seen two weeks later, the same mix keeps its window: only `now` = mix time matters.
+    const a = activity(withForm(3, 1.0), NOW, CFG.activity);
+    expect([a.windowFrom, a.windowTo]).toEqual([
+      daysAgo(30),
+      NOW.toISOString(),
+    ]);
+  });
+
   it("ignores matches after `now`", () => {
     const p = withForm(20, 1.3);
     p.faceit!.matches.push({ finishedAt: daysAgo(-1), rating: 0.1 });
@@ -297,14 +309,14 @@ describe("skillScore", () => {
     mixRatings: Array(10).fill(1.15),
   });
 
-  it("S = E + F + 0.5·M + A with default weights, contributions add up", () => {
+  it("S = E + F + 0.5·M + 0.5·A with default weights, contributions add up", () => {
     // E 1500, F +100 (m+ = 1 at 1500), M +100 × 0.5, A: 20 matches on one day = 1 session.
     const s = skillScore(full(), ctx, CFG);
     expect(s).toMatchObject({ E: 1500, eSource: "faceit", A: -40 });
     expect(s.F).toBeCloseTo(100);
     expect(s.M).toBeCloseTo(100);
-    expect(s.contributions).toEqual({ E: 1500, F: 100, M: 50, A: -40 });
-    expect(s.S).toBe(1610);
+    expect(s.contributions).toEqual({ E: 1500, F: 100, M: 50, A: -20 });
+    expect(s.S).toBe(1630);
     const c = s.contributions;
     expect(c.E + c.F + c.M + c.A).toBe(s.S);
     expect(s.weights).toEqual(CFG.weights);

@@ -111,8 +111,11 @@ export const players: Record<string, MockPlayer> = {
   },
 };
 
-/** "Now" for the preview, so the made-up history always lands in the same windows. */
-export const NOW = new Date("2026-09-24T12:00:00Z");
+/**
+ * Start of the previewed mix (Thu 21:00 Warsaw). Every "last 30 days" window of a mix ends here,
+ * not at today's date: looking at this mix two weeks later shows the same numbers (D30).
+ */
+export const NOW = new Date("2026-09-24T19:00:00Z");
 const HOUR = 3_600_000;
 
 /** Turns the made-up form numbers into the engine's input (FACEIT history with timestamps). */

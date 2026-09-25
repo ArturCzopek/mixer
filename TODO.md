@@ -25,7 +25,7 @@ Task IDs refer to [docs/07-roadmap.md](docs/07-roadmap.md).
 - [ ] *(optional)* FACEIT developer terms: docs.faceit.com is blocked for Claude; D20 accepts the risk
       (we store only derived stats). If you see a clause against storing match stats, tell Claude.
 - [x] Vercel project created
-- [ ] **Vercel env vars (needed now: M1-1 login code is on `main`)**: check which Supabase vars the integration
+- [ ] **Vercel env vars (M1-1 login code is on `main`; we go through this step by step together)**: check which Supabase vars the integration
       added (`NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SECRET_KEY` are used), then add `STEAM_WEB_API_KEY`,
       `ADMIN_STEAM_IDS=76561197993187687`, `SESSION_SECRET` and `CRON_SECRET` (each: `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`),
       `FACEIT_API_KEY`, `LEETIFY_API_KEY`; `APP_URL` **only for Production** (previews use their own URL).
@@ -42,26 +42,52 @@ Task IDs refer to [docs/07-roadmap.md](docs/07-roadmap.md).
 - [x] T-2 mapping: popflash players → SteamID64 in `lib/balance/__fixtures__/popflash/players.json` (owner named them 2026-09-25)
 - [x] WIOTKI-CHAN (`76561197973636234`) = chelmut's other account (owner confirmed 2026-09-25); Profesor never played on popflash; former players are backtest-only (FACEIT nicknames resolved), not added to the roster
 
-## Next Claude session: start here
+## Next Claude session: start here (handover 2026-09-25, cloud → local)
 
-1. Read `CLAUDE.md`, this file, `docs/07-roadmap.md` and `docs/08-decisions.md` (D15–D28).
-2. Done: P0-1, M1-4, **S3** (FACEIT fields/units/rate limits: `docs/06` "Spike S3 findings", fixtures in
-   `lib/external/__fixtures__/`), **P0-3** + **P0-5** (schema with groups live on Supabase; `lib/db/README.md`).
-3. Product rules to keep in mind:
-   - **Multi-group** (D18): our group (`db/seed/roster.json`) is just the first one, seeded in M1-G.
-   - **FACEIT optional** (D21): the group's Club is the preferred place to play and sync from, but a mix
-     can have manual results only (M2-7) and demos uploaded by hand later (M4-6); never assume FACEIT data exists.
-   - Discord voice moves per group come in Phase 5 (D19).
-   - Owner feedback 2026-09-25 (D24 amended, D26–D28): form asymmetry by **absolute ELO** (anchors in
-     config), separate **activity term A**, a mix evening = several FACEIT rooms found automatically
-     (≥ 8/10 participants, 6 h window, admin confirms), demos only as links + in-browser parse,
-     lists in **join order**, no duo badges, results for **N maps**, Worms-style awards (M2-8),
-     Leetify preview card (M3-2), per-group on/off per term (M4-7).
-4. Done: **M1-2** (`lib/external/`), **UI-0** (VGUI look, preview at `/design/mix`; join order, variant
-   labels, Leetify preview card, 5 maps with per-map scoreboards), **M1-4b** (engine explains every
-   number: weights, ELO-based form asymmetry, activity A), **T-2 + T-1** (popflash export and the
-   backtest module `backtest/`, findings in `backtest/README.md`). Next: **M1-1** (Steam login,
-   `is_site_admin` + group role guards: code done, needs the owner's preview test), **M1-G** (groups UI, seed our group), P0-4.
-   Live FACEIT data from the cloud: workflows **API spike** and **Backtest data** (`probe` / `popflash` / `faceit`).
-5. Before M1-9: **P0-6** separate prod Supabase project (current one becomes dev).
-6. Windows: the repo forces LF (`.gitattributes`); keep `core.autocrlf=false`.
+**Read first:** `CLAUDE.md`, this file, `docs/07-roadmap.md`, `docs/08-decisions.md` (D15–D30),
+`docs/04-team-balancing.md`, `backtest/README.md`, `DESIGN.md`. Owner talks Polish; code/docs English;
+push straight to `main`; run test, lint, typecheck, format:check and build before every push.
+
+### State
+- **Done:** P0-1, P0-3, P0-5, S3, M1-2, M1-4, **M1-4b**, UI-0, **T-1**, **T-2**.
+- **In progress: M1-1** (Steam login). Code is on `main` (`lib/auth/`, routes `/auth/steam`,
+  `/auth/steam/callback`, `POST /auth/logout`, home page sign-in row, 20 unit tests). Never run
+  against a real Steam + Supabase yet. Owner wants to go through the Vercel env step by step with you
+  (checklist above). Locally: fill `.env.local`, `npm run dev`, open http://localhost:3000 →
+  "Sign In Through Steam" (leave `APP_URL` empty or `http://localhost:3000`), check the `players` row
+  (display name, avatar, `is_site_admin` for the owner) and that `/` shows "site admin".
+- **Design preview** `/design/mix?state=lobby|voting|locked|played` runs on the real engine
+  (`lib/mock/mix.ts`): join order, variant labels, explanation panel with window dates,
+  Leetify card (FACEIT matches of the 30 days before the mix, invented numbers), 5 maps.
+
+### Balancing (what changed today, all in docs/04 + D24/D26/D30)
+- `S = E + F + 0.5·M + 0.5·A`, contributions rounded, S = their sum.
+- F asymmetry by **absolute ELO** anchors (≤1000: ×1.5 up / ×0.3 down … ≥2000: ×0.1 / ×0.6).
+- A: sessions in 30 days → 0: −60, 1: −40, 2: −20, 3: 0, 6+: +15; weight 0.5 (D30).
+- **Every "last 30 days" is the 30 days before the mix** (D30); engine returns `windowFrom/windowTo`.
+
+### Backtest (`npm run backtest` → `backtest/REPORT.md`)
+- Data: 71 popflash maps (2024), FACEIT stats of 26 players, and FACEIT **results up to today** in
+  `lib/balance/__fixtures__/backtest/faceit-results/` (for rebuilding ELO at each map,
+  `backtest/elo-history.ts`, ±25 per EU-queue match walked back from today's ELO).
+- Findings so far in `backtest/README.md` "Findings" (+ the "ELO rebuilt" section of the report).
+- **Local-only next step (owner OK'd using other sources temporarily):** FACEIT's site API has real
+  ELO per match (`https://api.faceit.com/stats/v1/stats/time/users/{faceit player_id}/games/cs2?page=0&size=100`,
+  field names unknown). GitHub runners are blocked there, a home IP probably is not. Keep such data
+  **out of git** (e.g. `backtest/.local/`, add to `.gitignore`), compare real vs rebuilt ELO, and
+  re-run the report. Leetify has only the last ~100 matches (from 2026-07) and no ELO per match:
+  useless for 2024.
+
+### Next tasks, in order
+1. **M1-1** finish with the owner (env vars, local login, preview deploy test), tick it.
+2. **M1-G** groups UI + seed our group from `db/seed/roster.json` (uses `requireGroupRole`).
+3. **P0-4** deploy pipeline + keep-alive cron.
+4. Then M1-3 roster, M1-5 lobby (realtime, join order), M1-6 variants (+ labels, explanation panel,
+   Leetify card anchored at the mix), M1-7 voting.
+
+### Tools
+- Live FACEIT / popflash from the cloud: workflows **API spike** and **Backtest data**
+  (`probe` / `popflash` / `faceit` / `results` / `probe-elo`). Locally just run
+  `node --env-file=.env.local scripts/backtest-data.mjs <step>`.
+- Before M1-9: **P0-6** separate prod Supabase project (current one becomes dev).
+- Windows: the repo forces LF (`.gitattributes`); keep `core.autocrlf=false`.

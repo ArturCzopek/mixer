@@ -2,7 +2,9 @@
 // history recorded by scripts/backtest-data.mjs. The only file of the module that touches the disk.
 
 import { readdirSync, readFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { join } from "node:path";
+import type { MatchResult } from "./elo-history";
 
 const FIX = join(__dirname, "../lib/balance/__fixtures__");
 
@@ -62,6 +64,12 @@ export interface PopflashPlayer {
   faceitNickname?: string;
 }
 
+export interface FaceitResults {
+  steamId: string;
+  eloNow: number | null;
+  results: MatchResult[];
+}
+
 export interface BacktestData {
   matches: PopflashMatch[];
   /** popflashId → SteamID64 of the person (second accounts merged into the main one). */
@@ -69,6 +77,8 @@ export interface BacktestData {
   /** SteamID64 → a readable name (roster name or FACEIT nickname). */
   nameOf: Map<string, string>;
   faceit: Map<string, FaceitHistory>;
+  /** Every FACEIT result up to the recording day, for rebuilding ELO at a map (may be empty). */
+  results: Map<string, FaceitResults>;
 }
 
 const readJson = <T>(path: string): T =>
@@ -87,6 +97,14 @@ export function loadBacktestData(): BacktestData {
     const h = readJson<FaceitHistory>(`backtest/faceit/${file}`);
     faceit.set(h.steamId, h);
   }
+  const results = new Map<string, FaceitResults>();
+  const resultsDir = join(FIX, "backtest/faceit-results");
+  if (existsSync(resultsDir))
+    for (const file of readdirSync(resultsDir)) {
+      if (!/^\d+\.json$/.test(file)) continue;
+      const r = readJson<FaceitResults>(`backtest/faceit-results/${file}`);
+      results.set(r.steamId, r);
+    }
   const steamIdOf = new Map<string, string>();
   const nameOf = new Map<string, string>();
   for (const p of players) {
@@ -100,5 +118,6 @@ export function loadBacktestData(): BacktestData {
     steamIdOf,
     nameOf,
     faceit,
+    results,
   };
 }

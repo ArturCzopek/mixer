@@ -22,6 +22,7 @@ import type {
   PopflashLine,
   PopflashMatch,
 } from "./data";
+import { eloAt } from "./elo-history";
 import { spearman, type Prediction } from "./metrics";
 
 export interface Model {
@@ -106,6 +107,7 @@ export function inputAt(
   data: BacktestData,
   earlier: PopflashMatch[],
   fallbackElo: number | null = null,
+  elo: "now" | "rebuilt" = "now",
 ): PlayerInput | null {
   const h = data.faceit.get(steamId) ?? {
     eloNow: null,
@@ -127,9 +129,14 @@ export function inputAt(
     }))
     .filter((x) => x.line && x.line.rounds > 0)
     .reverse(); // most recent first
+  const results = data.results.get(steamId);
+  const faceitElo =
+    elo === "rebuilt" && h.eloNow !== null && results
+      ? eloAt(h.eloNow, results.results, at).elo
+      : h.eloNow;
   return {
     steamId,
-    faceitElo: h.eloNow,
+    faceitElo,
     // Like a group admin's manual ELO for someone without FACEIT (D21).
     manualSkillOverride: fallbackElo,
     faceit: { matches: form },
@@ -148,7 +155,7 @@ export function inputAt(
 export function evaluate(
   data: BacktestData,
   config: BalanceConfig,
-  opts: { fallbackElo?: number } = {},
+  opts: { fallbackElo?: number; elo?: "now" | "rebuilt" } = {},
 ): EvaluateResult {
   const maps: MapEval[] = [];
   const skipped: EvaluateResult["skipped"] = [];
@@ -180,7 +187,7 @@ export function evaluate(
       ? prior.reduce((a, b) => a + b, 0) / prior.length
       : null;
     const inputs = ids.map((id) =>
-      inputAt(id!, at, data, earlier, opts.fallbackElo ?? null),
+      inputAt(id!, at, data, earlier, opts.fallbackElo ?? null, opts.elo),
     );
     const missing = ids.filter((_, k) => !inputs[k]);
     if (missing.length) {

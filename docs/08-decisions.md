@@ -144,7 +144,7 @@ weight of each factor should be adjustable later, ideally per group.
 Owner: mix form M gets the smallest weight, recent FACEIT form F more; a strong player in form gets
 little extra ELO but a slump costs more, and a weaker player with even average-plus form gets extra
 ELO (holding your own among stronger players is a lot), with a smaller penalty for a slump.
-- Defaults `weights = { elo: 1, faceitForm: 1, mixForm: 0.5 }` (+ `activity: 1`, D26).
+- Defaults `weights = { elo: 1, faceitForm: 1, mixForm: 0.5 }` (+ `activity`: 1 in D26, 0.5 since D30).
 - Form uses our own FACEIT match rating, **not Leetify**: Leetify data must never be stored or
   recalculated (hard constraint), and FACEIT per-match stats are already fetched (M1-2).
 - ~~`F` is scaled by `1 ∓ a·p` where `p` is the player's ELO position in tonight's lobby~~
@@ -198,7 +198,7 @@ Definition (docs/04 §1 "A: activity"):
 
 - No data at all (no FACEIT history, no mix maps): A = 0, shown as "no activity data" (D21: never
   punish a missing FACEIT account).
-- `S = wE·E + wF·F + wM·M + wA·A`, default `wA = 1`.
+- `S = wE·E + wF·F + wM·M + wA·A`, default `wA = 1` (0.5 since D30).
 
 ## D27. A mix evening is assembled from several FACEIT matches; demos stay in the browser, Accepted (2026-09-25)
 On a FACEIT Club queue every map is its own match room (`best_of = 1` in all recorded matches), and a
@@ -255,3 +255,14 @@ Owner: how does the site know that a mix map started on FACEIT; is there a live 
   Discord voice moves (D-3).
 - Mix state stays `locked` while maps are being played; it becomes `played` when the admin closes the
   evening (or automatically 6 h after the last finished map).
+
+## D30. Activity weight 0.5; every "last 30 days" is the 30 days before the mix, Accepted (2026-09-25)
+- **Weights** (owner: "change them if it makes sense"): `activity` 1 → **0.5**. The backtest (T-1) is
+  the only evidence and A made predictions slightly worse there, most likely because E was today's
+  ELO; half weight keeps the rust signal the owner asked for while it cannot be validated. `mixForm`
+  stays 0.5 until our own mix stats exist (M2-6), then 1 is the candidate (best with more maps).
+- **Windows are anchored at the mix, never at today** (owner): form F, activity A and every
+  "last 30 days" view (explanation panel, Leetify card) use the 30 days before the mix. The engine
+  already takes `now` = balancing time and returns `windowFrom` / `windowTo`; the UI shows those dates.
+  Views of a mix use its `scheduled_at` (fallback: the lineup lock, then the first map), so looking at
+  a mix two weeks later shows the same numbers. Stored `skill_snapshot` keeps them reproducible.

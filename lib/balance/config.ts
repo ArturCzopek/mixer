@@ -64,7 +64,7 @@ export interface BalanceConfig {
 }
 
 export const DEFAULT_BALANCE_CONFIG: BalanceConfig = {
-  weights: { elo: 1, faceitForm: 1, mixForm: 0.5, activity: 1 },
+  weights: { elo: 1, faceitForm: 1, mixForm: 0.5, activity: 0.5 },
   form: {
     windowDays: 30,
     shrinkK: 10,

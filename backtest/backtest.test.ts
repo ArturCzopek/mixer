@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_BALANCE_CONFIG } from "@/lib/balance";
 import { loadBacktestData } from "./data";
+import { EU_QUEUE, eloAt } from "./elo-history";
 import { evaluate, fitScale, inputAt, lineRating } from "./evaluate";
 import {
   brier,
@@ -92,5 +93,38 @@ describe("replay on the recorded fixtures", () => {
     const { k } = fitScale(maps);
     expect(k).toBeGreaterThanOrEqual(0);
     expect(k).toBeLessThanOrEqual(3);
+  });
+});
+
+describe("ELO reconstruction", () => {
+  const r = (finishedAt: string, won: boolean, competitionId = EU_QUEUE) => ({
+    finishedAt,
+    won,
+    gameMode: "5v5",
+    competitionId,
+  });
+  const results = [
+    r("2024-01-01T20:00:00Z", true),
+    r("2024-06-01T20:00:00Z", true),
+    r("2024-06-02T20:00:00Z", true),
+    r("2024-06-03T20:00:00Z", false),
+    r("2024-06-04T20:00:00Z", true, "some-hub"), // hub matches do not move ELO
+  ];
+
+  it("undoes ±25 per queue match after the moment", () => {
+    expect(eloAt(2000, results, new Date("2024-05-01T00:00:00Z"))).toEqual({
+      elo: 1975, // 2000 − 25 − 25 + 25
+      matchesWalkedBack: 3,
+    });
+    expect(eloAt(2000, results, new Date("2025-01-01T00:00:00Z")).elo).toBe(
+      2000,
+    );
+  });
+
+  it("never goes below the FACEIT floor", () => {
+    const wins = Array.from({ length: 100 }, (_, i) =>
+      r(new Date(Date.UTC(2024, 6, 1 + i)).toISOString(), true),
+    );
+    expect(eloAt(500, wins, new Date("2024-01-01T00:00:00Z")).elo).toBe(100);
   });
 });

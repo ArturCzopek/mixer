@@ -42,6 +42,9 @@ export interface SkillContext {
 export interface FormExplanation {
   /** Final F after asymmetry and clamping. */
   F: number;
+  /** The form window [from, to): the 30 days before the mix (balancing time), not before today. */
+  windowFrom: string;
+  windowTo: string;
   status: "ok" | "no-recent-matches" | "thin-baseline" | "invalid-baseline";
   /** Matches in the window (n). */
   matches: number;
@@ -79,6 +82,9 @@ export interface ActivityExplanation {
   /** Sessions (evenings) that ended inside the window. */
   sessions: number;
   windowDays: number;
+  /** The activity window [from, to), anchored at the mix like the form window. */
+  windowFrom: string;
+  windowTo: string;
   lastPlayedAt: string | null;
 }
 
@@ -163,6 +169,8 @@ export function faceitForm(
   const { up } = formMultipliers(elo, cfg.asymmetry);
   const empty: FormExplanation = {
     F: 0,
+    windowFrom: new Date(from).toISOString(),
+    windowTo: now.toISOString(),
     status: "ok",
     matches: n,
     baselineMatches: before.length,
@@ -228,16 +236,21 @@ export function activity(
   )
     .map(Date.parse)
     .filter((t) => t <= now.getTime());
+  const from = now.getTime() - cfg.windowDays * DAY_MS;
+  const window = {
+    windowDays: cfg.windowDays,
+    windowFrom: new Date(from).toISOString(),
+    windowTo: now.toISOString(),
+  };
   if (playedAt.length === 0)
     return {
       A: 0,
       status: "no-data",
       sessions: 0,
-      windowDays: cfg.windowDays,
+      ...window,
       lastPlayedAt: null,
     };
 
-  const from = now.getTime() - cfg.windowDays * DAY_MS;
   const ends = sessionEnds(playedAt, cfg.sessionGapHours);
   const sessions = ends.filter((t) => t >= from).length;
   return {
@@ -247,7 +260,7 @@ export function activity(
     ),
     status: "ok",
     sessions,
-    windowDays: cfg.windowDays,
+    ...window,
     lastPlayedAt: new Date(ends[ends.length - 1]).toISOString(),
   };
 }

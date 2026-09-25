@@ -373,7 +373,8 @@ function Labels({ variant }: { variant: MockVariant }) {
 }
 
 /**
- * Leetify preview (M3-2) as an old-client property window: FACEIT matches of the last 30 days only,
+ * Leetify preview (M3-2) as an old-client property window: FACEIT matches of the 30 days before the
+ * mix only (not before today, D30),
  * each with its Leetify Rating exactly as Leetify shows it. Nothing is averaged or recomputed
  * (Leetify terms). This preview uses invented sample numbers.
  */
@@ -384,7 +385,10 @@ function LeetifyCard({ player }: { player: MockPlayer }) {
     player.form.sessions,
     player.form.before ? player.form.recent / player.form.before : 1,
     NOW,
-  );
+  ).filter((m) => {
+    const t = Date.parse(m.finishedAt);
+    return t < NOW.getTime() && t >= NOW.getTime() - 30 * 86_400_000;
+  });
   const won = matches.filter((m) => m.score[0] > m.score[1]).length;
   const shown = matches.slice(0, 8);
   const rating = (n: number) =>
@@ -393,7 +397,7 @@ function LeetifyCard({ player }: { player: MockPlayer }) {
     <details open className="group mt-2.5">
       <summary className="bevel bg-window flex cursor-pointer list-none items-center justify-between px-2 py-1.5 select-none">
         <span>
-          Leetify · FACEIT, last 30 days{" "}
+          Leetify · FACEIT, 30 days before the mix{" "}
           <b className="text-text">{player.name}</b>
         </span>
         <ChevronDown
@@ -404,10 +408,11 @@ function LeetifyCard({ player }: { player: MockPlayer }) {
       <Well className="text-dim flex items-center gap-1.5 px-2 py-1.5 text-[11px]">
         <span aria-hidden className="bg-gold size-[7px] shrink-0" />
         {matches.length === 0 ? (
-          "No FACEIT matches in the last 30 days."
+          `No FACEIT matches ${span(NOW)}.`
         ) : (
           <span>
-            <b className="text-text">{matches.length}</b> FACEIT matches ·{" "}
+            <b className="text-text">{matches.length}</b> FACEIT matches{" "}
+            {span(NOW)} ·{" "}
             <b className="text-text">
               {won} W {matches.length - won} L
             </b>{" "}
@@ -482,6 +487,15 @@ function LeetifyCard({ player }: { player: MockPlayer }) {
     </details>
   );
 }
+
+const ddmm = (iso: string) => `${iso.slice(8, 10)}.${iso.slice(5, 7)}`;
+/** "25.08–24.09": a mix's window, always ending at the mix, never at today. */
+const dates = (from: string, to: string) => `${ddmm(from)}–${ddmm(to)}`;
+const span = (mixAt: Date) =>
+  dates(
+    new Date(mixAt.getTime() - 30 * 86_400_000).toISOString(),
+    mixAt.toISOString(),
+  );
 
 const signed = (n: number) =>
   n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : "0";
@@ -578,13 +592,13 @@ function formNote(x: ReturnType<typeof explain>) {
   const f = x.form;
   const cfg = config.form;
   if (f.status === "no-recent-matches")
-    return "No FACEIT matches in the window: no form, ELO only.";
+    return `No FACEIT matches ${dates(f.windowFrom, f.windowTo)} (30 days before the mix): no form, ELO only.`;
   if (f.status === "thin-baseline")
     return `${f.matches} matches, but only ${f.baselineMatches} older ones for a baseline (needs ${cfg.minBaseline}): no form.`;
   if (f.status === "invalid-baseline") return "No usable baseline rating.";
   const cap = (hit: boolean) => (hit ? ` (capped at ±${cfg.max})` : "");
   return [
-    `${f.matches} matches · rating ${f.windowRating!.toFixed(2)} vs ${f.baselineRating!.toFixed(2)} over ${f.baselineMatches} older ones`,
+    `${f.matches} matches ${dates(f.windowFrom, f.windowTo)} · rating ${f.windowRating!.toFixed(2)} vs ${f.baselineRating!.toFixed(2)} over ${f.baselineMatches} older ones`,
     `ratio ${f.ratio!.toFixed(2)} → ${f.shrunkRatio!.toFixed(2)} after shrinkage (k = ${cfg.shrinkK})`,
     `raw ${cfg.beta} × ${(f.shrunkRatio! - 1).toFixed(3)} = ${signed(Math.round(f.raw))}${cap(f.rawClamped)}`,
     `× ${f.multiplier.toFixed(2)} for ${f.direction === "up" ? "good form" : "a slump"} at ${x.E} ELO${cap(f.clamped)}`,
@@ -595,7 +609,7 @@ function activityNote(x: ReturnType<typeof explain>) {
   const a = x.activity;
   if (a.status === "no-data")
     return "No FACEIT history: counts as 0, never a penalty.";
-  const sessions = `${a.sessions} ${a.sessions === 1 ? "session" : "sessions"} (evenings)`;
+  const sessions = `${a.sessions} ${a.sessions === 1 ? "session" : "sessions"} (evenings) ${dates(a.windowFrom, a.windowTo)}`;
   const last =
     a.sessions === 0 && a.lastPlayedAt
       ? ` · last played ${a.lastPlayedAt.slice(0, 10)}`

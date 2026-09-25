@@ -134,6 +134,68 @@ for (const model of models()) {
 }
 say();
 
+if (data.results.size > 0) {
+  say("## ELO at the time of the map (rebuilt) vs ELO today");
+  say();
+  say(
+    "E rebuilt by walking back from today's ELO over every later FACEIT queue match (±25 each, " +
+      "`elo-history.ts`). Same maps, same everything else.",
+  );
+  say();
+  say(
+    "| Model | E | Log-loss | Brier | Fav. won | Best k | Δ rebuilt vs today [90 % CI] | P(better) |",
+  );
+  say("|---|---|---|---|---|---|---|---|");
+  for (const model of models().filter((m) =>
+    ["elo", "f-asym", "e-a", "no-a", "full"].includes(m.id),
+  )) {
+    const now = evaluate(data, model.config);
+    const then = evaluate(data, model.config, { elo: "rebuilt" });
+    for (const [label, r] of [
+      ["today", now],
+      ["rebuilt", then],
+    ] as const) {
+      const preds = r.maps.map((m) => m.pred);
+      const fav = favouriteWinRate(preds);
+      const d =
+        label === "rebuilt" ? bootstrapDelta(then.maps, now.maps) : null;
+      say(
+        `| ${model.name} | ${label} | ${f(logLoss(preds))} | ${f(brier(preds))} | ${pct(fav.rate)} | ${f(fitScale(r.maps).k, 2)} | ` +
+          `${d ? `${f(d.delta, 4)} [${f(d.lo, 4)}, ${f(d.hi, 4)}]` : "–"} | ${d ? pct(d.better) : "–"} |`,
+      );
+    }
+  }
+  say();
+  const rebuilt = evaluate(data, full.model.config, { elo: "rebuilt" }).maps;
+  const pairs = rebuilt.flatMap((m) =>
+    [...m.team1, ...m.team2].map((p) => ({
+      id: p.steamId,
+      rebuilt: p.E,
+      now: data.faceit.get(p.steamId)!.eloNow!,
+      date: m.match.date,
+    })),
+  );
+  say(
+    "| Player | ELO today | Rebuilt, first used map | Rebuilt, last used map |",
+  );
+  say("|---|---|---|---|");
+  const byPlayer = new Map<string, typeof pairs>();
+  for (const x of pairs) byPlayer.set(x.id, [...(byPlayer.get(x.id) ?? []), x]);
+  for (const [id, xs] of [...byPlayer].sort(
+    (a, b) => b[1][0].now - a[1][0].now,
+  )) {
+    if (xs.length < 5) continue;
+    say(
+      `| ${data.nameOf.get(id) ?? id} | ${xs[0].now} | ${xs[0].rebuilt} (${xs[0].date.slice(0, 10)}) | ${xs.at(-1)!.rebuilt} (${xs.at(-1)!.date.slice(0, 10)}) |`,
+    );
+  }
+  say();
+  say(
+    `Mean |today − rebuilt| over player-maps: ${f(mean(pairs.map((x) => Math.abs(x.now - x.rebuilt))), 0)} ELO.`,
+  );
+  say();
+}
+
 say("## Calibration (default model vs E only)");
 say();
 say(

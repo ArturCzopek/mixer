@@ -11,7 +11,7 @@ All weights are config (stored per mix in `mixes.balance_config`) so we can tune
 Everything is expressed in **FACEIT ELO points**, so the result stays readable ("this player counts as 2 150").
 
 ```
-S = wE·E + wF·F + wM·M + wA·A     # weights from config (D22): wE = 1, wF = 1, wM = 0.5 (D24), wA = 1 (D26)
+S = wE·E + wF·F + wM·M + wA·A     # weights from config (D22): wE = 1, wF = 1, wM = 0.5 (D24), wA = 0.5 (D30)
 ```
 
 | Term | Meaning | Source |
@@ -27,6 +27,10 @@ Each contribution `w·term` is rounded to whole ELO points and **S is their sum*
 adds up exactly. A weight of 0 switches a term off (it is still explained).
 
 ### F: recent FACEIT form
+
+**"Last 30 days" always means the 30 days before the mix** (D30), not before today: the engine's
+`now` is the balancing time, the explanation shows the window's dates, and a mix viewed later keeps
+its numbers. The same holds for A and for the Leetify card.
 
 A time window, not a match count: people play very different amounts, so "last 20 matches" can mean
 one week for one player and half a year for another.
@@ -218,7 +222,7 @@ numbers) are stored in
 
 ```json
 {
-  "weights": { "elo": 1, "faceitForm": 1, "mixForm": 0.5, "activity": 1 },
+  "weights": { "elo": 1, "faceitForm": 1, "mixForm": 0.5, "activity": 0.5 },
   "form": {
     "windowDays": 30, "shrinkK": 10, "beta": 500, "max": 150, "minBaseline": 10,
     "asymmetry": [
