@@ -125,3 +125,17 @@ but a group may have no FACEIT Club, and a mix may have no FACEIT room or no dat
 - Balancing does not depend on it: E falls back to `group_members.manual_skill_override`, F is 0
   without FACEIT history, M uses only maps that have player stats.
 - Seed data for our own group (`db/seed/roster.json`) is just the first group, loaded in M1-G.
+
+## D22. Balancing is explainable, weights configurable per group later, Accepted (2026-09-25)
+Owner: the algorithm is a first version; players must see how each variant was calculated, and the
+weight of each factor should be adjustable later, ideally per group.
+- Now (M1-4b, M1-6): the engine returns the full reasoning (E source, F window vs baseline, shrinkage,
+  clamping, M, cost split per rule) and the variant page shows it to everyone. `skill_snapshot` and
+  `mixes.balance_config` keep it reproducible.
+- `BalanceConfig.weights` (`elo`, `faceitForm`, `mixForm`, default 1): `S = wE·E + wF·F + wM·M`.
+- Later (M4-7): `groups.balance_config` overrides site defaults; mixes copy the resolved config.
+
+## D23. Roles for mixes and demos, Accepted (2026-09-25)
+- Group admins (and the site admin) create and manage mixes of their group.
+- Any active group member can upload a demo for a mix of that group (parsed in their browser, D6);
+  group admins can delete uploads. Earlier notes saying "the owner uploads" mean "a member uploads".

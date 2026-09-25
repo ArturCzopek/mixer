@@ -11,7 +11,7 @@ All weights are config (stored per mix in `mixes.balance_config`) so we can tune
 Everything is expressed in **FACEIT ELO points**, so the result stays readable ("this player counts as 2 150").
 
 ```
-S = E + F + M
+S = wE·E + wF·F + wM·M        # weights from config, all 1 by default (D22)
 ```
 
 | Term | Meaning | Source |
@@ -129,6 +129,10 @@ Greedy selection:
 - Average S per team, the gap, and the win probability.
 - Badges (only when a clear duo exists): "Top duo split", "Bottom duo split".
 - Cost (for the admin; hidden from voters by default).
+- **"How was this calculated?"** (everyone, D22): per player E and its source (FACEIT / manual), F with
+  the matches in the window, window vs baseline rating, ratio, shrunk ratio and whether it hit the clamp,
+  M with its maps and shrinkage; per variant the cost split into imbalance pp and each rule's penalty;
+  the config (weights) used. Engine side: M1-4b.
 
 ## 8. Snapshot
 
@@ -139,6 +143,7 @@ At generation time, each participant's inputs (E, F, M, S) are stored in
 
 ```json
 {
+  "weights": { "elo": 1, "faceitForm": 1, "mixForm": 1 },
   "form": { "windowDays": 30, "shrinkK": 10, "beta": 500, "max": 150, "minBaseline": 10 },
   "mix":  { "maps": 10, "shrinkK": 5, "gamma": 1000, "max": 200 },
   "outlierPair": { "maxGap": 100, "minSeparation": 200 },

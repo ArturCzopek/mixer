@@ -53,7 +53,7 @@ that record automatically (matched on SteamID64). Any logged-in player can creat
 - FACEIT account linked automatically from SteamID (FACEIT API lookup); manual override possible.
 
 ### F2. Mix lobby
-- Admin creates a mix (title, planned date/time).
+- A group admin (or the site admin) creates a mix (title, planned date/time).
 - States: `open` → `balancing` → `voting` → `locked` → `played` (or `cancelled`).
 - Members click **Join**; admin can add/remove anyone. **Hard cap of 10 participants, no waitlist.**
   When full, the Join button is disabled. The admin makes room by removing someone.

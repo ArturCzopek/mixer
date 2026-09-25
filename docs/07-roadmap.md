@@ -33,17 +33,20 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done
 | [ ] **M1-G** | Groups UI (generic: any group; ours is only seeded): any logged-in player creates a group (name, slug, optional **FACEIT Club link**), becomes its admin; group page; admins promote/demote admins, close memberships; group switcher in the nav; seed our group from `db/seed/roster.json` | M1-1 | Group created from the UI with a FACEIT link; a non-admin cannot manage it (server check); our 12 players seeded |
 | [ ] **M1-3** | Roster (per group): group admin adds player by SteamID64 / profile URL / vanity; auto-fill Steam name+avatar and FACEIT link; manual ELO override; deactivate player; first login claims record | M1-G, M1-2 | Adding by each input form works; a pre-added player logging in sees their own record, no duplicate |
 | [x] **M1-4** | Balancing engine `lib/balance` (pure TS): skill score E+F(+M=0), win prob, 126-split enumeration, hard/soft pair rules, cost, diverse top-3 selection, re-roll exclusion, config defaults | – *(can start right after P0-1)* | Unit tests cover: 40 candidates with both hard rules, distance function, tie handling, determinism, shrinkage examples from [docs/04](04-team-balancing.md) |
-| [ ] **M1-5** | Mix lobby (per group): create mix, join/leave, admin add/remove, hard cap 10 (DB-enforced), status machine `open→balancing→voting→locked→played/cancelled`, realtime participant list | M1-3 | Two browsers see joins live; 11th join is rejected even under race (DB constraint/transaction) |
-| [ ] **M1-6** | Variant generation: server action fetches FACEIT data, computes S, stores `skill_snapshot`, creates 3 variants; admin preview, re-roll, publish; per-variant UI (lineups, S breakdown, win %, badges) | M1-4, M1-5 | Generating for 10 real players shows 3 distinct variants; snapshot stored; re-roll never repeats a shown split |
+| [ ] **M1-4b** | Balancing explanation (D22): engine returns *why* for every number: per player E (source: FACEIT / manual override), F internals (matches in window, window vs baseline rating, ratio, shrunk ratio, clamped?), M internals (maps, shrinkage); per variant cost split into imbalance pp + each rule's penalty; per-factor weights `weights.{elo,faceitForm,mixForm}` (default 1) in `BalanceConfig` | M1-4 | Unit tests assert the explanation adds up to S and to the cost; weights change S as documented in docs/04 |
+| [ ] **M1-5** | Mix lobby (per group): **group admin** (or site admin) creates a mix, join/leave, admin add/remove, hard cap 10 (DB-enforced), status machine `open→balancing→voting→locked→played/cancelled`, realtime participant list | M1-3 | Two browsers see joins live; 11th join is rejected even under race (DB constraint/transaction) |
+| [ ] **M1-6** | Variant generation: server action fetches FACEIT data, computes S, stores `skill_snapshot`, creates 3 variants; admin preview, re-roll, publish; per-variant UI (lineups, S breakdown, win %, badges) + **"How was this calculated?" panel** visible to everyone (E / F / M per player with the M1-4b details, cost breakdown, config used) | M1-4b, M1-5 | Generating for 10 real players shows 3 distinct variants; snapshot stored; re-roll never repeats a shown split |
 | [ ] **M1-7** | Voting: participants only, change vote until close, live counts, admin proxy vote (`cast_by`), auto-lock at 10/10, admin close, tie-break rule, locked lineup card | M1-6 | Realtime counts in two browsers; non-participant vote rejected; tie-break unit-tested; lock sets `chosen_variant_id` |
 | [ ] **M1-8** | Public read-only pages: mixes list, mix page (any state), roster; nav, empty states, mobile layout | M1-7 | Logged-out user can view everything, sees no action buttons; works at 375 px width |
-| [ ] **M1-9** 👤 | **Release MVP**: production deploy, owner adds roster, dry-run mix with the group | M1-8 | One real mix balanced + voted in the app |
-| [ ] **T-1** *(parallel)* 👤 | Balancing backtest: fixtures from recent real mixes (FACEIT profiles, real lineups, results) → report where real split ranks | M1-4, 👤 data | Fixtures in `lib/balance/__fixtures__/` run as tests; short findings note in `docs/04` |
+| [ ] **P0-6** | Separate **prod** Supabase project (the current one stays as dev): create it, run migrations, point Vercel Production env at it and Preview/local at dev; `DB migrate` workflow migrates both (dev on push, prod on push to main after dev succeeds) | P0-4 | Prod project has all migrations; a preview deploy never touches prod data |
+| [ ] **M1-9** 👤 | **Release MVP**: production deploy, owner adds roster, dry-run mix with the group | M1-8, P0-6 | One real mix balanced + voted in the app |
+| [ ] **T-1** *(parallel)* | Balancing backtest: fixtures from real mixes (FACEIT profiles, real lineups, results) → report where real split ranks. Data source: our old **popflash** club (`popflash.site/-/skarpeciarze-i-pantofle/matches`, ~80 maps Oct–Dec 2024, per map lineups + K/A/D/ADR/KAST/FK/FD, see T-2) | M1-4, T-2 | Fixtures in `lib/balance/__fixtures__/` run as tests; short findings note in `docs/04` |
+| [ ] **T-2** *(parallel)* | Popflash history export: one-off local script (polite, ~80 pages) → `lib/balance/__fixtures__/popflash/*.json` (map, score, date, both lineups with per-player stats); map popflash players to SteamID64 (profile links; owner confirms the unclear ones) | – | JSON for every match on the club's match list; mapping table reviewed by the owner |
 
 ## Phase 2: results & stats (FACEIT-first, see D17)
 
 Mixes are played on a private **FACEIT Club queue**. Stats come from the FACEIT Data API per map;
-demos are an optional extra (owner uploads them manually, parsed in the browser).
+demos are an optional extra (any group member can upload one, parsed in the browser).
 
 | ID | Task | Deps | Done when |
 |---|---|---|---|
@@ -72,7 +75,8 @@ demos are an optional extra (owner uploads them manually, parsed in the browser)
 | [ ] **M4-3** | Balancing calibration report (predicted vs actual) | M2-3 + ~5 mixes |
 | [ ] **M4-4** | Path B: DatHost + MatchZy integration (only if FACEIT stops working for us) | M2-2 |
 | [ ] **M4-5** | **Captain draft** as an alternative to balanced variants: admin picks 2 captains → quick rock-paper-scissors mini-game (realtime) decides first pick → captains draft players in the app (1-2-2-2-2-1) → lineup locked **for the whole evening** (all maps of the mix) | M1-7 |
-| [ ] **M4-6** | Demo extras: owner uploads the FACEIT demo manually → `lib/demo` (pure TS, browser Web Worker) computes KAST, openings, trades, clutches, utility, flashes; full Mixer Rating 2 replaces the KAST-fixed one for that map. Pitfalls in docs/05 "First parse test" | M2-3, S4 |
+| [ ] **M4-7** | Per-group balancing settings: `groups.balance_config` overrides the site defaults (weights of E / F / M, form window, duo rules); group admin edits them with a live preview on a past mix; each mix still stores the config it used | M1-6 |
+| [ ] **M4-6** | Demo extras: any group member uploads the FACEIT demo manually → `lib/demo` (pure TS, browser Web Worker) computes KAST, openings, trades, clutches, utility, flashes; full Mixer Rating 2 replaces the KAST-fixed one for that map. Pitfalls in docs/05 "First parse test" | M2-3, S4 |
 
 ## Phase 5: Discord (per group, D19)
 
@@ -93,29 +97,32 @@ A player must already be connected to a voice channel of that server to be moved
 
 ```
 P0-1 → P0-3 → P0-5 → M1-1 → M1-G → M1-3 → M1-5 → M1-6 → M1-7 → M1-8 → M1-9 (MVP)
-P0-1 → M1-4 ─────────────────────────┘
+P0-1 → M1-4 → M1-4b ─────────────────┘
+P0-4 → P0-6 (prod Supabase) → M1-9
 P0-2 → S3 → M1-2 → M1-3
 M1-9 → M2-1 → M2-7 (manual results) → M2-2 → M2-3 → M2-4 (stats from FACEIT)
 ```
 
-**Unblocked right now (no owner input needed):** M1-2 (clients on the S3 fixtures), M1-1 (Steam login; preview deploy needs the Vercel env vars), P0-4.
+**Unblocked right now (no owner input needed):** M1-2 (clients on the S3 fixtures), M1-4b, T-2, M1-1 (Steam login; preview deploy needs the Vercel env vars), P0-4.
 **Where keys live:** GitHub Actions secrets (used by the `API spike` / `DB migrate` workflows) and Vercel. The cloud sandbox has none and cannot reach `open.faceit.com` (Cloudflare challenge), so live FACEIT calls always go through a workflow or a deploy.
-**Owner inputs that unblock the rest:** FACEIT Club + one mix (S5), backtest data for T-1.
+**Owner inputs that unblock the rest:** FACEIT Club + one mix (S5), confirming the popflash → Steam mapping (T-2).
 
 ## Resolved questions (2026-09-24)
 
 | Question | Answer |
 |---|---|
-| Admins | Per group: creator + people they promote; site admin = owner |
+| Admins | Per group: creator + people they promote; site admin = owner. Group admins create mixes (not only the site admin) |
 | Site visibility | Public, read-only for guests |
 | Voting end | All 10 voted or admin closes; no time limit |
 | More than 10 players | Hard cap 10, no waitlist; admin can remove people |
-| Demo source | ~~POV recording~~ → FACEIT: stats from the API, demos uploaded manually by the owner as an optional extra (D17) |
+| Demo source | ~~POV recording~~ → FACEIT: stats from the API, demos uploaded manually by any group member as an optional extra (D17, D23) |
 | Leetify | Read-only display, never stored; balancing on FACEIT |
 | Discord | Yes, the group has a Discord server; bot per group with voice moves at match start/end (Phase 5, D19) |
 | Several groups | Yes (2026-09-24): groups with their own admins, members, mixes, FACEIT Club link and Discord (D18) |
 | Jawor | = Steam `jawOla.exe` / FACEIT `jawOla21` (owner confirmed) |
 | Team picking | Balanced variants + vote now; captain draft with a rock-paper-scissors mini-game later (M4-5) |
+| Balancing transparency | Every variant shows how it was calculated (M1-4b, M1-6); per-group weights later (M4-7, D22) |
+| Old mixes | popflash club history → backtest fixtures (T-2, T-1) |
 | Initial roster | 12 SteamID64s in `db/seed/roster.json` (2026-09-24) |
 
 ## Open questions

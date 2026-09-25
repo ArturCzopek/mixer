@@ -36,7 +36,8 @@ Task IDs refer to [docs/07-roadmap.md](docs/07-roadmap.md).
       change main FACEIT ELO; after the first mix send Claude the match room link(s)
 - [ ] *(later, Phase 5)* Discord: create a Discord application + bot in the Developer Portal when we get to D-1
 - [x] "Jawor" in the 2026-09-20 mix = Steam `jawOla.exe` / FACEIT `jawOla21` (confirmed)
-- [ ] More past mixes (date, teams, score per map) for the balancing backtest (T-1)
+- [x] Past mixes source: popflash club `skarpeciarze-i-pantofle` (T-2 exports it)
+- [ ] T-2: confirm the popflash nickname → Steam mapping Claude prepares
 
 ## Next Claude session: start here
 
@@ -49,5 +50,8 @@ Task IDs refer to [docs/07-roadmap.md](docs/07-roadmap.md).
      can have manual results only (M2-7) and demos uploaded by hand later (M4-6); never assume FACEIT data exists.
    - Discord voice moves per group come in Phase 5 (D19).
 4. Next: **M1-2** (`lib/external/steam.ts`, `faceit.ts`, Zod on the recorded fixtures; games-stats
-   `from`/`to` in ms, values are strings; Leetify header `_leetify_key`), then **M1-1** (Steam login,
-   `is_site_admin` + group role guards), **M1-G** (groups UI, seed our group) and P0-4.
+   `from`/`to` in ms, values are strings; Leetify header `_leetify_key`), **M1-4b** (balancing
+   explanation + weights, D22), then **M1-1** (Steam login, `is_site_admin` + group role guards),
+   **M1-G** (groups UI, seed our group), P0-4. **T-2** (popflash export) can run any time.
+5. Before M1-9: **P0-6** separate prod Supabase project (current one becomes dev).
+6. Windows: the repo forces LF (`.gitattributes`); keep `core.autocrlf=false`.
