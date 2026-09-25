@@ -25,6 +25,9 @@ export interface DuoStatus {
   split: boolean;
 }
 
+/** Engine labels (D28); "Leading" comes from the live vote count in the UI. */
+export type VariantLabel = "most-even" | "fresh";
+
 export interface Variant<P extends RankedPlayer = SkillBreakdown> {
   /** Mirror-independent split id, see `splitKey`. */
   key: string;
@@ -47,6 +50,10 @@ export interface Variant<P extends RankedPlayer = SkillBreakdown> {
   rank: number;
   /** Clear duos and whether this split separates them; null when there is no such duo. */
   duos: { top: DuoStatus | null; bottom: DuoStatus | null };
+  /** Teammate pairs repeated from the previous mix (any roster); null without a previous mix. */
+  repeatedPairs: number | null;
+  /** Set on the chosen variants only, see `labelVariants`. */
+  labels: VariantLabel[];
 }
 
 export interface GenerateVariantsInput<
@@ -54,7 +61,10 @@ export interface GenerateVariantsInput<
 > {
   players: P[];
   config: BalanceConfig;
-  /** Both teams of the last mix's lineup; only used if it had the same 10 players. */
+  /**
+   * Both teams of the group's previous mix. The repeat rule uses it only with the same 10 players;
+   * the "fresh" label counts repeated teammate pairs for any roster.
+   */
   previousSplit?: [string[], string[]];
   /** One team of each split already shown (re-roll); these are never proposed again. */
   excludedSplits?: string[][];
@@ -187,6 +197,10 @@ export function generateVariants<P extends RankedPlayer>(
       cost,
       penalties,
       rank: 0,
+      repeatedPairs: input.previousSplit
+        ? repeatedPairs(aIds, bIds, input.previousSplit)
+        : null,
+      labels: [],
       duos: {
         top: duo(topPair, topPairSplit, config.rules.topPair),
         bottom: duo(bottomPair, bottomPairSplit, config.rules.bottomPair),
@@ -208,7 +222,39 @@ export function generateVariants<P extends RankedPlayer>(
     config.variants,
     config.minDistance,
   );
+  labelVariants(chosen);
   return { variants: chosen, candidateCount: candidates.length, relaxed };
+}
+
+/** Pairs of players who were teammates last time and are teammates again in this split. */
+export function repeatedPairs(
+  teamA: readonly string[],
+  teamB: readonly string[],
+  previous: [string[], string[]],
+): number {
+  const side = new Map<string, number>();
+  previous.forEach((team, i) => team.forEach((id) => side.set(id, i)));
+  let count = 0;
+  for (const team of [teamA, teamB])
+    for (let i = 0; i < team.length; i++)
+      for (let j = i + 1; j < team.length; j++) {
+        const a = side.get(team[i]);
+        if (a !== undefined && a === side.get(team[j])) count++;
+      }
+  return count;
+}
+
+/** "most-even": unique lowest imbalance; "fresh": unique fewest repeated pairs (D28). */
+function labelVariants<P extends RankedPlayer>(chosen: Variant<P>[]) {
+  const uniqueMin = (value: (v: Variant<P>) => number | null) => {
+    const vals = chosen.map(value);
+    if (vals.some((x) => x === null) || chosen.length < 2) return null;
+    const min = Math.min(...(vals as number[]));
+    const at = vals.filter((x) => Math.abs(x! - min) < EPSILON);
+    return at.length === 1 ? chosen[vals.indexOf(at[0])] : null;
+  };
+  uniqueMin((v) => v.imbalance)?.labels.push("most-even");
+  uniqueMin((v) => v.repeatedPairs)?.labels.push("fresh");
 }
 
 /** Greedy: best first, then the next best far enough from all chosen; relax to ≥1 if needed. */

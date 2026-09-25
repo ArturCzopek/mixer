@@ -162,9 +162,15 @@ export interface MockVariant {
 
 const p = players;
 const bySteamId = new Map(Object.values(players).map((pl) => [pl.steamId, pl]));
+/** The group's previous mix (made up), for the "Fresh split" label. */
+const previousMix: [string[], string[]] = [
+  [p.fontek, p.jawola, p.windxore, p.roevs, p.czopo].map((x) => x.steamId),
+  [p.smiley, p.stan, p.janex, p.chelmut, p.coma].map((x) => x.steamId),
+];
 const generated = generateVariants({
   players: [...breakdowns.values()],
   config: DEFAULT_BALANCE_CONFIG,
+  previousSplit: previousMix,
 });
 /** Splits left after hard rules, for "rank x of n" in the explanation. */
 export const candidateCount = generated.candidateCount;

@@ -227,7 +227,31 @@ Owner feedback on the design preview:
   comparison between teams is the point.
 - **"Top duo split" / "Bottom duo split" badges are gone from the UI.** The rule stays in the engine
   (D15) and is mentioned in the "How was this calculated?" panel when a duo exists.
+- **Variant labels instead** (owner OK): "Most even" (lowest imbalance of the shown variants),
+  "Fresh split" (fewest teammate pairs repeated from the group's previous mix; only with a previous
+  mix) from the engine, and "Leading" (most votes, no label on a tie) from the live vote count.
+  At most one variant carries each label.
 - **Results handle N maps:** tabs "All maps" + one per map, each with its own scoreboard; the
   summary shows maps won and per-map score chips.
 - **Match awards** in the spirit of Worms (M2-8): funny per-evening awards from FACEIT stats and, when
   a demo was parsed, from demo-only stats; each with a concrete stat and threshold.
+
+## D29. Live evening tracking: FACEIT webhooks first, polling only while someone watches, Accepted (2026-09-25)
+Owner: how does the site know that a mix map started on FACEIT; is there a live view?
+- **Signal:** FACEIT webhooks (App Studio subscription for the group's Club: `match_object_created` /
+  `match_status_ready` → map started, `match_status_finished` → map over, `match_demo_ready`) to
+  `/api/webhooks/faceit` (static secret header). Whether clubs can be subscribed like hubs is spike S6.
+- **Fallback without webhooks:** Vercel Hobby cron runs once a day, so no server polling. Instead,
+  while a locked mix page is open during the evening, the page asks our server every 60 s; the server
+  asks FACEIT for the Club's ongoing / recent matches through a 60 s shared cache (ten viewers = one
+  FACEIT call a minute). Nobody watching = no calls; the next visit catches up. An admin "Map started"
+  button always works.
+- **What "live" shows:** the evening timeline (map 1 done 13:10, map 2 **live** on Anubis since
+  21:42, room link), players in the room vs the voted lineup, and finished maps imported right away
+  (score + stats, D27 rules). A live round score only if FACEIT exposes it during the match (S6); the
+  Data API documents final results only.
+- **Push to browsers:** the server writes `matches` rows (`status` `ongoing` / `finished`), Supabase
+  Realtime updates every open page (D3). The same "map started / finished" event later drives the
+  Discord voice moves (D-3).
+- Mix state stays `locked` while maps are being played; it becomes `played` when the admin closes the
+  evening (or automatically 6 h after the last finished map).

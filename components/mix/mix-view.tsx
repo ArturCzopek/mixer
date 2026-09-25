@@ -7,6 +7,7 @@ import * as React from "react";
 import Image from "next/image";
 import { ChevronDown, ChevronRight, ExternalLink, Lock } from "lucide-react";
 import {
+  Badge,
   ListHead,
   Sheet,
   SkillBar,
@@ -30,6 +31,7 @@ import {
   type MockPlayer,
   type MockVariant,
 } from "@/lib/mock/mix";
+import { leetifySample } from "@/lib/mock/leetify";
 import { cn } from "@/lib/utils";
 
 export type MixState = "lobby" | "voting" | "locked" | "played";
@@ -320,6 +322,7 @@ function VariantBody({
   return (
     <>
       <Odds variant={variant} />
+      <Labels variant={variant} />
       <Well>
         <ListHead>
           <span className="flex-1">Player · tap for details</span>
@@ -341,7 +344,98 @@ function VariantBody({
         />
       </Well>
       <Explanation player={focused} variant={variant} />
+      <LeetifyCard player={focused} />
     </>
+  );
+}
+
+const LABELS = { "most-even": "Most even", fresh: "Fresh split" } as const;
+
+/** Variant labels (D28): engine's "Most even" / "Fresh split" plus "Leading" from the vote count. */
+function Labels({ variant }: { variant: MockVariant }) {
+  const top = Math.max(...variants.map((v) => v.votes));
+  const leading =
+    variant.votes === top &&
+    variants.filter((v) => v.votes === top).length === 1;
+  const labels = [
+    ...variant.engine.labels.map((l) => LABELS[l]),
+    ...(leading ? ["Leading"] : []),
+  ];
+  if (labels.length === 0) return null;
+  return (
+    <div className="mb-2 flex flex-wrap gap-1">
+      {labels.map((l) => (
+        <Badge key={l}>{l}</Badge>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Leetify preview (M3-2) as an old-client property window. Values are shown exactly as Leetify
+ * names and scales them; this preview uses invented sample numbers.
+ */
+function LeetifyCard({ player }: { player: MockPlayer }) {
+  const l = leetifySample(player.steamId, player.level);
+  const dec = (n: number) => (n > 0 ? `+${n.toFixed(2)}` : n.toFixed(2));
+  const rows: [string, string][] = [
+    ["Aim", String(l.rating.aim)],
+    ["Positioning", String(l.rating.positioning)],
+    ["Utility", String(l.rating.utility)],
+    ["Clutch", dec(l.rating.clutch)],
+    ["Opening", dec(l.rating.opening)],
+    ["Premier", l.ranks.premier?.toLocaleString("en-US") ?? "–"],
+    ["FACEIT", l.ranks.faceit ? `Level ${l.ranks.faceit}` : "–"],
+    ["Win rate", `${Math.round(l.winrate * 100)}%`],
+  ];
+  return (
+    <details className="group mt-2.5">
+      <summary className="bevel bg-window flex cursor-pointer list-none items-center justify-between px-2 py-1.5 select-none">
+        <span>
+          Leetify preview <b className="text-text">{player.name}</b>
+        </span>
+        <ChevronDown
+          aria-hidden
+          className="text-dim size-3.5 group-open:rotate-180"
+        />
+      </summary>
+      <Well className="text-dim flex items-center gap-1.5 px-2 py-1.5 text-[11px]">
+        <span aria-hidden className="bg-gold size-[7px] shrink-0" />
+        Live from Leetify, not stored · sample numbers in this preview
+      </Well>
+      <Well className="mt-1.5">
+        <ListHead>
+          <span className="flex-1">Leetify stat</span>
+          <span>Value</span>
+        </ListHead>
+        <div className="grid grid-cols-2">
+          {rows.map(([k, v], i) => (
+            <div
+              key={k}
+              className={cn(
+                "border-row flex justify-between border-b px-1.5 py-1",
+                i % 2 === 0 && "border-r",
+              )}
+            >
+              <span className="text-dim">{k}</span>
+              <b>{v}</b>
+            </div>
+          ))}
+        </div>
+        <p className="text-dim px-1.5 py-1 text-[11px]">
+          {l.totalMatches.toLocaleString("en-US")} matches on Leetify
+        </p>
+      </Well>
+      <a
+        href="https://leetify.com/"
+        target="_blank"
+        rel="noreferrer"
+        className="bevel bg-sheet text-text mt-1.5 flex items-center justify-center gap-1.5 px-2 py-1.5 text-[11px] font-bold no-underline"
+      >
+        Data Provided by Leetify
+        <ExternalLink className="size-3" aria-hidden />
+      </a>
+    </details>
   );
 }
 

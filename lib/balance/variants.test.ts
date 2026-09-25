@@ -6,6 +6,7 @@ import { enumerateSplits, splitDistance, splitKey } from "./splits";
 import {
   generateVariants,
   rankPlayers,
+  repeatedPairs,
   winProbability,
   type Variant,
 } from "./variants";
@@ -371,5 +372,72 @@ describe("generateVariants: explanation (M1-4b)", () => {
     expect(variants[0].rank).toBe(1);
     for (const v of variants)
       expect(all.variants.find((c) => c.key === v.key)!.rank).toBe(v.rank);
+  });
+});
+
+describe("variant labels (D28)", () => {
+  const ids = TEN.map((p) => p.steamId);
+  it("marks the single most even variant", () => {
+    const uneven = withElos([
+      2610, 2433, 2298, 2175, 2011, 1873, 1702, 1566, 1411, 1239,
+    ]);
+    const { variants } = generateVariants({
+      players: uneven,
+      config: DEFAULT_BALANCE_CONFIG,
+    });
+    const even = variants.filter((v) => v.labels.includes("most-even"));
+    expect(even).toHaveLength(1);
+    expect(even[0].imbalance).toBe(
+      Math.min(...variants.map((v) => v.imbalance)),
+    );
+  });
+
+  it("no label on a tie (evenly spread skill: several 50/50 splits)", () => {
+    const { variants } = generateVariants({
+      players: TEN,
+      config: DEFAULT_BALANCE_CONFIG,
+    });
+    expect(variants.some((v) => v.labels.includes("most-even"))).toBe(false);
+  });
+
+  it("no 'fresh' label without a previous mix", () => {
+    const { variants } = generateVariants({
+      players: TEN,
+      config: DEFAULT_BALANCE_CONFIG,
+    });
+    expect(variants.every((v) => v.repeatedPairs === null)).toBe(true);
+    expect(variants.some((v) => v.labels.includes("fresh"))).toBe(false);
+  });
+
+  it("counts repeated teammate pairs, also for a different roster", () => {
+    // Previous mix: ids 0–4 vs 5–9 → 20 teammate pairs.
+    const prev: [string[], string[]] = [ids.slice(0, 5), ids.slice(5)];
+    expect(repeatedPairs(ids.slice(0, 5), ids.slice(5), prev)).toBe(20);
+    // One swap: each team keeps 4 old mates (6 pairs each) plus one player from the other side.
+    const a = [...ids.slice(0, 4), ids[5]];
+    const b = [ids[4], ...ids.slice(6)];
+    expect(repeatedPairs(a, b, prev)).toBe(12);
+    // Unknown players (not in the previous mix) never count.
+    expect(repeatedPairs(["x", "y"], ["z"], prev)).toBe(0);
+  });
+
+  it("labels the variant that repeats the fewest pairs as fresh", () => {
+    const previous: [string[], string[]] = [
+      [ids[0], ids[3], ids[4], ids[7], ids[8]],
+      [ids[1], ids[2], ids[5], ids[6], ids[9]],
+    ];
+    const { variants } = generateVariants({
+      players: TEN,
+      config: DEFAULT_BALANCE_CONFIG,
+      previousSplit: previous,
+    });
+    const fresh = variants.filter((v) => v.labels.includes("fresh"));
+    const min = Math.min(...variants.map((v) => v.repeatedPairs!));
+    if (variants.filter((v) => v.repeatedPairs === min).length === 1) {
+      expect(fresh).toHaveLength(1);
+      expect(fresh[0].repeatedPairs).toBe(min);
+    } else {
+      expect(fresh).toHaveLength(0);
+    }
   });
 });

@@ -98,8 +98,10 @@ rooms itself; the admin only confirms.
 4. **Admin confirms** the list (checkbox per match: map, score, start time, coverage "9/10"), can add
    a room by link, then imports. One `matches` row per room and map; re-import is idempotent on
    `faceit_match_id`. Order of maps = `started_at`.
-5. **When it runs:** on demand from the locked mix page ("Find matches"), later automatically from the
-   FACEIT webhook if S6 confirms club events.
+5. **When it runs:** live during the evening (D29): FACEIT webhook for the Club if S6 confirms club
+   events, otherwise a 60 s poll through a shared server cache while someone has the mix page open;
+   plus "Find matches" on the locked mix page, which always works. Each map is imported as soon as it
+   finishes; the admin confirms the evening at the end.
 
 Groups without FACEIT enter N maps by hand (M2-7); the page works the same with any number of maps.
 
