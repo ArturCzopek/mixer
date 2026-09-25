@@ -77,6 +77,51 @@ support pages via search; FACEIT docs were not directly readable from the sandbo
 demos are uploaded manually as an optional extra (M4-6). Paths A and B stay documented as fallbacks. Keep the stats code
 source-agnostic (`source` column), so Paths B and C can be added without schema changes.
 
+### Assembling a mix evening (D27, M2-2)
+
+A mix is an **evening**, not a match. On a FACEIT Club queue every map is its own match room
+(`best_of = 1` in every recorded match), and an evening can have any number of maps. The app finds the
+rooms itself; the admin only confirms.
+
+1. **Candidates.** Once the mix is `locked`:
+   - with a Club: the Club's match list (`groups.faceit_club_id`; exact endpoint, hub-style
+     `/hubs/{id}/matches?type=past` or a club endpoint, verified in S5);
+   - fallback (no Club id, or the listing is unavailable): the union of `/players/{id}/history?from=locked_at`
+     of the 10 participants (10 calls), deduplicated by `match_id`.
+2. **Filters** (config, defaults):
+   - `started_at ≥ locked_at` and before the next mix of the same group is locked;
+   - `started_at ≤ first candidate's started_at + 6 h` (one evening);
+   - **≥ 8 of the 10 participants** appear in the match (either faction), so one sub does not drop a map;
+   - `status = FINISHED`; with a Club id, `competition_id` must be the Club's.
+3. **Team mapping.** Each faction maps to Team A or B by majority of the locked lineup; players on the
+   "wrong" side and players outside the mix are listed as a lineup mismatch (warn, do not block).
+4. **Admin confirms** the list (checkbox per match: map, score, start time, coverage "9/10"), can add
+   a room by link, then imports. One `matches` row per room and map; re-import is idempotent on
+   `faceit_match_id`. Order of maps = `started_at`.
+5. **When it runs:** on demand from the locked mix page ("Find matches"), later automatically from the
+   FACEIT webhook if S6 confirms club events.
+
+Groups without FACEIT enter N maps by hand (M2-7); the page works the same with any number of maps.
+
+### Demos for FACEIT matches (D27)
+
+What the recorded match (`lib/external/__fixtures__/faceit/matches/1-1cb5…json`) returns:
+
+```json
+"demo_url": ["https://demos-europe-central.backblaze.faceit-cdn.net/cs2/1-1cb5b18b-6856-42a9-bf3c-561c0737b52f-1-1.dem.zst"]
+```
+
+- One URL per map, a **zstd-compressed** demo (`.dem.zst`, ~150 MB for a 216 MB `.dem`), on FACEIT's CDN.
+- Automatic download is meant to go through the **Downloads API** (separate application, signed
+  URLs). Whether a plain browser `fetch` of `demo_url` works (CORS, auth) is **unverified**: the cloud
+  sandbox cannot reach the host (proxy 403). To test locally in S4 / S5.
+- **Default flow:** the match page shows "Download demo" (the `demo_url`, opened by the member's
+  browser) and the FACEIT room link; the member drops the downloaded `.dem.zst` into the parser on the
+  page (M4-6). The file is parsed in their browser and never reaches our server.
+- **Shortcut if the browser can fetch it:** "Parse from FACEIT" fetches `demo_url` in the browser and
+  hands it straight to the Web Worker. Still no server involvement.
+- The parser must accept `.dem`, `.dem.zst` (FACEIT) and `.dem.bz2` (Valve).
+
 ## Parsing
 
 Library: [demoparser2](https://github.com/LaihoE/demoparser) by LaihoE (Rust core; Python, Node and WASM builds).
@@ -89,9 +134,9 @@ sequenceDiagram
   participant P as Mix page
   participant W as Web Worker (WASM)
   participant API as /api/matches
-  U->>P: drops .dem / .dem.bz2
+  U->>P: drops .dem / .dem.zst / .dem.bz2
   P->>W: File (transferable ArrayBuffer)
-  W->>W: decompress bz2 if needed
+  W->>W: decompress zstd / bz2 if needed
   W->>W: demoparser2: header, events, final-tick controller props
   W->>W: compute stats (lib/demo)
   W-->>P: MatchPayload JSON (~50 KB) + round coverage

@@ -63,6 +63,20 @@ Notes for the client (M1-2) and form F:
   (docs.faceit.com blocked). We store only derived numbers (ELO, form, per-map stats of our own
   mixes), not bulk FACEIT data; owner to confirm in the Developer Portal (TODO.md).
 
+### Mix evenings: several rooms per mix (D27)
+
+- Each map of a Club evening is its own room (`best_of = 1`). The app lists candidate rooms (Club
+  match list, or the participants' `/history` since the lock), filters them (≥ 8 of 10 participants,
+  within 6 h, after `locked_at`) and imports the ones the admin confirms: `/matches/{id}` +
+  `/matches/{id}/stats` per room. Full rules: [demo pipeline](05-demo-pipeline.md#assembling-a-mix-evening-d27-m2-2).
+- `demo_url[]` in `/matches/{id}` points at `https://demos-europe-central.backblaze.faceit-cdn.net/cs2/{match_id}-1-1.dem.zst`
+  (zstd). The server never downloads it; the browser shows it as a link (D27). Signed URLs need the
+  Downloads API (not requested).
+- Stats used for match awards (M2-8) all come from `/matches/{id}/stats` (`Kills`, `Deaths`,
+  `Assists`, `ADR`, `Headshots %`, `First Kills`, `Entry Count`/`Entry Wins`, `1v1`/`1v2` counts and
+  wins, `Utility Damage`, `Enemies Flashed`, `Flash Count`/`Flash Successes`, `Sniper Kills`,
+  multi-kills, `MVPs`). We store them per map in `match_player_stats` (our own mixes only, D20).
+
 Why FACEIT directly and not via Leetify: Leetify's terms forbid storing or recalculating their data
 (see below). A balancing snapshot is exactly that.
 
@@ -80,7 +94,12 @@ Why FACEIT directly and not via Leetify: Leetify's terms forbid storing or recal
 | `GET /v2/matches/{gameId}` | Single match details |
 | `GET /v2/matches/{dataSource}/{dataSourceId}` | Match by source ID (e.g. `faceit`, `matchmaking`) |
 
-We use it for the profile tabs **FACEIT** and **Premier**, by filtering match history on `data_source`.
+We use it for the profile tabs **FACEIT** and **Premier**, by filtering match history on `data_source`,
+and for the **Leetify preview** (M3-2): a small card fetched live when someone opens a player (tap in
+the lobby / variant, profile header) with Leetify's own `ranks` (Premier, FACEIT), `rating` (aim,
+positioning, utility, clutch, opening) and `winrate`, exactly as named and scaled by Leetify, with the
+"Data Provided by Leetify" logo. Fetched by a server route with a 5–10 min HTTP cache, never written to
+the database, never an input to balancing. `privacy_mode` on → the card says the profile is private.
 
 ### Leetify developer guidelines: hard rules for us
 

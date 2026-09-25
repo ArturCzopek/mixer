@@ -11,14 +11,18 @@ All weights are config (stored per mix in `mixes.balance_config`) so we can tune
 Everything is expressed in **FACEIT ELO points**, so the result stays readable ("this player counts as 2 150").
 
 ```
-S = wE·E + wF·F + wM·M        # weights from config (D22): wE = 1, wF = 1, wM = 0.5 (D24)
+S = wE·E + wF·F + wM·M + wA·A     # weights from config (D22): wE = 1, wF = 1, wM = 0.5 (D24), wA = 1 (D26)
 ```
 
 | Term | Meaning | Source |
 |---|---|---|
-| **E**: base | Current FACEIT ELO | FACEIT Data API. Fallback: `players.manual_skill_override` |
-| **F**: FACEIT form | Recent FACEIT performance vs. the player's own baseline | FACEIT matches from the **last 30 days** |
-| **M**: mix form | How the player performs **in our mixes** | Our own demo stats |
+| **E**: base | Current FACEIT ELO | FACEIT Data API. Fallback: `group_members.manual_skill_override` |
+| **F**: FACEIT form | Recent FACEIT performance vs. the player's own baseline, scaled by ELO (asymmetry) | FACEIT matches from the **last 30 days** |
+| **M**: mix form | How the player performs **in our mixes** | Our own mix stats (FACEIT import or demo) |
+| **A**: activity | Rust penalty / small bonus for regular play | Sessions in the last 30 days (FACEIT history + mix maps) |
+
+The engine returns every intermediate number with S (M1-4b), and the "How was this calculated?"
+panel shows each term as its own line: value, weight, contribution. The contributions add up to S.
 
 ### F: recent FACEIT form
 
@@ -36,30 +40,78 @@ window   = matches finished in the last 30 days                   (n = number of
 before   = older matches in the history                            (the player's own baseline)
 ratio    = mean(window) / mean(before)
 ratio^   = (n · ratio + k · 1.0) / (n + k)                          # shrink toward "normal form", k = 10
-F        = clamp( β · (ratio^ − 1), −F_max, +F_max )
+F_raw    = clamp( β · (ratio^ − 1), −F_max, +F_max )                # then scaled by ELO, below
 ```
-Defaults: `β = 500`, `F_max = 150`, `k = 10`, `minBaseline = 10`. The same +30% rating form gives:
-- over 20 matches: ratio^ = 1.20, so F = +100 ELO;
-- over 2 matches: ratio^ = 1.05, so F = +25 ELO. A lucky evening counts little.
+Defaults: `β = 500`, `F_max = 150`, `k = 10`, `minBaseline = 10`. The same +30% rating form gives
+(F_raw, before the asymmetry below):
+- over 20 matches: ratio^ = 1.20, so F_raw = +100 ELO;
+- over 2 matches: ratio^ = 1.05, so F_raw = +25 ELO. A lucky evening counts little.
 - 0 matches in 30 days, or fewer than 10 older matches for a baseline, gives F = 0 (ELO only).
 
-**Asymmetry by strength (D24).** Form counts differently for strong and weak players of *this* lobby.
+**Asymmetry by absolute ELO (D24, amended).** Form counts differently for strong and weak players.
 A strong player in good form gets only a small boost (they are already near their ceiling), but a slump
-costs them more; a weak player with even average-plus form gets a bigger boost (holding your own among
-stronger players is worth more), and a slump costs them less:
+costs them more; a weaker player with even average-plus form gets a bigger boost (holding your own
+among stronger players is worth more), and a slump costs them less. The scale is the player's own
+FACEIT ELO, **not** their position in tonight's lobby, so the same player is treated the same way
+every evening.
 
 ```
-p     = clamp( (E − Ē_lobby) / 400, −1, +1 )        # −1 weakest … +1 strongest tonight
-F_raw = β · (ratio^ − 1)
-F     = F_raw · (1 − a · p)   if F_raw ≥ 0           # a = 0.5 (config form.asymmetry)
-F     = F_raw · (1 + a · p)   if F_raw < 0
-F     = clamp( F, −F_max, +F_max )
+F_raw = clamp( β · (ratio^ − 1), −F_max, +F_max )
+m+(E), m−(E) = linear interpolation between config anchors, flat outside them
+F     = clamp( m+(E) · F_raw, −F_max, +F_max )   if F_raw ≥ 0
+F     = clamp( m−(E) · F_raw, −F_max, +F_max )   if F_raw < 0
 ```
-Examples (a = 0.5): strongest player (p = +1) in +60 form → +30, in −60 form → −90; weakest (p = −1)
-with a modest 1.05 ratio^ (F_raw = +25) → +37, in −60 form → −30.
+
+Anchors (`form.asymmetry`):
+
+| E (FACEIT ELO) | m+ | m− |
+|---|---|---|
+| ≤ 1000 | 1.5 | 0.30 |
+| 1500 | 1.0 | 0.45 |
+| ≥ 2000 | 0.1 | 0.60 |
+
+Resulting F for a few ELOs (β = 500, F_max = 150; ratio^ is the ratio **after** shrinkage):
+
+| E | m+ | m− | ratio^ 1.05 (F_raw +25) | 1.10 (+50) | 1.30 (+150) | 0.90 (−50) | 0.70 (−150) |
+|---|---|---|---|---|---|---|---|
+| 938 (lowest of our roster) | 1.500 | 0.300 | **+37.5** | +75 | +150 | −15 | −45 |
+| 1126 | 1.374 | 0.338 | **+34.4** | +68.7 | +150 | −16.9 | −50.7 |
+| 1400 | 1.100 | 0.420 | +27.5 | +55 | +150 | −21 | −63 |
+| 1500 | 1.000 | 0.450 | +25 | +50 | +150 | −22.5 | −67.5 |
+| 1797 | 0.465 | 0.539 | +11.6 | +23.3 | +69.8 | −27 | −80.9 |
+| 2189 (highest) | 0.100 | 0.600 | +2.5 | +5 | **+15** | −30 | **−90** |
+
+So a player above 2000 gets at most +15 from form and loses up to −90; a player around 1100 with an
+average-plus month (ratio^ 1.05, e.g. 25 matches at a raw ratio of 1.07) gets a clear +34.
 
 The FACEIT client must fetch enough history to have a baseline before the window (paginate if all
 of the last 100 matches fall inside 30 days). Exact FACEIT field names are confirmed in spike S3.
+
+### A: activity (D26)
+
+FACEIT ELO is frozen while a player is not playing, so for an inactive player it overstates how good
+they are tonight. A is a separate term (not a damper on F: F already fades to 0 with few matches
+through shrinkage, and F = 0 still means "full ELO").
+
+```
+playedAt = finish times of every FACEIT match in the history (any mode, club matches included)
+           + mix maps entered in the app without FACEIT
+session  = a run of matches where consecutive ones finished < 6 h apart (sessionGapHours)
+s        = sessions that ended in the last 30 days (windowDays)
+A        = linear interpolation of s between config anchors, flat outside them
+```
+
+Anchors (`activity.anchors`):
+
+| sessions in 30 days | 0 | 1 | 2 | 3 | 4 | 5 | ≥ 6 |
+|---|---|---|---|---|---|---|---|
+| A | **−75** | −35 | 0 | +3.75 | +7.5 | +11.25 | **+15** |
+
+Examples:
+- Played three matches on one evening three weeks ago and nothing since: s = 1, A = −35.
+- Last FACEIT match two months ago: s = 0, A = −75 (and F = 0, no matches in the window).
+- Plays twice a week (8 sessions): A = +15. Regular play also shows in F, so the bonus stays small.
+- No FACEIT history and no mix maps: A = 0, shown as "no activity data" (D21).
 
 ### M: mix form (our own rating)
 
@@ -140,26 +192,46 @@ Greedy selection:
 
 ## 7. What the UI shows per variant
 
-- Team A / Team B lineups with each player's S (and a breakdown on hover: E / F / M).
+- Team A / Team B lineups with each player's S (and a breakdown on tap: E / F / M / A). In variant
+  tabs teams are sorted by S; in the lobby and the locked lineup players are listed in **join order**
+  (D28).
 - Average S per team, the gap, and the win probability.
-- Badges (only when a clear duo exists): "Top duo split", "Bottom duo split".
+- No duo badges (D28). When a clear duo exists, the explanation panel says that it is split and why.
 - Cost (for the admin; hidden from voters by default).
 - **"How was this calculated?"** (everyone, D22): per player E and its source (FACEIT / manual), F with
-  the matches in the window, window vs baseline rating, ratio, shrunk ratio and whether it hit the clamp,
-  M with its maps and shrinkage; per variant the cost split into imbalance pp and each rule's penalty;
-  the config (weights) used. Engine side: M1-4b.
+  the matches in the window, window vs baseline rating, ratio, shrunk ratio, raw F, the asymmetry
+  multiplier for their ELO and whether it hit a clamp, M with its maps and shrinkage, A with the
+  sessions counted; each term's weight and contribution to S; per variant the cost split into
+  imbalance pp and each rule's penalty; the config (weights) used. Engine side: M1-4b.
 
 ## 8. Snapshot
 
-At generation time, each participant's inputs (E, F, M, S) are stored in
+At generation time, each participant's inputs and explanation (E, F, M, A, S with all intermediate
+numbers) are stored in
 `mix_participants.skill_snapshot`, so a past mix can always explain why teams looked the way they did.
 
 ## Default config
 
 ```json
 {
-  "weights": { "elo": 1, "faceitForm": 1, "mixForm": 0.5 },
-  "form": { "asymmetry": 0.5, "windowDays": 30, "shrinkK": 10, "beta": 500, "max": 150, "minBaseline": 10 },
+  "weights": { "elo": 1, "faceitForm": 1, "mixForm": 0.5, "activity": 1 },
+  "form": {
+    "windowDays": 30, "shrinkK": 10, "beta": 500, "max": 150, "minBaseline": 10,
+    "asymmetry": [
+      { "elo": 1000, "up": 1.5, "down": 0.3 },
+      { "elo": 1500, "up": 1.0, "down": 0.45 },
+      { "elo": 2000, "up": 0.1, "down": 0.6 }
+    ]
+  },
+  "activity": {
+    "windowDays": 30, "sessionGapHours": 6,
+    "anchors": [
+      { "sessions": 0, "value": -75 },
+      { "sessions": 1, "value": -35 },
+      { "sessions": 2, "value": 0 },
+      { "sessions": 6, "value": 15 }
+    ]
+  },
   "mix":  { "maps": 10, "shrinkK": 5, "gamma": 1000, "max": 200 },
   "outlierPair": { "maxGap": 100, "minSeparation": 200 },
   "rules": {
@@ -172,6 +244,8 @@ At generation time, each participant's inputs (E, F, M, S) are stored in
   "minDistance": 2
 }
 ```
+
+Per-group overrides and on/off switches per term (E / F / M / A) come later (M4-7).
 
 ## Backtest scenario (test data, later)
 

@@ -140,17 +140,91 @@ weight of each factor should be adjustable later, ideally per group.
 - Any active group member can upload a demo for a mix of that group (parsed in their browser, D6);
   group admins can delete uploads. Earlier notes saying "the owner uploads" mean "a member uploads".
 
-## D24. Form weighs more than mix form, and asymmetrically by strength, Accepted (2026-09-25)
+## D24. Form weighs more than mix form, and asymmetrically by strength, Accepted (2026-09-25; asymmetry rule amended the same day)
 Owner: mix form M gets the smallest weight, recent FACEIT form F more; a strong player in form gets
 little extra ELO but a slump costs more, and a weaker player with even average-plus form gets extra
 ELO (holding your own among stronger players is a lot), with a smaller penalty for a slump.
-- Defaults `weights = { elo: 1, faceitForm: 1, mixForm: 0.5 }`.
-- `F` is scaled by `1 ∓ a·p` where `p` is the player's ELO position in tonight's lobby (−1 … +1),
-  `a = form.asymmetry = 0.5` (docs/04 §1). Implemented in M1-4b, shown in the explanation panel.
+- Defaults `weights = { elo: 1, faceitForm: 1, mixForm: 0.5 }` (+ `activity: 1`, D26).
 - Form uses our own FACEIT match rating, **not Leetify**: Leetify data must never be stored or
   recalculated (hard constraint), and FACEIT per-match stats are already fetched (M1-2).
+- ~~`F` is scaled by `1 ∓ a·p` where `p` is the player's ELO position in tonight's lobby~~
+  **Amended (owner feedback, 2026-09-25):** the asymmetry depends on the player's **absolute FACEIT
+  ELO**, not on their position in tonight's lobby (a lobby-relative scale would treat the same player
+  differently every evening). Two multipliers, interpolated linearly between anchor points in config
+  (`form.asymmetry`) and flat outside them:
+
+  | ELO | m+ (good form) | m− (slump) | best case (F_raw = +150) | worst case (F_raw = −150) |
+  |---|---|---|---|---|
+  | ≤ 1000 | 1.5 | 0.30 | +150 (final clamp) | −45 |
+  | 1500 | 1.0 | 0.45 | +150 | −67.5 |
+  | ≥ 2000 | 0.1 | 0.60 | +15 | −90 |
+
+  `F = clamp(m±(E) · F_raw, ±F_max)` with `F_raw = clamp(β·(ratio^ − 1), ±F_max)`. A player above
+  2000 gains at most +15 from form and loses up to −90; the lower the ELO, the bigger the gain
+  multiplier and the smaller the slump multiplier. Worked examples in docs/04 §1.
 
 ## D25. Popflash history is test data only, Accepted (2026-09-25)
 The group's popflash matches (Oct–Dec 2024) are used only as test fixtures (`lib/balance/__fixtures__/`)
 for the balancing backtest (T-1, T-2). They are never imported into the dev or prod database. The
 players themselves may be members of the group; their old match history is not.
+
+## D26. Activity is its own term A, not a damper on F, Accepted (2026-09-25)
+Owner: players who have barely played lately (below ~2 sessions a month) should not get full credit;
+consider either weakening F for them or a separate activity term (small plus for regular play,
+potentially a big minus for not playing).
+
+**Chosen: a separate term A.** Reasons:
+- F already weakens with few matches: shrinkage `k = 10` turns +30 % over 2 matches into +25 raw, and
+  0 matches in the window give F = 0. A damper on F would count the same thing twice.
+- Damping F can only pull F toward 0, and F = 0 means "counts at full ELO". The real problem with an
+  inactive player is the opposite: **FACEIT ELO is frozen while they get rusty**, so ELO overstates
+  them. Only a term of its own can express that minus.
+- It is a separate, readable line in the "How was this calculated?" panel (D22) and can be switched
+  off or re-weighted on its own (M4-7).
+
+Definition (docs/04 §1 "A: activity"):
+- **Session** = a run of matches where consecutive matches finished less than `sessionGapHours = 6`
+  apart (an evening). Sources: every FACEIT match in the history (any mode, **including** club
+  matches, unlike F) plus the player's mix maps entered in the app without FACEIT (D21).
+- `s` = sessions that ended in the last `windowDays = 30` days. `A` is interpolated between anchors
+  in config (`activity.anchors`) and flat outside them:
+
+  | sessions in 30 days | 0 | 1 | 2 | 4 | ≥ 6 |
+  |---|---|---|---|---|---|
+  | A (ELO) | −75 | −35 | 0 | +7.5 | +15 |
+
+- No data at all (no FACEIT history, no mix maps): A = 0, shown as "no activity data" (D21: never
+  punish a missing FACEIT account).
+- `S = wE·E + wF·F + wM·M + wA·A`, default `wA = 1`.
+
+## D27. A mix evening is assembled from several FACEIT matches; demos stay in the browser, Accepted (2026-09-25)
+On a FACEIT Club queue every map is its own match room (`best_of = 1` in all recorded matches), and a
+mix evening can have any number of maps (3, 5, more). The app assembles them itself instead of asking
+for one room link:
+- **Candidates:** matches of the group's Club (`groups.faceit_club_id`; the listing endpoint is
+  verified in S5) or, as a fallback, the union of the participants' `/players/{id}/history` since the
+  lineup was locked.
+- **Rules:** started after `locked_at`; started within **6 h** of the first candidate; **≥ 8 of the 10
+  mix participants** in the match (either side). Teams map to A / B by majority of each faction.
+  Stop at the next mix of the same group.
+- **Admin confirms** the list (untick a match, add one by room link) before import; import is
+  idempotent per `faceit_match_id`. Details: docs/05 "Assembling a mix evening", M2-2.
+- **Demos:** the recorded match returns `demo_url` = a FACEIT CDN link to a zstd-compressed demo
+  (`…/cs2/{match_id}-1-1.dem.zst`). Direct download is reserved for the Downloads API (signed URLs,
+  separate application) and CORS for browsers is unverified (the sandbox proxy blocks the host). So we
+  **show links** (match room + demo) and the member drops the downloaded `.dem.zst` into the in-browser
+  parser (M4-6). Demos never touch our server; only the stats JSON does. If a browser can fetch
+  `demo_url` directly (tested locally in S4/S5), the page may offer "Parse from FACEIT" as a shortcut,
+  still entirely in the browser.
+
+## D28. Mix page: join order, no duo badges, any number of maps, Accepted (2026-09-25)
+Owner feedback on the design preview:
+- **Player lists follow join order** (`mix_participants.created_at`), not ELO: in the lobby and in the
+  locked lineup (each team in join order). Variant tabs keep teams sorted by S, because there the
+  comparison between teams is the point.
+- **"Top duo split" / "Bottom duo split" badges are gone from the UI.** The rule stays in the engine
+  (D15) and is mentioned in the "How was this calculated?" panel when a duo exists.
+- **Results handle N maps:** tabs "All maps" + one per map, each with its own scoreboard; the
+  summary shows maps won and per-map score chips.
+- **Match awards** in the spirit of Worms (M2-8): funny per-evening awards from FACEIT stats and, when
+  a demo was parsed, from demo-only stats; each with a concrete stat and threshold.

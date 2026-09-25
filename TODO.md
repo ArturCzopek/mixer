@@ -42,7 +42,7 @@ Task IDs refer to [docs/07-roadmap.md](docs/07-roadmap.md).
 
 ## Next Claude session: start here
 
-1. Read `CLAUDE.md`, this file, `docs/07-roadmap.md` and `docs/08-decisions.md` (D15–D21).
+1. Read `CLAUDE.md`, this file, `docs/07-roadmap.md` and `docs/08-decisions.md` (D15–D28).
 2. Done: P0-1, M1-4, **S3** (FACEIT fields/units/rate limits: `docs/06` "Spike S3 findings", fixtures in
    `lib/external/__fixtures__/`), **P0-3** + **P0-5** (schema with groups live on Supabase; `lib/db/README.md`).
 3. Product rules to keep in mind:
@@ -50,6 +50,11 @@ Task IDs refer to [docs/07-roadmap.md](docs/07-roadmap.md).
    - **FACEIT optional** (D21): the group's Club is the preferred place to play and sync from, but a mix
      can have manual results only (M2-7) and demos uploaded by hand later (M4-6); never assume FACEIT data exists.
    - Discord voice moves per group come in Phase 5 (D19).
+   - Owner feedback 2026-09-25 (D24 amended, D26–D28): form asymmetry by **absolute ELO** (anchors in
+     config), separate **activity term A**, a mix evening = several FACEIT rooms found automatically
+     (≥ 8/10 participants, 6 h window, admin confirms), demos only as links + in-browser parse,
+     lists in **join order**, no duo badges, results for **N maps**, Worms-style awards (M2-8),
+     Leetify preview card (M3-2), per-group on/off per term (M4-7).
 4. Done: **M1-2** (`lib/external/`). Done: **UI-0** (VGUI look, preview at `/design/mix`). Next: **M1-4b** (balancing explanation, weights and form asymmetry, D22 + D24), then **M1-1** (Steam login, `is_site_admin` + group role guards),
    **M1-G** (groups UI, seed our group), P0-4. **T-2** (popflash export) can run any time.
 5. Before M1-9: **P0-6** separate prod Supabase project (current one becomes dev).

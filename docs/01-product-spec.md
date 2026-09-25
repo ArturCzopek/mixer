@@ -57,14 +57,16 @@ that record automatically (matched on SteamID64). Any logged-in player can creat
 - States: `open` → `balancing` → `voting` → `locked` → `played` (or `cancelled`).
 - Members click **Join**; admin can add/remove anyone. **Hard cap of 10 participants, no waitlist.**
   When full, the Join button is disabled. The admin makes room by removing someone.
-- Lobby updates in real time (who joined, who left).
+- Lobby updates in real time (who joined, who left). Players are listed in **join order** (D28),
+  also in the locked lineup.
 
 ### F3. Team balancing
 - When 10 participants are in, admin clicks **Generate teams**.
 - The app fetches fresh data and shows **3 variants**. Each variant shows:
   - both lineups, each player's skill score,
   - team averages, estimated win probability (e.g. 50.4% / 49.6%),
-  - a note when a clear top or bottom duo (two players far from the rest) is split.
+  - "How was this calculated?": E / F / M / A per player and the cost split (D22); when a clear top or
+    bottom duo exists, the panel says it is split (no badge, D28).
 - Admin can re-roll (exclude shown variants) or tweak weights before publishing.
 - Details: [team balancing](04-team-balancing.md).
 
@@ -80,7 +82,9 @@ that record automatically (matched on SteamID64). Any logged-in player can creat
 - After the match: enter the map + score manually (fallback), **or** upload the demo.
 - Demo is parsed in the uploader's browser; only the extracted stats are sent to the server.
 - The parsed player list is matched to participants by SteamID64; the app warns if players or teams do not match the locked lineup.
-- One mix may have multiple maps (usually 1).
+- A mix is an evening with **any number of maps** (1, 3, 5…). With FACEIT the app finds the evening's
+  match rooms itself and the admin confirms them (D27); the result shows maps won, a score chip per map
+  and scoreboards per map plus "All maps".
 
 ### F6. Match page (popflash-style scoreboard)
 - Final score, per-half score, map.
@@ -95,6 +99,11 @@ that record automatically (matched on SteamID64). Any logged-in player can creat
   - *FACEIT / Premier*: live data from external APIs, shown as-is with attribution (not stored, see [external APIs](06-external-apis.md)).
 - Recent form, best maps, teammates they win most with.
 - Compare two players side by side (later).
+
+### F7b. Match awards (M2-8)
+- After an evening, a few funny awards in the spirit of Worms ("Cannon Fodder", "Assist King",
+  "Friendly Flasher"…), each backed by a concrete stat and threshold; demo-only awards appear once a
+  demo is parsed.
 
 ### F8. Leaderboards (later)
 - Mix rating, ADR, K/D, win rate, clutches. Minimum N maps to qualify.
