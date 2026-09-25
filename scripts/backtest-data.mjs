@@ -231,8 +231,180 @@ async function faceit() {
   console.log(JSON.stringify(summary, null, 2));
 }
 
+// --- results: every FACEIT match result up to today, to walk ELO back from today's value --------
+// ELO is not in the Data API per match; backtest/elo-history.ts reconstructs it (±25 per queue match).
+
+async function results() {
+  const key = process.env.FACEIT_API_KEY;
+  if (!key) throw new Error("FACEIT_API_KEY missing");
+  const auth = { Authorization: `Bearer ${key}`, Accept: "application/json" };
+  const { players } = JSON.parse(
+    readFileSync(`${FIX}/popflash/players.json`, "utf8"),
+  );
+  const from = Date.parse("2023-09-01T00:00:00Z");
+  const to = Date.now();
+  const slices = [];
+  for (let t = from; t < to;) {
+    const d = new Date(t);
+    const next = Math.min(
+      to,
+      Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1),
+    );
+    slices.push([t, next]);
+    t = next;
+  }
+  const summary = [];
+  for (const p of players) {
+    if (p.mergeInto) continue;
+    let r = await get(
+      `${FACEIT}/players?game=cs2&game_player_id=${p.steamId}`,
+      auth,
+    );
+    if (r.status === 404 && p.faceitNickname)
+      r = await get(
+        `${FACEIT}/players?nickname=${encodeURIComponent(p.faceitNickname)}`,
+        auth,
+      );
+    if (r.status !== 200) continue;
+    const player = JSON.parse(r.text);
+    const seen = new Set();
+    const out = [];
+    let truncated = 0;
+    for (const [a, b] of slices) {
+      for (let offset = 0; offset < 1000; offset += 100) {
+        await sleep(80);
+        const page = await get(
+          `${FACEIT}/players/${player.player_id}/games/cs2/stats?from=${a}&to=${b}&limit=100&offset=${offset}`,
+          auth,
+        );
+        if (page.status !== 200) {
+          if (offset > 0) truncated++;
+          break;
+        }
+        const items = JSON.parse(page.text).items ?? [];
+        for (const { stats: s } of items) {
+          if (seen.has(s["Match Id"])) continue;
+          seen.add(s["Match Id"]);
+          out.push({
+            finishedAt: new Date(Number(s["Match Finished At"])).toISOString(),
+            won: s["Result"] === "1",
+            gameMode: s["Game Mode"],
+            competitionId: s["Competition Id"] ?? null,
+          });
+        }
+        if (items.length < 100) break;
+      }
+    }
+    out.sort((x, y) => x.finishedAt.localeCompare(y.finishedAt));
+    write(`${FIX}/backtest/faceit-results/${p.steamId}.json`, {
+      steamId: p.steamId,
+      nickname: player.nickname,
+      eloNow: player.games?.cs2?.faceit_elo ?? null,
+      recordedAt: new Date().toISOString(),
+      truncatedSlices: truncated,
+      results: out,
+    });
+    summary.push({
+      nickname: player.nickname,
+      elo: player.games?.cs2?.faceit_elo,
+      results: out.length,
+      truncated,
+    });
+  }
+  console.log(JSON.stringify(summary, null, 2));
+}
+
+// --- probe-elo: which other sources have historical ELO? Prints field names and date ranges to the
+// job log only; nothing is written or committed (Leetify data must not be stored).
+
+async function probeElo() {
+  const steamId = "76561197993187687"; // owner
+  const report = [];
+  const keysOf = (o, prefix = "", out = new Set()) => {
+    if (Array.isArray(o))
+      o.slice(0, 3).forEach((x) => keysOf(x, `${prefix}[]`, out));
+    else if (o && typeof o === "object")
+      for (const [k, v] of Object.entries(o)) {
+        out.add(prefix ? `${prefix}.${k}` : k);
+        keysOf(v, prefix ? `${prefix}.${k}` : k, out);
+      }
+    return out;
+  };
+  if (process.env.LEETIFY_API_KEY) {
+    const h = {
+      _leetify_key: process.env.LEETIFY_API_KEY,
+      Accept: "application/json",
+    };
+    for (const url of [
+      `https://api-public.cs-prod.leetify.com/v3/profile/matches?steam64_id=${steamId}`,
+      `https://api-public.cs-prod.leetify.com/v3/profile?steam64_id=${steamId}`,
+    ]) {
+      const r = await get(url, h);
+      let body = null;
+      try {
+        body = JSON.parse(r.text);
+      } catch {}
+      const list = Array.isArray(body)
+        ? body
+        : (body?.recent_matches ?? body?.matches ?? []);
+      const dates = list
+        .map((m) => m.finished_at ?? m.finishedAt)
+        .filter(Boolean)
+        .sort();
+      report.push({
+        url: url.replace(steamId, "<owner>"),
+        status: r.status,
+        items: list.length,
+        oldest: dates[0] ?? null,
+        newest: dates.at(-1) ?? null,
+        eloFields: [...keysOf(body)]
+          .filter((k) => /elo|rank|skill/i.test(k))
+          .slice(0, 40),
+      });
+      await sleep(500);
+    }
+  }
+  // FACEIT's own site API (undocumented, not the Data API): ELO per match.
+  const key = process.env.FACEIT_API_KEY;
+  const me = key
+    ? JSON.parse(
+        (
+          await get(`${FACEIT}/players?game=cs2&game_player_id=${steamId}`, {
+            Authorization: `Bearer ${key}`,
+          })
+        ).text,
+      )
+    : null;
+  if (me?.player_id) {
+    const url = `https://api.faceit.com/stats/v1/stats/time/users/${me.player_id}/games/cs2?page=0&size=100`;
+    const r = await get(url, { Accept: "application/json" }).catch((e) => ({
+      status: String(e),
+      text: "",
+    }));
+    let body = null;
+    try {
+      body = JSON.parse(r.text);
+    } catch {}
+    const list = Array.isArray(body) ? body : [];
+    report.push({
+      url: url.replace(me.player_id, "<owner>"),
+      status: r.status,
+      items: list.length,
+      eloFields: [...keysOf(list[0] ?? {})].filter((k) =>
+        /elo|date|created/i.test(k),
+      ),
+      oldest: list.length
+        ? new Date(
+            Math.min(...list.map((x) => Number(x.date ?? x.created_at ?? 0))),
+          ).toISOString()
+        : null,
+    });
+  }
+  console.log(JSON.stringify(report, null, 2));
+}
+
 const step = process.argv[2];
-const steps = { probe, popflash, faceit };
+const steps = { probe, popflash, faceit, results, "probe-elo": probeElo };
 if (!steps[step]) {
   console.error(
     `Usage: node scripts/backtest-data.mjs ${Object.keys(steps).join("|")}`,

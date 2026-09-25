@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       step:
-        description: "probe | popflash | faceit"
+        description: "probe | popflash | faceit | results | probe-elo"
         required: true
         default: probe
 
@@ -29,6 +29,8 @@ jobs:
       - name: Export
         env:
           FACEIT_API_KEY: ${{ secrets.FACEIT_API_KEY }}
+          # probe-elo only: field names to the log, nothing written
+          LEETIFY_API_KEY: ${{ secrets.LEETIFY_API_KEY }}
         run: node scripts/backtest-data.mjs "${{ inputs.step }}"
       - name: Commit fixtures
         if: always()
