@@ -56,3 +56,6 @@ next-env.d.ts
 
 # Local-only backtest data from non-public sources (never committed)
 backtest/.local/
+
+# personal Claude Code settings
+.claude/settings.local.json
