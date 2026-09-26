@@ -51,11 +51,13 @@ flowchart LR
 
 Implemented in M1-1 (`lib/auth/`):
 
-1. `GET /auth/steam` redirects to `https://steamcommunity.com/openid/login` with our return URL
-   (`APP_URL` in Production, the request's own origin on preview deploys) and an optional `next` path.
-2. `GET /auth/steam/callback` verifies the assertion (`lib/auth/openid.ts`): namespace, `id_res`,
-   Steam's `op_endpoint`, `return_to` = this callback, `claimed_id` = `identity` = a Steam profile URL,
-   the required fields signed, nonce younger than 5 min, then `check_authentication` back to Steam.
+1. `GET /auth/steam` creates a random state, sets it in the httpOnly `mixer_login_state` cookie for
+   10 minutes, and redirects to `https://steamcommunity.com/openid/login` with the state and our return
+   URL (`APP_URL` in Production, the request's own origin on preview deploys) plus an optional `next` path.
+2. `GET /auth/steam/callback` requires the returned state to match the cookie, then verifies the assertion
+   (`lib/auth/openid.ts`): namespace, `id_res`, Steam's `op_endpoint`, `return_to` = this callback,
+   `claimed_id` = `identity` = a Steam profile URL, the required fields signed, nonce younger than 5 min,
+   then `check_authentication` back to Steam. The callback clears the state cookie after use.
 3. Upsert `players` by `steam_id` (claims an admin-created record, no duplicate), refresh name and
    avatar from the Steam Web API, set `is_site_admin` for SteamIDs in `ADMIN_STEAM_IDS` (never
    demotes), set an httpOnly `SameSite=Lax` cookie `mixer_session`: HS256 JWT (`jose`) with only
@@ -67,7 +69,7 @@ Implemented in M1-1 (`lib/auth/`):
 Players who are not members of a group can log in but only get guest rights in that group until a
 group admin adds them (or the group has an open join link, later).
 
-## Data access pattern
+## Data access pattern (planned)
 
 - **All writes go through Next.js server code** using the Supabase **service role** key
   (never shipped to the browser). Every write checks the session and permissions in code.
@@ -76,11 +78,11 @@ group admin adds them (or the group has an open join link, later).
 - This avoids minting Supabase-compatible JWTs for a non-Supabase login provider and keeps
   authorization logic in one place (TypeScript).
 
-## Realtime
+## Realtime (planned)
 
 - The client subscribes to Postgres changes filtered by `mix_id` on `mix_participants`, `votes` and `mixes`.
 - Server code performs state transitions (e.g. auto-lock when 10/10 voted) inside a transaction.
-- Why not Kafka: see [decisions](08-decisions.md#d3-realtime-supabase-realtime-not-kafka).
+- Why not Kafka: see [decisions](08-decisions.md#d3-realtime-supabase-realtime-not-kafka-accepted).
 
 ## Demo processing
 
@@ -95,8 +97,8 @@ We store a SHA-256 of the demo header to reject duplicate uploads.
 - **Leetify Public API**: displayed live on profiles only; **never stored** (their terms).
 - **Steam Web API**: names and avatars (`GetPlayerSummaries`), vanity URL resolution.
 
-All external calls run server-side with keys in env vars and use short in-memory / `fetch` caching (minutes).
-Details: [external APIs](06-external-apis.md).
+All external calls run server-side with keys in env vars. Caching varies by service; see
+[external APIs](06-external-apis.md).
 
 ## Free-tier constraints to design around
 
@@ -123,6 +125,8 @@ CRON_SECRET=
 ```
 
 ## Repository layout (planned)
+
+Implemented pieces are tracked by the checked rows in the [roadmap](07-roadmap.md).
 
 ```
 mixer/

@@ -9,7 +9,8 @@ import {
 import { AuthError, hasGroupRole, parseAdminIds } from "./roles";
 import { readSession, signSession } from "./session-token";
 
-const CALLBACK = "https://mixer.example/auth/steam/callback";
+const STATE = "3f1c9a2e-login-state";
+const CALLBACK = `https://mixer.example/auth/steam/callback?state=${STATE}`;
 const NOW = new Date("2026-09-25T12:00:00Z");
 const STEAM_ID = "76561197993187687";
 
@@ -53,11 +54,11 @@ function steam(valid: boolean) {
 
 describe("Steam OpenID", () => {
   it("builds the login redirect with our callback as return_to and realm", () => {
-    const u = new URL(steamLoginUrl(`${CALLBACK}?next=%2Fg%2Fx`));
+    const u = new URL(steamLoginUrl(`${CALLBACK}&next=%2Fg%2Fx`));
     expect(u.origin + u.pathname).toBe(STEAM_OPENID);
     expect(u.searchParams.get("openid.mode")).toBe("checkid_setup");
     expect(u.searchParams.get("openid.return_to")).toBe(
-      `${CALLBACK}?next=%2Fg%2Fx`,
+      `${CALLBACK}&next=%2Fg%2Fx`,
     );
     expect(u.searchParams.get("openid.realm")).toBe("https://mixer.example");
   });
@@ -65,7 +66,11 @@ describe("Steam OpenID", () => {
   it("accepts a valid assertion confirmed by Steam and returns the SteamID64", async () => {
     const s = steam(true);
     await expect(
-      verifySteamAssertion(assertion(), { fetch: s.fetch, now: NOW }),
+      verifySteamAssertion(assertion(), {
+        fetch: s.fetch,
+        now: NOW,
+        state: STATE,
+      }),
     ).resolves.toBe(STEAM_ID);
     expect(s.calls[0].url).toBe(STEAM_OPENID);
     expect(s.calls[0].body.get("openid.mode")).toBe("check_authentication");
@@ -75,7 +80,11 @@ describe("Steam OpenID", () => {
   it("rejects a forged assertion that Steam does not confirm", async () => {
     const s = steam(false);
     await expect(
-      verifySteamAssertion(assertion(), { fetch: s.fetch, now: NOW }),
+      verifySteamAssertion(assertion(), {
+        fetch: s.fetch,
+        now: NOW,
+        state: STATE,
+      }),
     ).rejects.toThrow(OpenIdError);
   });
 
@@ -118,19 +127,35 @@ describe("Steam OpenID", () => {
   ])("rejects %s without asking Steam", async (_, over) => {
     const s = steam(true);
     await expect(
-      verifySteamAssertion(assertion(over), { fetch: s.fetch, now: NOW }),
+      verifySteamAssertion(assertion(over), {
+        fetch: s.fetch,
+        now: NOW,
+        state: STATE,
+      }),
     ).rejects.toThrow(OpenIdError);
     expect(s.calls).toHaveLength(0);
   });
 
+  it.each([
+    ["no login-state cookie (login CSRF, replayed callback URL)", undefined],
+    ["another browser's login state", "other-state"],
+  ])("rejects %s without asking Steam", async (_, state) => {
+    const s = steam(true);
+    await expect(
+      verifySteamAssertion(assertion(), { fetch: s.fetch, now: NOW, state }),
+    ).rejects.toThrow(/login state mismatch/);
+    expect(s.calls).toHaveLength(0);
+  });
+
   it("rejects a tampered query parameter of return_to", async () => {
-    const withNext = `${CALLBACK}?next=%2Fa`;
+    const withNext = `${CALLBACK}&next=%2Fa`;
     const url = new URL(assertion({}, withNext));
     url.searchParams.set("next", "/b");
     await expect(
       verifySteamAssertion(url.toString(), {
         fetch: steam(true).fetch,
         now: NOW,
+        state: STATE,
       }),
     ).rejects.toThrow(/query mismatch/);
   });

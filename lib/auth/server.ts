@@ -126,3 +126,15 @@ export const sessionCookie = {
     maxAge: SESSION_DAYS * 86_400,
   },
 };
+
+/** Random value set by `/auth/steam`, checked and cleared by the callback (`verifySteamAssertion`). */
+export const loginStateCookie = {
+  name: "mixer_login_state",
+  options: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax" as const,
+    path: "/auth/steam",
+    maxAge: 600,
+  },
+};

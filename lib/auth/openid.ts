@@ -41,12 +41,15 @@ export class OpenIdError extends Error {
 
 /**
  * Verifies Steam's positive assertion (the query of the callback request) and returns the SteamID64.
- * Local checks first (mode, endpoint, return URL, claimed id, signed fields, nonce age), then Steam
- * itself confirms the signature with `check_authentication`. Throws `OpenIdError` otherwise.
+ * `state` is this browser's login-state cookie; it must equal the `state` parameter that `/auth/steam`
+ * put into return_to (signed by Steam), so a callback URL only works in the browser that started the
+ * login (no login CSRF, no replay of a leaked callback URL).
+ * Local checks first (mode, endpoint, return URL, state, claimed id, signed fields, nonce age), then
+ * Steam itself confirms the signature with `check_authentication`. Throws `OpenIdError` otherwise.
  */
 export async function verifySteamAssertion(
   callbackUrl: string,
-  opts: { fetch?: FetchLike; now?: Date } = {},
+  opts: { state: string | undefined; fetch?: FetchLike; now?: Date },
 ): Promise<string> {
   const url = new URL(callbackUrl);
   const q = url.searchParams;
@@ -65,6 +68,8 @@ export async function verifySteamAssertion(
     throw new OpenIdError("return_to does not match this callback");
   for (const [k, v] of rt.searchParams)
     if (q.get(k) !== v) throw new OpenIdError("return_to query mismatch");
+  if (!opts.state || q.get("state") !== opts.state)
+    throw new OpenIdError("login state mismatch");
 
   const claimed = get("claimed_id") ?? "";
   const match = CLAIMED_ID.exec(claimed);
