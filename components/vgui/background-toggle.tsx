@@ -4,6 +4,7 @@
 // convenience (localStorage), so it may come back empty and the page must work without it.
 
 import * as React from "react";
+import { useT } from "@/components/i18n";
 import { cn } from "@/lib/utils";
 
 const KEY = "mixer.background";
@@ -27,6 +28,7 @@ function subscribe(onChange: () => void) {
 }
 
 export function BackgroundToggle({ className }: { className?: string }) {
+  const t = useT();
   const on = React.useSyncExternalStore(subscribe, read, () => false);
 
   React.useEffect(() => {
@@ -57,8 +59,8 @@ export function BackgroundToggle({ className }: { className?: string }) {
         onChange={toggle}
         className="sunk checked:bg-gold-deep size-3.5 appearance-none"
       />
-      <span className="sm:hidden">1.6</span>
-      <span className="hidden sm:inline">1.6 backdrop</span>
+      <span className="sm:hidden">{t.prefs.backdropShort}</span>
+      <span className="hidden sm:inline">{t.prefs.backdrop}</span>
     </label>
   );
 }

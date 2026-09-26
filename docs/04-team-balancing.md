@@ -201,6 +201,11 @@ Greedy selection:
 3. Take the next best with `distance = 2` to **all** already chosen variants.
 4. Repeat until 3 variants are chosen. If none qualifies, relax to `distance ≥ 1`.
 
+**Pair spread (D33):** after the greedy pick, the engine looks for a trio that keeps variant 1 and
+leaves fewer pairs of players as teammates in all three variants, as long as its most expensive variant
+costs at most `pairSpread.maxExtraCost` (3 pp) more. Pairs that stay together are listed in the result
+(`alwaysTogether`) and in the explanation.
+
 **Re-roll:** exclude every previously shown split and run the same selection again.
 
 ## 7. What the UI shows per variant

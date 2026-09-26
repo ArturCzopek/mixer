@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import "@fontsource/dejavu-sans/400.css";
 import "@fontsource/dejavu-sans/700.css";
 import "./globals.css";
+import { I18nProvider } from "@/components/i18n";
+import { getLang } from "@/lib/i18n/server";
 
 export const metadata: Metadata = {
   title: "mixer",
@@ -18,13 +20,16 @@ export const viewport: Viewport = {
  */
 const RESTORE_BACKDROP = `try{if(localStorage.getItem("mixer.background")==="cs16")document.documentElement.dataset.bg="cs16"}catch(e){}`;
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const lang = await getLang();
   return (
-    <html lang="en" className="h-full" suppressHydrationWarning>
+    <html lang={lang} className="h-full" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: RESTORE_BACKDROP }} />
       </head>
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        <I18nProvider lang={lang}>{children}</I18nProvider>
+      </body>
     </html>
   );
 }

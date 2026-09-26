@@ -281,3 +281,31 @@ m+(E) / m−(E) from `config.mix.asymmetry` (same anchors as `form.asymmetry` by
 separately). Backtest on the 2024 popflash maps: log-loss 0.633 → 0.635 for E + F + 0.5·M, well
 inside the noise (90 % CI of the difference includes 0), so this is a fairness choice the data
 neither supports nor rules out. Owner noted the spread between strong and weak players grows.
+
+## D33. Voting: public votes, moving a vote, closing, ties, pair spread, Accepted (2026-09-26)
+Owner feedback on the voting flow:
+- **Votes are public**: each variant lists who voted for it, plus who has not voted yet.
+- **One vote per player per mix** (`votes` pk `mix_id, voter_id`): voting for another variant moves
+  the vote. The button says "Vote", "Move Vote" or "Your Vote".
+- **Closing**: never automatically on the 10th vote (a misclick could not be undone). A group admin
+  closes it, or it closes by itself 60 minutes after the last vote once all ten have voted. Admins can
+  reopen voting until the match starts.
+- **Ties** between the top variants: a random pick seeded with the mix id (`lib/mix/voting.ts`), so
+  everyone sees the same winner and it never changes on reload. The locked view says it was drawn.
+- **Pair spread**: ideally no two players are teammates in all three variants. The engine keeps the
+  most even split first and picks the other two to leave as few such pairs as possible, if the most
+  expensive variant costs at most `pairSpread.maxExtraCost` = 3 pp more than the plain pick. Pairs it
+  cannot split are named in the explanation (e.g. on 16.12.2024 splitting czopo + Nefcio costs 5.9 pp).
+
+## D34. Polish UI as a toggle, Accepted (2026-09-26)
+English stays the default; a flag toggle switches to Polish and is remembered in the `mixer.lang`
+cookie (1 year) so the server renders the chosen language. All UI strings live in `lib/i18n/dict.ts`
+(`en` defines the shape, `pl` must match). "Data Provided by Leetify" stays in English (required
+attribution). Code, docs and data stay English.
+
+## D35. Showcase uses the voted variant, live Leetify, Accepted (2026-09-26)
+Amends D31. On `/demo` the locked lineup is the variant that won the (made-up) vote, like in the real
+app; the lineup they really played in 2024 is shown next to it for comparison, and the Result tab
+shows that real lineup's result. The Leetify card is live (last 30 days before today; Leetify keeps
+no 2024 matches), fetched on every request, never cached or stored. The mock preview `/design/mix`
+was removed.

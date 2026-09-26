@@ -89,7 +89,6 @@ export async function showcaseViewData(): Promise<MixViewData> {
     mix: {
       id: "showcase-2024-12-16",
       number: 1,
-      when: "Mon 20:45",
       group: "Skarpeciarze i pantofle",
       meId: OWNER,
       waitingForId,
@@ -137,13 +136,6 @@ export async function showcaseViewData(): Promise<MixViewData> {
       matches: leetify,
     },
     showcase: {
-      title: "Showcase: our popflash evening of 16 Dec 2024",
-      notes: [
-        "Real: the ten of us, the teams we played, every map score and every K/A/D/ADR line.",
-        "Real engine: skill S from each player's FACEIT history before that evening (ELO is today's).",
-        "Made up: join times, votes (a 4 : 4 tie on purpose) and who was late. Buttons do nothing yet.",
-        "Leetify card: live, the last 30 days before today (Leetify keeps no 2024 matches), never stored.",
-      ],
       real: {
         teamA: evening.teamA,
         teamB: evening.teamB,

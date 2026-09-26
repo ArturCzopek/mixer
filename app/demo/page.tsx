@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { MixView } from "@/components/mix/mix-view";
 import { parseMixState, StateSwitcher } from "@/components/mix/state-switcher";
+import { getDict } from "@/lib/i18n/server";
 import { showcaseViewData } from "@/lib/showcase/evening";
 
 export const metadata: Metadata = {
@@ -14,17 +15,13 @@ export default async function ShowcasePage({
 }: PageProps<"/demo">) {
   const { state } = await searchParams;
   const current = parseMixState(state, "voting");
+  const t = await getDict();
   return (
     <>
       <StateSwitcher
-        label="Showcase:"
+        label={t.switcher.label}
         current={current}
-        names={{
-          lobby: "1 lobby",
-          voting: "2 voting",
-          locked: "3 lineup",
-          played: "4 result",
-        }}
+        names={t.switcher}
       />
       <MixView key={current} state={current} data={await showcaseViewData()} />
     </>

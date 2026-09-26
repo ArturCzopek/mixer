@@ -1,7 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { BackgroundToggle, VButton, Well, Window } from "@/components/vgui";
+import { LanguageToggle } from "@/components/i18n";
 import { getSession, type Session } from "@/lib/auth/server";
+import type { Dict } from "@/lib/i18n/dict";
+import { getDict } from "@/lib/i18n/server";
 
 /** Env vars login needs on the server. Only their names are ever shown, never values. */
 const AUTH_ENV = [
@@ -15,31 +18,36 @@ const authConfigured = () => missingAuthEnv().length === 0;
 export default async function Home({ searchParams }: PageProps<"/">) {
   const { login } = await searchParams;
   const session = authConfigured() ? await getSession() : null;
+  const t = await getDict();
   return (
     <main className="mx-auto w-full max-w-[460px] px-2 py-6">
-      <Window title="mixer" right={<BackgroundToggle />}>
-        <p className="mb-2">
-          CS2 10-man mixes for our crew: balanced 5v5 lineups, live voting and
-          stats across mixes.
-        </p>
+      <Window
+        title="mixer"
+        right={
+          <span className="flex items-center gap-2">
+            <BackgroundToggle />
+            <LanguageToggle />
+          </span>
+        }
+      >
+        <p className="mb-2">{t.home.tagline}</p>
         {login === "failed" && (
           <Well className="text-dim mb-2 px-2 py-1.5 text-[11px]">
-            Steam login did not go through. Try again.
+            {t.home.loginFailed}
           </Well>
         )}
         {authConfigured() ? (
-          <Account session={session} />
+          <Account session={session} t={t} />
         ) : (
           <p className="text-dim mb-2 text-[11px]">
-            Login is not configured on this deployment. Missing:{" "}
-            {missingAuthEnv().join(", ")}.
+            {t.home.notConfigured(missingAuthEnv().join(", "))}
           </p>
         )}
         <Link
           href="/demo"
           className="bevel bg-sheet text-text mb-2 block px-3 py-2.5 text-center text-[13px] font-bold no-underline"
         >
-          See a Real Mix: 16 Dec 2024
+          {t.home.showcase}
         </Link>
         <p className="text-dim">
           <a
@@ -47,7 +55,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
             target="_blank"
             rel="noopener noreferrer"
           >
-            source
+            {t.home.source}
           </a>
         </p>
       </Window>
@@ -55,14 +63,14 @@ export default async function Home({ searchParams }: PageProps<"/">) {
   );
 }
 
-function Account({ session }: { session: Session | null }) {
+function Account({ session, t }: { session: Session | null; t: Dict }) {
   if (!session)
     return (
       <a
         href="/auth/steam"
         className="bevel bg-sheet text-gold mb-2 block px-3 py-2.5 text-center text-[13px] font-bold no-underline"
       >
-        Sign In Through Steam
+        {t.home.signIn}
       </a>
     );
   return (
@@ -84,11 +92,11 @@ function Account({ session }: { session: Session | null }) {
       <span className="min-w-0 flex-1 truncate">
         {session.displayName ?? session.steamId}
         {session.isSiteAdmin && (
-          <span className="text-dim text-[11px]"> · site admin</span>
+          <span className="text-dim text-[11px]"> · {t.home.siteAdmin}</span>
         )}
       </span>
       <VButton type="submit" className="py-1.5">
-        Log Out
+        {t.home.signOut}
       </VButton>
     </form>
   );

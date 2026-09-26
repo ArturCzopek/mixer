@@ -1,6 +1,6 @@
 # mixer: project notes for Claude
 
-CS2 10-man mix organizer for a ~15-person friend group; multi-group data model (groups, group admins, D18). Owner talks in Polish; **UI, code and docs are in English**.
+CS2 10-man mix organizer for a ~15-person friend group; multi-group data model (groups, group admins, D18). Owner talks in Polish; **code and docs are in English**; the UI is English by default with a Polish toggle (every UI string in `lib/i18n/dict.ts`, D34).
 
 **Work plan: `docs/07-roadmap.md`.** Owner actions and the next-session starting point: `TODO.md` (keep it updated). Pick the next unblocked task by ID, meet its "Done when", tick it off in the roadmap in the same PR.
 Read `docs/` before making design changes. The decision log (`docs/08-decisions.md`) explains the constraints.
@@ -20,7 +20,7 @@ Read `docs/` before making design changes. The decision log (`docs/08-decisions.
 
 ## Conventions
 - Next.js 16 App Router: check `node_modules/next/dist/docs/` before using APIs you're unsure of (see @AGENTS.md).
-- Look: 2003 Steam / CS 1.6 **olive VGUI** (roadmap UI-0). Rules in `DESIGN.md`, product context in `PRODUCT.md`; build screens from `components/vgui/` (bevel, well, tabs, SkillBar), preview at `/design/mix`.
+- Look: 2003 Steam / CS 1.6 **olive VGUI** (roadmap UI-0). Rules in `DESIGN.md`, product context in `PRODUCT.md`; build screens from `components/vgui/` (bevel, well, tabs, SkillBar); the showcase at `/demo` shows every mix state.
 - UI: Tailwind v4 + shadcn/ui (`components/ui/`, `cn()` from `@/lib/utils`). Add components with `npm run ui:add -- <names>` (`ui.shadcn.com` is blocked in the cloud sandbox; the script pulls from GitHub).
 - Push straight to `main` (no PRs needed). Keep CI green.
 

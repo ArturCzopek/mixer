@@ -1,7 +1,7 @@
 "use client";
 
-// Mix page in the VGUI world. Renders plain `MixViewData` built on the server: the design preview
-// (lib/mock/mix.ts), the showcase (lib/showcase/) and later the database (M1-5..M1-7). Buttons do
+// Mix page in the VGUI world. Renders plain `MixViewData` built on the server: the showcase
+// (lib/showcase/) and later the database (M1-5..M1-7). Every string comes from lib/i18n. Buttons do
 // nothing yet.
 
 import * as React from "react";
@@ -28,6 +28,8 @@ import {
   type ViewVariant,
 } from "@/lib/mix/view";
 import { votingOutcome } from "@/lib/mix/voting";
+import { LanguageToggle, useLang, useT } from "@/components/i18n";
+import type { Dict } from "@/lib/i18n/dict";
 import { cn } from "@/lib/utils";
 
 export type MixState = "lobby" | "voting" | "locked" | "played";
@@ -118,6 +120,14 @@ export function MixView({
   data: MixViewData;
 }) {
   const mix = React.useMemo(() => resolve(data), [data]);
+  const t = useT();
+  const lang = useLang();
+  const when = new Intl.DateTimeFormat(lang === "pl" ? "pl-PL" : "en-GB", {
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Europe/Warsaw",
+  }).format(new Date(data.mixAt));
   const [variantNo, setVariantNo] = React.useState(1);
   const [focusId, setFocusId] = React.useState(data.mix.meId);
   const variant = mix.variants.find((v) => v.number === variantNo)!;
@@ -130,9 +140,9 @@ export function MixView({
         <div className="px-2">
           {data.showcase && <ShowcaseNote />}
           <Window
-            title={`Mix #${data.mix.number} · ${data.mix.when}`}
+            title={t.mix.title(data.mix.number, when)}
             right={
-              <span aria-label={`${count} of 10 players`}>
+              <span aria-label={t.mix.playersOf10(count)}>
                 {count}
                 <span className="text-dim">/10</span>
               </span>
@@ -145,14 +155,14 @@ export function MixView({
             {state === "voting" && (
               <div className="mt-2.5">
                 <Tabs
-                  label="Variants"
+                  label={t.variants.aria}
                   value={variantNo}
                   onChange={setVariantNo}
                   items={mix.variants.map((v) => ({
                     value: v.number,
                     label: (
                       <>
-                        Variant {v.number}{" "}
+                        {t.variants.variant(v.number)}{" "}
                         <span className="text-gold font-bold">{v.votes}</span>
                       </>
                     ),
@@ -186,12 +196,12 @@ export function MixView({
 }
 
 function ShowcaseNote() {
-  const { data } = useMix();
+  const t = useT();
   return (
     <Well className="mb-2 px-2 py-1.5 text-[11px]">
-      <p className="text-gold font-bold">{data.showcase!.title}</p>
+      <p className="text-gold font-bold">{t.showcase.title}</p>
       <ul className="text-dim mt-0.5 space-y-0.5">
-        {data.showcase!.notes.map((n) => (
+        {t.showcase.notes.map((n) => (
           <li key={n}>{n}</li>
         ))}
       </ul>
@@ -211,6 +221,7 @@ function MenuBar() {
         {data.mix.group}
       </a>
       <BackgroundToggle className="ml-auto" />
+      <LanguageToggle className="ml-2" />
       <span className="text-dim ml-3 flex items-center gap-1.5">
         {me.name}
         <Avatar player={me} size={18} />
@@ -221,27 +232,23 @@ function MenuBar() {
 
 function StatusLine({ state }: { state: MixState }) {
   const { data, lobby, waitingFor, result, winner } = useMix();
+  const t = useT();
   const voted = data.variants.reduce((s, v) => s + v.votes, 0);
   const text = {
-    lobby: (
-      <>Open · {10 - lobby.length} slots left · balancing starts at 10/10</>
-    ),
+    lobby: <>{t.status.lobby(10 - lobby.length)}</>,
     voting: (
       <>
-        Voting · {voted} of 10 voted · waiting for{" "}
-        <b className="text-text">{waitingFor.name}</b>
+        {t.status.voting(voted)} <b className="text-text">{waitingFor.name}</b>
       </>
     ),
     locked: (
       <>
-        Voting closed · <b className="text-text">Variant {winner.number}</b> won
+        {t.status.lockedBefore}{" "}
+        <b className="text-text">{t.variants.variant(winner.number)}</b>{" "}
+        {t.status.lockedAfter}
       </>
     ),
-    played: (
-      <>
-        Played · {result.maps.length} maps · result from {result.source}
-      </>
-    ),
+    played: <>{t.status.played(result.maps.length, result.source)}</>,
   }[state];
   return (
     <Well className="text-dim flex items-center gap-1.5 px-2 py-1.5 text-[11px]">
@@ -294,11 +301,12 @@ function PlayerRow({
   onSelect?: () => void;
 }) {
   const { skill } = useMix();
+  const t = useT();
   const Tag = onSelect ? "button" : "div";
   return (
     <Tag
       onClick={onSelect}
-      title={joinedAt && `Joined ${joinedAt}`}
+      title={joinedAt && t.lists.joined(joinedAt)}
       aria-pressed={onSelect ? selected : undefined}
       className={cn(
         "border-row grid w-full grid-cols-[1fr_46%] items-center gap-2 border-b px-1.5 py-1 text-left",
@@ -328,6 +336,7 @@ function PlayerRow({
 
 function Lobby() {
   const { lobby } = useMix();
+  const t = useT();
   const slots: ((typeof lobby)[number] | null)[] = [
     ...lobby,
     ...Array(10 - lobby.length).fill(null),
@@ -335,8 +344,8 @@ function Lobby() {
   return (
     <Well className="mt-2.5">
       <ListHead>
-        <span className="flex-1 pl-6">Player · join order</span>
-        <span className="w-[46%]">Skill S</span>
+        <span className="flex-1 pl-6">{t.lists.playerJoinOrder}</span>
+        <span className="w-[46%]">{t.lists.skill}</span>
       </ListHead>
       <div className="md:divide-row md:grid md:grid-flow-col md:grid-cols-2 md:grid-rows-5 md:divide-x">
         {slots.map((p, i) =>
@@ -354,7 +363,7 @@ function Lobby() {
             >
               <span className="w-4 text-right text-[11px]">{i + 1}</span>
               <span className="border-hi/60 inline-block size-5 border border-dashed" />
-              <span className="italic">free slot</span>
+              <span className="italic">{t.lists.freeSlot}</span>
             </div>
           ),
         )}
@@ -414,20 +423,22 @@ function Teams({
   focusId?: string;
   onFocus?: (id: string) => void;
 }) {
+  const t = useT();
   return (
     <div className="grid gap-2.5 md:grid-cols-2">
       {(
         [
-          ["Team A", teamA],
-          ["Team B", teamB],
+          [t.lists.teamA, teamA],
+          [t.lists.teamB, teamB],
         ] as const
       ).map(([label, team]) => (
         <Well key={label}>
           <ListHead>
             <span className="flex-1">
-              Player{onFocus ? " · tap for details" : ""}
+              {t.lists.player}
+              {onFocus ? t.lists.tapForDetails : ""}
             </span>
-            <span className="w-[46%]">Skill S</span>
+            <span className="w-[46%]">{t.lists.skill}</span>
           </ListHead>
           <TeamList
             label={label}
@@ -451,20 +462,22 @@ function Odds({
   avgB: number;
   winProbA: number;
 }) {
+  const t = useT();
   const pa = Math.round(winProbA * 100);
   return (
     <div className="mb-2 flex items-end justify-between">
       <div>
-        <div className="text-dim text-[11px]">Win chance A : B</div>
+        <div className="text-dim text-[11px]">{t.odds.winChance}</div>
         <div className="text-gold text-[24px] leading-none font-bold tracking-[-0.02em]">
           {pa}
           <span className="text-text"> : {100 - pa}</span>
         </div>
       </div>
       <div className="text-right">
-        <div className="text-dim text-[11px]">Avg S</div>
+        <div className="text-dim text-[11px]">{t.odds.avgS}</div>
         <div>
-          <b>{Math.round(avgA)}</b> <span className="text-dim">vs</span>{" "}
+          <b>{Math.round(avgA)}</b>{" "}
+          <span className="text-dim">{t.odds.vs}</span>{" "}
           <b>{Math.round(avgB)}</b>
         </div>
       </div>
@@ -509,21 +522,21 @@ function VariantBody({
   );
 }
 
-const LABELS = { "most-even": "Most even", fresh: "Fresh split" } as const;
-
 /**
  * Variant labels (D28): engine's "Most even" / "Fresh split" plus "Leading" from the vote count.
  * The row keeps its height when a variant has no labels, so the teams never jump between tabs.
  */
 function Labels({ variant }: { variant: Variant }) {
   const { variants } = useMix();
+  const t = useT();
   const top = Math.max(...variants.map((v) => v.votes));
+  const LABELS = { "most-even": t.variants.mostEven, fresh: t.variants.fresh };
   const leading =
     variant.votes === top &&
     variants.filter((v) => v.votes === top).length === 1;
   const labels = [
     ...variant.engine.labels.map((l) => LABELS[l]),
-    ...(leading ? ["Leading"] : []),
+    ...(leading ? [t.variants.leading] : []),
   ];
   return (
     <div className="mb-2 flex h-[19px] flex-wrap gap-1 overflow-hidden">
@@ -545,6 +558,7 @@ const LEETIFY_COLS = "grid-cols-[3rem_1fr_3rem_5.6rem]";
  */
 function LeetifyCard({ player }: { player: Player }) {
   const { data } = useMix();
+  const t = useT();
   const lw = data.leetify!;
   const found = lw.matches[player.steamId];
   const matches = found ?? [];
@@ -557,7 +571,7 @@ function LeetifyCard({ player }: { player: Player }) {
     <details open className="group mt-2.5">
       <summary className="bevel bg-window hover:bg-hover flex cursor-pointer list-none items-center justify-between px-2 py-1.5 select-none">
         <span className="truncate">
-          Leetify · FACEIT, last 30 days{lw.window.live ? " (live)" : ""}{" "}
+          {t.leetify.title(lw.window.live)}{" "}
           <b className="text-text">{player.name}</b>
         </span>
         <ChevronDown
@@ -568,22 +582,22 @@ function LeetifyCard({ player }: { player: Player }) {
       <Well className="text-dim flex h-[42px] items-center gap-1.5 px-2 text-[11px]">
         <span aria-hidden className="bg-gold size-[7px] shrink-0" />
         {found === null ? (
-          <span>Leetify is not answering for {player.name} right now.</span>
+          <span>{t.leetify.notAnswering(player.name)}</span>
         ) : matches.length === 0 ? (
-          <span>No FACEIT matches {span}.</span>
+          <span>{t.leetify.none(span)}</span>
         ) : (
           <span>
-            <b className="text-text">{matches.length}</b> FACEIT matches {span}{" "}
-            ·{" "}
+            <b className="text-text">{matches.length}</b>{" "}
+            {t.leetify.matches(span)} ·{" "}
             <b className="text-text">
-              {won} W {matches.length - won} L
+              {t.leetify.wl(won, matches.length - won)}
             </b>{" "}
-            · live from Leetify, not stored
+            · {t.leetify.liveNotStored}
           </span>
         )}
       </Well>
       <div
-        aria-label="Results, newest first"
+        aria-label={t.leetify.resultsAria}
         className="mt-1.5 flex h-[16px] flex-wrap content-start gap-0.5 overflow-hidden px-0.5"
       >
         {matches.map((m, i) => (
@@ -604,10 +618,10 @@ function LeetifyCard({ player }: { player: Player }) {
             LEETIFY_COLS,
           )}
         >
-          <span>Date</span>
-          <span>Map</span>
-          <span className="text-right">Score</span>
-          <span className="text-right">Leetify Rating</span>
+          <span>{t.leetify.date}</span>
+          <span>{t.leetify.map}</span>
+          <span className="text-right">{t.leetify.score}</span>
+          <span className="text-right">{t.leetify.rating}</span>
         </div>
         <div className="relative">
           {Array.from({ length: LEETIFY_ROWS }, (_, i) => {
@@ -645,13 +659,13 @@ function LeetifyCard({ player }: { player: Player }) {
           })}
           {matches.length === 0 && (
             <p className="text-dim absolute inset-0 grid place-items-center px-6 text-center text-[11px] italic">
-              {`No FACEIT in 30 days. ${player.name} is either touching grass or secretly grinding Premier.`}
+              {t.leetify.placeholder(player.name)}
             </p>
           )}
         </div>
         <p className="text-dim h-[24px] px-1.5 py-1 text-[11px]">
           {matches.length > shown.length &&
-            `and ${matches.length - shown.length} more on Leetify`}
+            t.leetify.more(matches.length - shown.length)}
         </p>
       </Well>
       <a
@@ -688,11 +702,12 @@ function Explanation({
   everyone: Player[];
   variant: Variant;
 }) {
+  const t = useT();
   return (
     <details open className="group mt-2.5">
       <summary className="bevel bg-window hover:bg-hover flex cursor-pointer list-none items-center justify-between px-2 py-1.5 select-none">
         <span>
-          How was this calculated? <b className="text-text">{player.name}</b>
+          {t.explain.title} <b className="text-text">{player.name}</b>
         </span>
         <ChevronDown
           aria-hidden
@@ -725,6 +740,7 @@ function PlayerExplanation({
   variant: Variant;
 }) {
   const { data, explain, nameOf } = useMix();
+  const t = useT();
   const x = explain(player);
   const w = x.weights;
   const c = x.contributions;
@@ -734,8 +750,8 @@ function PlayerExplanation({
     weight === 1 ? k : `${weight}·${k}`;
   const penalties = v.penalties.reduce((s, p) => s + p.pp, 0);
   const duos = [
-    v.duos.top && (["Top", v.duos.top] as const),
-    v.duos.bottom && (["Bottom", v.duos.bottom] as const),
+    v.duos.top && ([true, v.duos.top] as const),
+    v.duos.bottom && ([false, v.duos.bottom] as const),
   ].filter((d) => !!d);
   return (
     <>
@@ -746,54 +762,75 @@ function PlayerExplanation({
       </p>
       <Term
         k="E"
-        name="FACEIT ELO"
+        name={t.explain.eName}
         value={c.E}
         note={
           x.eSource === "faceit"
-            ? `${player.level ? `Level ${player.level}, ` : ""}live from FACEIT`
-            : "No FACEIT account: the group admin's manual ELO"
+            ? t.explain.eNote(player.level)
+            : t.explain.eManual
         }
       />
       <Term
         k="F"
-        name={`FACEIT form, last ${config.form.windowDays} days`}
+        name={t.explain.fName(config.form.windowDays)}
         value={signed(c.F)}
-        note={formNote(x, config)}
+        note={formNote(x, config, t)}
       />
       <Term
         k="M"
-        name={`Mix form${w.mixForm === 1 ? "" : ` · weight ${w.mixForm}`}`}
+        name={t.explain.mName(w.mixForm)}
         value={signed(c.M)}
         note={
           x.mix.status === "ok"
-            ? `${x.mix.maps} mix maps · Mixer Rating ${x.mix.playerRating!.toFixed(2)} vs group ${x.mix.groupRating!.toFixed(2)} → ${x.mix.shrunkRating!.toFixed(2)} after shrinkage · raw ${signed(Math.round(x.mix.raw))} × ${x.mix.multiplier.toFixed(2)} for ${x.mix.direction === "up" ? "good form" : "a slump"} at ${x.E} ELO${x.mix.clamped || x.mix.rawClamped ? ` (capped at ±${data.config.mix.max})` : ""}`
-            : "No mix maps with stats yet"
+            ? t.explain.mNote({
+                maps: x.mix.maps,
+                player: x.mix.playerRating!.toFixed(2),
+                group: x.mix.groupRating!.toFixed(2),
+                shrunk: x.mix.shrunkRating!.toFixed(2),
+                raw: signed(Math.round(x.mix.raw)),
+                mult: x.mix.multiplier.toFixed(2),
+                up: x.mix.direction === "up",
+                elo: x.E,
+                cap:
+                  x.mix.clamped || x.mix.rawClamped
+                    ? t.explain.capped(data.config.mix.max)
+                    : "",
+              })
+            : t.explain.mNone
         }
       />
       <Term
         k="A"
-        name={`Activity, last ${x.activity.windowDays} days`}
+        name={t.explain.aName(x.activity.windowDays)}
         value={signed(c.A)}
-        note={activityNote(x, config)}
+        note={activityNote(x, config, t)}
       />
       <p className="text-dim mt-2 text-[11px]">
-        Variant cost: {v.imbalance.toFixed(1)} pp imbalance + {penalties} pp
-        rule penalties = {v.cost.toFixed(1)}. Rank {v.rank} of{" "}
-        {data.candidateCount} possible splits; the three cheapest distinct ones
-        are shown.{" "}
+        {t.explain.cost({
+          imbalance: v.imbalance.toFixed(1),
+          penalties,
+          cost: v.cost.toFixed(1),
+          rank: v.rank,
+          of: data.candidateCount,
+        })}{" "}
         {data.alwaysTogether.length === 0
-          ? "No two players are teammates in all three variants."
-          : `Teammates in all three variants: ${data.alwaysTogether
-              .map(([a, b]) => `${nameOf(a)} + ${nameOf(b)}`)
-              .join(
-                ", ",
-              )} (splitting them would cost more than ${data.config.pairSpread.maxExtraCost} pp of balance).`}
-        {duos.map(([label, d]) => (
-          <React.Fragment key={label}>
+          ? t.explain.noPairs
+          : t.explain.pairs(
+              data.alwaysTogether
+                .map(([a, b]) => `${nameOf(a)} + ${nameOf(b)}`)
+                .join(", "),
+              data.config.pairSpread.maxExtraCost,
+            )}
+        {duos.map(([top, d]) => (
+          <React.Fragment key={String(top)}>
             {" "}
-            {label} duo {nameOf(d.ids[0])} + {nameOf(d.ids[1])}{" "}
-            {d.split ? "play on opposite teams" : "play together"} ({d.mode}{" "}
-            rule).
+            {t.explain.duo(
+              top,
+              nameOf(d.ids[0]),
+              nameOf(d.ids[1]),
+              d.split,
+              d.mode,
+            )}
           </React.Fragment>
         ))}
       </p>
@@ -801,36 +838,54 @@ function PlayerExplanation({
   );
 }
 
-function formNote(x: SkillBreakdown, config: MixViewData["config"]) {
+function formNote(x: SkillBreakdown, config: MixViewData["config"], t: Dict) {
   const f = x.form;
   const cfg = config.form;
   if (f.status === "no-recent-matches")
-    return `No FACEIT matches ${dates(f.windowFrom, f.windowTo)} (30 days before the mix): no form, ELO only.`;
+    return t.explain.fNoRecent(dates(f.windowFrom, f.windowTo));
   if (f.status === "thin-baseline")
-    return `${f.matches} matches, but only ${f.baselineMatches} older ones for a baseline (needs ${cfg.minBaseline}): no form.`;
-  if (f.status === "invalid-baseline") return "No usable baseline rating.";
-  const cap = (hit: boolean) => (hit ? ` (capped at ±${cfg.max})` : "");
-  return [
-    `${f.matches} matches ${dates(f.windowFrom, f.windowTo)} · rating ${f.windowRating!.toFixed(2)} vs ${f.baselineRating!.toFixed(2)} over ${f.baselineMatches} older ones`,
-    `ratio ${f.ratio!.toFixed(2)} → ${f.shrunkRatio!.toFixed(2)} after shrinkage (k = ${cfg.shrinkK})`,
-    `raw ${cfg.beta} × ${(f.shrunkRatio! - 1).toFixed(3)} = ${signed(Math.round(f.raw))}${cap(f.rawClamped)}`,
-    `× ${f.multiplier.toFixed(2)} for ${f.direction === "up" ? "good form" : "a slump"} at ${x.E} ELO${cap(f.clamped)}`,
-  ].join(" · ");
+    return t.explain.fThin(f.matches, f.baselineMatches, cfg.minBaseline);
+  if (f.status === "invalid-baseline") return t.explain.fInvalid;
+  const cap = (hit: boolean) => (hit ? t.explain.capped(cfg.max) : "");
+  return t.explain.fParts({
+    n: f.matches,
+    span: dates(f.windowFrom, f.windowTo),
+    window: f.windowRating!.toFixed(2),
+    base: f.baselineRating!.toFixed(2),
+    baseN: f.baselineMatches,
+    ratio: f.ratio!.toFixed(2),
+    shrunk: f.shrunkRatio!.toFixed(2),
+    k: cfg.shrinkK,
+    beta: cfg.beta,
+    delta: (f.shrunkRatio! - 1).toFixed(3),
+    raw: signed(Math.round(f.raw)),
+    rawCap: cap(f.rawClamped),
+    mult: f.multiplier.toFixed(2),
+    up: f.direction === "up",
+    elo: x.E,
+    cap: cap(f.clamped),
+  });
 }
 
-function activityNote(x: SkillBreakdown, config: MixViewData["config"]) {
+function activityNote(
+  x: SkillBreakdown,
+  config: MixViewData["config"],
+  t: Dict,
+) {
   const a = x.activity;
-  if (a.status === "no-data")
-    return "No FACEIT history: counts as 0, never a penalty.";
-  const sessions = `${a.sessions} ${a.sessions === 1 ? "session" : "sessions"} (evenings) ${dates(a.windowFrom, a.windowTo)}`;
-  const last =
-    a.sessions === 0 && a.lastPlayedAt
-      ? ` · last played ${a.lastPlayedAt.slice(0, 10)}`
-      : "";
+  if (a.status === "no-data") return t.explain.aNoData;
   const anchors = config.activity.anchors;
   const [first, top] = [anchors[0], anchors[anchors.length - 1]];
-  const neutral = anchors.find((n) => n.value === 0)?.sessions;
-  return `${sessions}${last} · ${neutral} a month is neutral, fewer costs up to ${signed(first.value)}, ${top.sessions}+ adds ${signed(top.value)}.`;
+  return t.explain.aNote({
+    sessions: a.sessions,
+    span: dates(a.windowFrom, a.windowTo),
+    last:
+      a.sessions === 0 && a.lastPlayedAt ? a.lastPlayedAt.slice(0, 10) : null,
+    neutral: anchors.find((x) => x.value === 0)?.sessions,
+    worst: signed(first.value),
+    topSessions: top.sessions,
+    top: signed(top.value),
+  });
 }
 
 function Term({
@@ -859,15 +914,16 @@ function Term({
 /** Public votes: who voted for which variant, and who has not voted yet. */
 function Tally() {
   const { variants, me, waitingFor, data } = useMix();
+  const t = useT();
   const byId = new Map(data.players.map((p) => [p.steamId, p]));
   const top = Math.max(...variants.map((v) => v.votes));
   return (
-    <section aria-label="Votes" className="mt-2.5">
+    <section aria-label={t.tally.aria} className="mt-2.5">
       <div className="grid grid-cols-3 gap-1.5">
         {variants.map((v) => (
           <Well key={v.number} className="min-w-0">
             <div className="bg-window text-dim border-lo flex items-baseline justify-between border-b px-1.5 py-1 text-[10px] tracking-[0.06em] uppercase">
-              <span className="truncate">Variant {v.number}</span>
+              <span className="truncate">{t.variants.variant(v.number)}</span>
               <b
                 className={cn(
                   "text-[13px] tracking-normal",
@@ -890,7 +946,7 @@ function Tally() {
                   >
                     <Avatar player={p} size={14} />
                     <span className="truncate">
-                      {id === me.steamId ? "You" : p.name}
+                      {id === me.steamId ? t.tally.you : p.name}
                     </span>
                   </li>
                 );
@@ -900,8 +956,7 @@ function Tally() {
         ))}
       </div>
       <p className="text-dim mt-1.5 px-0.5 text-[11px]">
-        Votes are public. Not voted yet:{" "}
-        <b className="text-text">{waitingFor.name}</b>
+        {t.tally.publicNotVoted} <b className="text-text">{waitingFor.name}</b>
       </p>
     </section>
   );
@@ -909,16 +964,22 @@ function Tally() {
 
 function Locked() {
   const { winner, outcome, real, data } = useMix();
+  const t = useT();
   const tie = outcome.tied.length > 1;
   return (
     <div className="mt-2.5 lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start lg:gap-3">
       <div>
         <Well className="mb-2 flex items-baseline gap-2 px-2 py-1.5">
-          <b className="text-gold text-[16px]">Variant {winner.number} won</b>
+          <b className="text-gold text-[16px]">{t.locked.won(winner.number)}</b>
           <span className="text-dim text-[11px]">
             {tie
-              ? `${winner.votes} : ${winner.votes} tie with Variant ${outcome.tied.filter((n) => n !== winner.number).join(" and ")}, drawn at random`
-              : `${winner.votes} of 10 votes`}
+              ? t.locked.tie(
+                  winner.votes,
+                  outcome.tied
+                    .filter((n) => n !== winner.number)
+                    .join(t.locked.and),
+                )
+              : t.locked.ofVotes(winner.votes)}
           </span>
         </Well>
         <Odds
@@ -931,27 +992,22 @@ function Locked() {
       <div className="mt-2.5 space-y-2.5 lg:mt-0">
         <Well className="p-2">
           <p className="text-gold mb-1 flex items-center gap-1.5 font-bold">
-            <Lock className="size-3.5" aria-hidden /> How to play
+            <Lock className="size-3.5" aria-hidden /> {t.locked.howToPlay}
           </p>
           <ol className="text-dim list-decimal space-y-0.5 pl-5">
-            <li>Everyone joins the group&apos;s FACEIT Club queue.</li>
-            <li>Captains pick exactly this lineup. No freelancing.</li>
-            <li>No FACEIT tonight? An admin types in the score afterwards.</li>
+            {t.locked.steps.map((step) => (
+              <li key={step}>{step}</li>
+            ))}
           </ol>
         </Well>
         {real && (
           <Well className="p-2 text-[11px]">
-            <p className="text-gold mb-1 font-bold">
-              What you really played on 16.12.2024
-            </p>
+            <p className="text-gold mb-1 font-bold">{t.locked.realTitle}</p>
             <p className="text-dim">
-              A different split:{" "}
-              <b className="text-text">
-                {Math.round(real.winProbA * 100)} :{" "}
-                {100 - Math.round(real.winProbA * 100)}
-              </b>{" "}
-              on paper, rank <b className="text-text">{real.rank}</b> of 126 by
-              evenness. The Result tab shows how that went.
+              {t.locked.realText(
+                `${Math.round(real.winProbA * 100)} : ${100 - Math.round(real.winProbA * 100)}`,
+                real.rank,
+              )}
             </p>
             <p className="text-dim mt-1">
               A: {real.teamA.map((p) => p.name).join(", ")}
@@ -972,31 +1028,34 @@ function Locked() {
  * have voted. Admins can reopen it until the match starts.
  */
 function AdminPanel({ state }: { state: "voting" | "locked" }) {
+  const t = useT();
   return (
     <Well className="p-2 text-[11px]">
-      <p className="text-gold mb-1 font-bold">Admin</p>
+      <p className="text-gold mb-1 font-bold">{t.admin.title}</p>
       <p className="text-dim mb-2">
-        {state === "voting"
-          ? "Voting closes when you close it, or by itself 60 minutes after the last vote once all ten have voted."
-          : "Changed your mind? Reopen voting any time before the match starts."}
+        {state === "voting" ? t.admin.voting : t.admin.locked}
       </p>
       <div className="flex flex-wrap gap-1.5">
         {state === "voting" ? (
           <>
             <VButton className="px-2 py-1.5 text-[11px]">
-              Close Voting Now
+              {t.admin.close}
             </VButton>
             <VButton className="px-2 py-1.5 text-[11px]">
-              Re-roll Variants
+              {t.admin.reroll}
             </VButton>
             <VButton className="px-2 py-1.5 text-[11px]">
-              Vote for Someone
+              {t.admin.proxy}
             </VButton>
           </>
         ) : (
           <>
-            <VButton className="px-2 py-1.5 text-[11px]">Reopen Voting</VButton>
-            <VButton className="px-2 py-1.5 text-[11px]">Enter Result</VButton>
+            <VButton className="px-2 py-1.5 text-[11px]">
+              {t.admin.reopen}
+            </VButton>
+            <VButton className="px-2 py-1.5 text-[11px]">
+              {t.admin.result}
+            </VButton>
           </>
         )}
       </div>
@@ -1006,6 +1065,7 @@ function AdminPanel({ state }: { state: "voting" | "locked" }) {
 
 function Played() {
   const { result, data } = useMix();
+  const t = useT();
   const [pick, setPick] = React.useState<string | null>(null);
   const wonA = result.maps.filter((m) => m.a > m.b).length;
   const wonB = result.maps.length - wonA;
@@ -1014,7 +1074,7 @@ function Played() {
   return (
     <div className="mt-2.5 lg:grid lg:grid-cols-[360px_minmax(0,1fr)] lg:items-start lg:gap-3">
       <Well className="px-2 pt-2 pb-3 text-center lg:py-6">
-        <div className="text-dim text-[11px]">Maps won, Team A : Team B</div>
+        <div className="text-dim text-[11px]">{t.played.mapsWon}</div>
         <div className="text-gold text-[64px] leading-[1.05] font-bold tracking-[-0.04em]">
           {wonA}
           <span className="text-dim"> : </span>
@@ -1022,11 +1082,11 @@ function Played() {
         </div>
         <div
           role="group"
-          aria-label="Scoreboard for"
+          aria-label={t.played.scoreboardFor}
           className="mt-1 flex flex-wrap justify-center gap-1.5"
         >
           <MapChip on={!map} onClick={() => setPick(null)}>
-            All maps
+            {t.played.allMaps}
           </MapChip>
           {result.maps.map((m) => (
             <MapChip key={m.map} on={m === map} onClick={() => setPick(m.map)}>
@@ -1040,24 +1100,19 @@ function Played() {
       <div>
         {data.showcase && (
           <p className="text-gold mt-2.5 mb-1 px-0.5 text-[11px] font-bold lg:mt-0">
-            The real lineup and result of 16.12.2024, not the voted variant.
+            {t.played.realNote}
           </p>
         )}
         <p className="text-dim mt-2.5 mb-1 px-0.5 text-[11px] lg:mt-0">
-          {map ? (
-            <>
-              {map.map} ·{" "}
-              <b className="text-text">
-                {map.a} : {map.b}
-              </b>{" "}
-              · Team {map.a > map.b ? "A" : "B"} won · {map.a + map.b} rounds
-            </>
-          ) : (
-            <>
-              All {result.maps.length} maps · {rounds} rounds · ADR and MR
-              weighted by rounds
-            </>
-          )}
+          {map
+            ? t.played.mapLine(
+                map.map,
+                map.a,
+                map.b,
+                map.a > map.b ? "A" : "B",
+                map.a + map.b,
+              )
+            : t.played.allLine(result.maps.length, rounds)}
         </p>
         <Scoreboard lines={map ? map.lines : result.all} />
       </div>
@@ -1107,6 +1162,7 @@ function Figure({ win, children }: { win: boolean; children: number }) {
 const SCORE_COLS = "grid-cols-[1fr_repeat(4,2.3rem)_2.8rem]";
 
 function Scoreboard({ lines }: { lines: Line[] }) {
+  const t = useT();
   const best = Math.max(...lines.map((l) => l.rating));
   return (
     <Well>
@@ -1116,19 +1172,19 @@ function Scoreboard({ lines }: { lines: Line[] }) {
           SCORE_COLS,
         )}
       >
-        <span>Player</span>
+        <span>{t.lists.player}</span>
         <span className="text-right">K</span>
         <span className="text-right">A</span>
         <span className="text-right">D</span>
         <span className="text-right">ADR</span>
-        <span className="text-right" title="Mixer Rating">
+        <span className="text-right" title={t.played.mr}>
           MR
         </span>
       </div>
       {(["A", "B"] as const).map((team) => (
         <React.Fragment key={team}>
           <div className="bg-window text-gold px-1.5 py-1 text-[11px] font-bold tracking-[0.05em] uppercase">
-            Team {team}
+            {t.lists.team(team)}
           </div>
           {lines
             .filter((l) => l.team === team)
@@ -1168,11 +1224,12 @@ function Scoreboard({ lines }: { lines: Line[] }) {
 
 function Quip({ state }: { state: MixState }) {
   const { result, waitingFor, skill } = useMix();
+  const t = useT();
   const text = {
-    lobby: "Last one in brings the energy drinks.",
-    voting: `${waitingFor.name} is late. As tradition demands.`,
-    locked: "Teams are final. Complaints go to the algorithm.",
-    played: playedQuip(result.all, skill),
+    lobby: t.quips.lobby,
+    voting: t.quips.voting(waitingFor.name),
+    locked: t.quips.locked,
+    played: playedQuip(result.all, skill, t),
   }[state];
   return (
     <p className="text-dim mt-2 px-2 text-center text-[11px] italic">{text}</p>
@@ -1183,18 +1240,21 @@ function Quip({ state }: { state: MixState }) {
  * One line about the evening, picked from what happened. "Carried" only when the best player was
  * not one of the three strongest on paper; more lines come with the awards (M2-8).
  */
-function playedQuip(all: Line[], skill: (p: Player) => number): string {
+function playedQuip(
+  all: Line[],
+  skill: (p: Player) => number,
+  t: Dict,
+): string {
   if (all.length === 0) return "";
   const byRating = [...all].sort((a, b) => b.rating - a.rating);
   const bySkill = [...all].sort((a, b) => skill(b.player) - skill(a.player));
   const mvp = byRating[0];
   const worst = byRating[byRating.length - 1];
   const paperRank = bySkill.findIndex((l) => l === mvp) + 1;
-  if (paperRank > 3)
-    return `${mvp.player.name} carried. Screenshots or it didn't happen.`;
+  if (paperRank > 3) return t.quips.carried(mvp.player.name);
   if (bySkill.slice(0, 3).includes(worst))
-    return `${mvp.player.name} did the job. ${worst.player.name} was only strong on paper tonight.`;
-  return `${mvp.player.name} top-fragged, exactly as the algorithm predicted. Boring, but correct.`;
+    return t.quips.paper(mvp.player.name, worst.player.name);
+  return t.quips.boring(mvp.player.name);
 }
 
 function ActionBar({
@@ -1205,49 +1265,51 @@ function ActionBar({
   variantNo: number;
 }) {
   const { myVote } = useMix();
+  const t = useT();
   return (
     <div className="border-hi bg-window fixed inset-x-0 bottom-0 border-t px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
       <div className="mx-auto flex max-w-[444px] gap-2 md:max-w-[744px] lg:max-w-[1164px] lg:justify-end lg:[&>button]:flex-none lg:[&>button]:basis-52">
         {state === "lobby" && (
           <>
-            <VButton className="flex-1">Share</VButton>
+            <VButton className="flex-1">{t.actions.share}</VButton>
             <VButton primary className="flex-[2]">
-              Join Mix
+              {t.actions.join}
             </VButton>
           </>
         )}
         {state === "voting" && (
           <>
-            <VButton className="flex-1">Share</VButton>
+            <VButton className="flex-1">{t.actions.share}</VButton>
             <VButton
               primary
               className="flex-[2]"
               disabled={myVote === variantNo}
             >
               {myVote === variantNo
-                ? `Your Vote: Variant ${variantNo}`
+                ? t.actions.yourVote(variantNo)
                 : myVote === null
-                  ? `Vote Variant ${variantNo}`
-                  : `Move Vote to Variant ${variantNo}`}
+                  ? t.actions.vote(variantNo)
+                  : t.actions.moveVote(variantNo)}
             </VButton>
           </>
         )}
         {state === "locked" && (
           <>
-            <VButton className="flex-1">Share</VButton>
+            <VButton className="flex-1">{t.actions.share}</VButton>
             <VButton
               primary
               className="flex flex-[2] items-center justify-center gap-1.5"
             >
-              FACEIT Club <ExternalLink className="size-3.5" aria-hidden />
+              {t.actions.faceitClub}{" "}
+              <ExternalLink className="size-3.5" aria-hidden />
             </VButton>
           </>
         )}
         {state === "played" && (
           <>
-            <VButton className="flex-1">Upload Demo</VButton>
+            <VButton className="flex-1">{t.actions.uploadDemo}</VButton>
             <VButton primary className="flex-[2]">
-              Full Scoreboard
+              {t.actions.fullScoreboard}
             </VButton>
           </>
         )}

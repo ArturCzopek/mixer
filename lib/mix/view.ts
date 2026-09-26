@@ -47,7 +47,6 @@ export interface MixViewData {
     /** Mix id; also seeds the tie-break between equally voted variants (D33). */
     id: string;
     number: number;
-    when: string;
     group: string;
     meId: string;
     /** Who has not voted yet (voting state). */
@@ -78,10 +77,8 @@ export interface MixViewData {
     window: { from: string; to: string; live: boolean };
     matches: Record<string, LeetifyMatch[] | null>;
   } | null;
-  /** Set on the showcase page: what is real and what is made up. */
+  /** Set on the showcase page (its title and notes come from the dictionary). */
   showcase?: {
-    title: string;
-    notes: string[];
     /** The lineup they really played that evening, for comparison with the voted variant. */
     real: {
       teamA: string[];
