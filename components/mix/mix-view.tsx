@@ -27,6 +27,7 @@ import {
   type ViewPlayer,
   type ViewVariant,
 } from "@/lib/mix/view";
+import { votingOutcome } from "@/lib/mix/voting";
 import { cn } from "@/lib/utils";
 
 export type MixState = "lobby" | "voting" | "locked" | "played";
@@ -49,6 +50,13 @@ function resolve(data: MixViewData) {
   const joinIndex = new Map(data.participants.map((x, i) => [x.steamId, i]));
   const lines = (ls: ViewLine[]): Line[] =>
     ls.map(({ steamId, ...l }) => ({ ...l, player: player(steamId) }));
+  const outcome = votingOutcome(data.variants, data.mix.id);
+  const winnerData = data.variants.find((v) => v.number === outcome.winner)!;
+  const winner: Variant = {
+    ...winnerData,
+    teamA: team(winnerData.teamA),
+    teamB: team(winnerData.teamB),
+  };
   const maps: MapResult[] = data.result.maps.map((m) => ({
     ...m,
     lines: lines(m.lines),
@@ -76,10 +84,15 @@ function resolve(data: MixViewData) {
       player: player(x.steamId),
       joinedAt: x.joinedAt,
     })),
-    locked: {
-      ...data.locked,
-      teamA: team(data.locked.teamA),
-      teamB: team(data.locked.teamB),
+    outcome,
+    winner,
+    myVote:
+      data.variants.find((v) => v.voters.includes(data.mix.meId))?.number ??
+      null,
+    real: data.showcase && {
+      ...data.showcase.real,
+      teamA: team(data.showcase.real.teamA),
+      teamB: team(data.showcase.real.teamB),
     },
     result: {
       source: data.result.source,
@@ -152,6 +165,11 @@ export function MixView({
                     onFocus={setFocusId}
                   />
                   <Tally />
+                  {data.viewerIsAdmin && (
+                    <div className="mt-2.5">
+                      <AdminPanel state="voting" />
+                    </div>
+                  )}
                 </Sheet>
               </div>
             )}
@@ -202,7 +220,7 @@ function MenuBar() {
 }
 
 function StatusLine({ state }: { state: MixState }) {
-  const { data, lobby, waitingFor, result } = useMix();
+  const { data, lobby, waitingFor, result, winner } = useMix();
   const voted = data.variants.reduce((s, v) => s + v.votes, 0);
   const text = {
     lobby: (
@@ -214,7 +232,11 @@ function StatusLine({ state }: { state: MixState }) {
         <b className="text-text">{waitingFor.name}</b>
       </>
     ),
-    locked: <>Lineup locked · {data.locked.note}</>,
+    locked: (
+      <>
+        Voting closed · <b className="text-text">Variant {winner.number}</b> won
+      </>
+    ),
     played: (
       <>
         Played · {result.maps.length} maps · result from {result.source}
@@ -516,14 +538,17 @@ const LEETIFY_ROWS = 8;
 const LEETIFY_COLS = "grid-cols-[3rem_1fr_3rem_5.6rem]";
 
 /**
- * Leetify preview (M3-2) as an old-client property window: FACEIT matches of the 30 days before the
- * mix only (D30), each with its Leetify Rating exactly as Leetify shows it. Nothing is averaged or
+ * Leetify preview (M3-2) as an old-client property window: the player's FACEIT matches in the
+ * window the server fetched live (never stored), each with its Leetify Rating exactly as Leetify shows it. Nothing is averaged or
  * recomputed (Leetify terms). Fixed height: always LEETIFY_ROWS rows, so switching players never
- * moves the page. The preview uses invented sample numbers.
+ * moves the page.
  */
 function LeetifyCard({ player }: { player: Player }) {
-  const { data, now } = useMix();
-  const matches = data.leetify?.[player.steamId] ?? [];
+  const { data } = useMix();
+  const lw = data.leetify!;
+  const found = lw.matches[player.steamId];
+  const matches = found ?? [];
+  const span = dates(lw.window.from, lw.window.to);
   const won = matches.filter((m) => m.score[0] > m.score[1]).length;
   const shown = matches.slice(0, LEETIFY_ROWS);
   const rating = (n: number) =>
@@ -532,7 +557,7 @@ function LeetifyCard({ player }: { player: Player }) {
     <details open className="group mt-2.5">
       <summary className="bevel bg-window hover:bg-hover flex cursor-pointer list-none items-center justify-between px-2 py-1.5 select-none">
         <span className="truncate">
-          Leetify · FACEIT, 30 days before the mix{" "}
+          Leetify · FACEIT, last 30 days{lw.window.live ? " (live)" : ""}{" "}
           <b className="text-text">{player.name}</b>
         </span>
         <ChevronDown
@@ -542,16 +567,18 @@ function LeetifyCard({ player }: { player: Player }) {
       </summary>
       <Well className="text-dim flex h-[42px] items-center gap-1.5 px-2 text-[11px]">
         <span aria-hidden className="bg-gold size-[7px] shrink-0" />
-        {matches.length === 0 ? (
-          <span>No FACEIT matches {span(now)}.</span>
+        {found === null ? (
+          <span>Leetify is not answering for {player.name} right now.</span>
+        ) : matches.length === 0 ? (
+          <span>No FACEIT matches {span}.</span>
         ) : (
           <span>
-            <b className="text-text">{matches.length}</b> FACEIT matches{" "}
-            {span(now)} ·{" "}
+            <b className="text-text">{matches.length}</b> FACEIT matches {span}{" "}
+            ·{" "}
             <b className="text-text">
               {won} W {matches.length - won} L
             </b>{" "}
-            · live from Leetify, not stored · sample numbers in this preview
+            · live from Leetify, not stored
           </span>
         )}
       </Well>
@@ -643,11 +670,6 @@ function LeetifyCard({ player }: { player: Player }) {
 const ddmm = (iso: string) => `${iso.slice(8, 10)}.${iso.slice(5, 7)}`;
 /** "25.08–24.09": a mix's window, always ending at the mix, never at today. */
 const dates = (from: string, to: string) => `${ddmm(from)}–${ddmm(to)}`;
-const span = (mixAt: Date) =>
-  dates(
-    new Date(mixAt.getTime() - 30 * 86_400_000).toISOString(),
-    mixAt.toISOString(),
-  );
 
 const signed = (n: number) =>
   n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : "0";
@@ -758,7 +780,14 @@ function PlayerExplanation({
         Variant cost: {v.imbalance.toFixed(1)} pp imbalance + {penalties} pp
         rule penalties = {v.cost.toFixed(1)}. Rank {v.rank} of{" "}
         {data.candidateCount} possible splits; the three cheapest distinct ones
-        are shown.
+        are shown.{" "}
+        {data.alwaysTogether.length === 0
+          ? "No two players are teammates in all three variants."
+          : `Teammates in all three variants: ${data.alwaysTogether
+              .map(([a, b]) => `${nameOf(a)} + ${nameOf(b)}`)
+              .join(
+                ", ",
+              )} (splitting them would cost more than ${data.config.pairSpread.maxExtraCost} pp of balance).`}
         {duos.map(([label, d]) => (
           <React.Fragment key={label}>
             {" "}
@@ -879,33 +908,104 @@ function Tally() {
 }
 
 function Locked() {
-  const { locked } = useMix();
+  const { winner, outcome, real, data } = useMix();
+  const tie = outcome.tied.length > 1;
   return (
     <div className="mt-2.5 lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start lg:gap-3">
       <div>
+        <Well className="mb-2 flex items-baseline gap-2 px-2 py-1.5">
+          <b className="text-gold text-[16px]">Variant {winner.number} won</b>
+          <span className="text-dim text-[11px]">
+            {tie
+              ? `${winner.votes} : ${winner.votes} tie with Variant ${outcome.tied.filter((n) => n !== winner.number).join(" and ")}, drawn at random`
+              : `${winner.votes} of 10 votes`}
+          </span>
+        </Well>
         <Odds
-          avgA={locked.avgA}
-          avgB={locked.avgB}
-          winProbA={locked.winProbA}
+          avgA={winner.engine.avgA}
+          avgB={winner.engine.avgB}
+          winProbA={winner.engine.winProbA}
         />
-        <Teams teamA={locked.teamA} teamB={locked.teamB} order="join" />
+        <Teams teamA={winner.teamA} teamB={winner.teamB} order="join" />
       </div>
-      <Well className="mt-2.5 p-2 lg:mt-0">
-        <p className="text-gold mb-1 flex items-center gap-1.5 font-bold">
-          <Lock className="size-3.5" aria-hidden /> How to play
-        </p>
-        <ol className="text-dim list-decimal space-y-0.5 pl-5">
-          <li>Everyone joins the group&apos;s FACEIT Club queue.</li>
-          <li>Captains pick exactly this lineup. No freelancing.</li>
-          <li>No FACEIT tonight? An admin types in the score afterwards.</li>
-        </ol>
-      </Well>
+      <div className="mt-2.5 space-y-2.5 lg:mt-0">
+        <Well className="p-2">
+          <p className="text-gold mb-1 flex items-center gap-1.5 font-bold">
+            <Lock className="size-3.5" aria-hidden /> How to play
+          </p>
+          <ol className="text-dim list-decimal space-y-0.5 pl-5">
+            <li>Everyone joins the group&apos;s FACEIT Club queue.</li>
+            <li>Captains pick exactly this lineup. No freelancing.</li>
+            <li>No FACEIT tonight? An admin types in the score afterwards.</li>
+          </ol>
+        </Well>
+        {real && (
+          <Well className="p-2 text-[11px]">
+            <p className="text-gold mb-1 font-bold">
+              What you really played on 16.12.2024
+            </p>
+            <p className="text-dim">
+              A different split:{" "}
+              <b className="text-text">
+                {Math.round(real.winProbA * 100)} :{" "}
+                {100 - Math.round(real.winProbA * 100)}
+              </b>{" "}
+              on paper, rank <b className="text-text">{real.rank}</b> of 126 by
+              evenness. The Result tab shows how that went.
+            </p>
+            <p className="text-dim mt-1">
+              A: {real.teamA.map((p) => p.name).join(", ")}
+              <br />
+              B: {real.teamB.map((p) => p.name).join(", ")}
+            </p>
+          </Well>
+        )}
+        {data.viewerIsAdmin && <AdminPanel state="locked" />}
+      </div>
     </div>
   );
 }
 
+/**
+ * Group admin controls (D33). Voting never closes by itself on the 10th vote (a misclick could not
+ * be undone): it closes when an admin says so, or 60 minutes after the last vote once all ten
+ * have voted. Admins can reopen it until the match starts.
+ */
+function AdminPanel({ state }: { state: "voting" | "locked" }) {
+  return (
+    <Well className="p-2 text-[11px]">
+      <p className="text-gold mb-1 font-bold">Admin</p>
+      <p className="text-dim mb-2">
+        {state === "voting"
+          ? "Voting closes when you close it, or by itself 60 minutes after the last vote once all ten have voted."
+          : "Changed your mind? Reopen voting any time before the match starts."}
+      </p>
+      <div className="flex flex-wrap gap-1.5">
+        {state === "voting" ? (
+          <>
+            <VButton className="px-2 py-1.5 text-[11px]">
+              Close Voting Now
+            </VButton>
+            <VButton className="px-2 py-1.5 text-[11px]">
+              Re-roll Variants
+            </VButton>
+            <VButton className="px-2 py-1.5 text-[11px]">
+              Vote for Someone
+            </VButton>
+          </>
+        ) : (
+          <>
+            <VButton className="px-2 py-1.5 text-[11px]">Reopen Voting</VButton>
+            <VButton className="px-2 py-1.5 text-[11px]">Enter Result</VButton>
+          </>
+        )}
+      </div>
+    </Well>
+  );
+}
+
 function Played() {
-  const { result } = useMix();
+  const { result, data } = useMix();
   const [pick, setPick] = React.useState<string | null>(null);
   const wonA = result.maps.filter((m) => m.a > m.b).length;
   const wonB = result.maps.length - wonA;
@@ -938,6 +1038,11 @@ function Played() {
         </div>
       </Well>
       <div>
+        {data.showcase && (
+          <p className="text-gold mt-2.5 mb-1 px-0.5 text-[11px] font-bold lg:mt-0">
+            The real lineup and result of 16.12.2024, not the voted variant.
+          </p>
+        )}
         <p className="text-dim mt-2.5 mb-1 px-0.5 text-[11px] lg:mt-0">
           {map ? (
             <>
@@ -1099,6 +1204,7 @@ function ActionBar({
   state: MixState;
   variantNo: number;
 }) {
+  const { myVote } = useMix();
   return (
     <div className="border-hi bg-window fixed inset-x-0 bottom-0 border-t px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
       <div className="mx-auto flex max-w-[444px] gap-2 md:max-w-[744px] lg:max-w-[1164px] lg:justify-end lg:[&>button]:flex-none lg:[&>button]:basis-52">
@@ -1112,15 +1218,23 @@ function ActionBar({
         )}
         {state === "voting" && (
           <>
-            <VButton className="flex-1">Re-roll</VButton>
-            <VButton primary className="flex-[2]">
-              Vote Variant {variantNo}
+            <VButton className="flex-1">Share</VButton>
+            <VButton
+              primary
+              className="flex-[2]"
+              disabled={myVote === variantNo}
+            >
+              {myVote === variantNo
+                ? `Your Vote: Variant ${variantNo}`
+                : myVote === null
+                  ? `Vote Variant ${variantNo}`
+                  : `Move Vote to Variant ${variantNo}`}
             </VButton>
           </>
         )}
         {state === "locked" && (
           <>
-            <VButton className="flex-1">Result</VButton>
+            <VButton className="flex-1">Share</VButton>
             <VButton
               primary
               className="flex flex-[2] items-center justify-center gap-1.5"

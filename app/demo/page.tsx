@@ -26,7 +26,7 @@ export default async function ShowcasePage({
           played: "4 result",
         }}
       />
-      <MixView key={current} state={current} data={showcaseViewData()} />
+      <MixView key={current} state={current} data={await showcaseViewData()} />
     </>
   );
 }

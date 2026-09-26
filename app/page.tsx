@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { VButton, Well, Window } from "@/components/vgui";
+import { BackgroundToggle, VButton, Well, Window } from "@/components/vgui";
 import { getSession, type Session } from "@/lib/auth/server";
 
 /** Env vars login needs on the server. Only their names are ever shown, never values. */
@@ -17,7 +17,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
   const session = authConfigured() ? await getSession() : null;
   return (
     <main className="mx-auto w-full max-w-[460px] px-2 py-6">
-      <Window title="mixer">
+      <Window title="mixer" right={<BackgroundToggle />}>
         <p className="mb-2">
           CS2 10-man mixes for our crew: balanced 5v5 lineups, live voting and
           stats across mixes.
@@ -42,7 +42,6 @@ export default async function Home({ searchParams }: PageProps<"/">) {
           See a Real Mix: 16 Dec 2024
         </Link>
         <p className="text-dim">
-          Design preview: <Link href="/design/mix">mix page</Link> ·{" "}
           <a
             href="https://github.com/ArturCzopek/mixer"
             target="_blank"

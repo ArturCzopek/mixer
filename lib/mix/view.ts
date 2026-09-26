@@ -1,8 +1,8 @@
-// Plain, serializable data behind the mix page (components/mix/mix-view.tsx). Built on the server
-// (design preview from lib/mock/mix.ts, showcase from lib/showcase/), later from the database.
+// Plain, serializable data behind the mix page (components/mix/mix-view.tsx). Built on the server:
+// the showcase from lib/showcase/, later the database (M1-5..M1-7).
 
 import type { BalanceConfig, SkillBreakdown, Variant } from "@/lib/balance";
-import type { LeetifyMatchSample } from "@/lib/mock/leetify";
+import type { LeetifyMatch } from "@/lib/external/leetify";
 
 export interface ViewPlayer {
   steamId: string;
@@ -44,6 +44,8 @@ export interface ViewMap {
 
 export interface MixViewData {
   mix: {
+    /** Mix id; also seeds the tie-break between equally voted variants (D33). */
+    id: string;
     number: number;
     when: string;
     group: string;
@@ -63,20 +65,34 @@ export interface MixViewData {
   participants: { steamId: string; joinedAt: string }[];
   /** How many of `participants` are in the lobby state (everyone before `me`). */
   lobbyCount: number;
-  /** The lineup that was played. */
-  locked: {
-    teamA: string[];
-    teamB: string[];
-    avgA: number;
-    avgB: number;
-    winProbA: number;
-    note: string;
-  };
+  /** Pairs who are teammates in every proposed variant (ideally none, D33). */
+  alwaysTogether: [string, string][];
+  /** The viewer is an admin of the mix's group (shows the admin panel). */
+  viewerIsAdmin: boolean;
   result: { maps: ViewMap[]; source: string };
-  /** Leetify preview per player (FACEIT matches of the 30 days before the mix); null hides the card. */
-  leetify: Record<string, LeetifyMatchSample[]> | null;
+  /**
+   * Live Leetify preview per player (FACEIT matches in `window`, never stored); a player's entry is
+   * null when Leetify could not be reached or does not know them. Null hides the card.
+   */
+  leetify: {
+    window: { from: string; to: string; live: boolean };
+    matches: Record<string, LeetifyMatch[] | null>;
+  } | null;
   /** Set on the showcase page: what is real and what is made up. */
-  showcase?: { title: string; notes: string[] };
+  showcase?: {
+    title: string;
+    notes: string[];
+    /** The lineup they really played that evening, for comparison with the voted variant. */
+    real: {
+      teamA: string[];
+      teamB: string[];
+      avgA: number;
+      avgB: number;
+      winProbA: number;
+      /** Rank among all 126 splits by evenness. */
+      rank: number;
+    };
+  };
 }
 
 /** Sums each player's lines over all maps (ADR and rating weighted by rounds). */
