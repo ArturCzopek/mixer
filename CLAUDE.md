@@ -39,4 +39,5 @@ Before any change, tell Artur what it is: a short description in plain words (wh
 - Run it in the background with model `gpt-6-luna` and reasoning effort `xhigh`:
   `~/.codex/.sandbox-bin/codex.exe exec -m gpt-6-luna -c model_reasoning_effort="xhigh" -s workspace-write -C <repo> -o <scratchpad>/codex-result.md - < <scratchpad>/codex-brief.md`
   If the model or effort cannot be set, tell Artur. If Codex reports "code-mode host executable is missing", copy `codex-code-mode-host.exe` from `(Get-AppxPackage OpenAI.Codex).InstallLocation\app\resources` to `~/.codex/.sandbox-bin` and rerun.
+- Fallback: if Codex still cannot do the task after at most three attempts (tool or sandbox failure, no file access, model unavailable), implement it yourself within the same scope and tell Artur plainly that it was not delegated and why.
 - Do not edit Codex's files while it runs. Afterwards review the diff, run the validation yourself, and report to Artur separately: the handoff, Codex's result, your review.
