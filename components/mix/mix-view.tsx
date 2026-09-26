@@ -598,7 +598,7 @@ function LeetifyCard({ player }: { player: Player }) {
       </Well>
       <div
         aria-label={t.leetify.resultsAria}
-        className="mt-1.5 flex h-[16px] flex-wrap content-start gap-0.5 overflow-hidden px-0.5"
+        className="mt-1.5 flex h-[16px] flex-row-reverse flex-wrap content-start justify-end gap-0.5 overflow-hidden px-0.5"
       >
         {matches.map((m, i) => (
           <span
