@@ -2,7 +2,6 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
-  getLifetimeStats,
   getMatchStats,
   getPlayerBySteamId,
   parseMatchStatsPage,
@@ -251,15 +250,6 @@ describe("faceit client", () => {
     expect(samples).toHaveLength(1);
     expect(samples[0].finishedAt).toBe(base.finishedAt);
     expect(samples[0].rating).toBeGreaterThan(1);
-  });
-
-  it("maps lifetime stats", async () => {
-    const life = await getLifetimeStats(OWNER_FACEIT_ID, {
-      apiKey: "k",
-      fetch: async () => json(fixture(`faceit/lifetime/${OWNER}.json`)),
-    });
-    expect(life).toMatchObject({ matches: 995, winRatePct: 51 });
-    expect(life!.adr).toBeCloseTo(83.72);
   });
 });
 

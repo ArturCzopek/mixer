@@ -3,7 +3,6 @@
 // English on purpose (Leetify's required attribution).
 
 export type Lang = "en" | "pl";
-export const LANGS: Lang[] = ["en", "pl"];
 export const LANG_COOKIE = "mixer.lang";
 
 export const parseLang = (value: string | undefined | null): Lang =>

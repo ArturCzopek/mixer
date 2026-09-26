@@ -3,7 +3,7 @@
 Server-only API clients, responses validated with Zod against the recorded fixtures in `__fixtures__/` (tests: `external.test.ts`). See [docs/06-external-apis.md](../../docs/06-external-apis.md).
 
 - `steam.ts`: `parseSteamInput` (SteamID64 / profile URL / vanity), `resolveSteamInput`, `getPlayerSummaries` (100 IDs per call).
-- `faceit.ts`: `getPlayerBySteamId` (null if no account), `getMatchStats` (paged, from/to in ms), `toFormSamples` (input for balancing F), `getLifetimeStats`.
+- `faceit.ts`: `getPlayerBySteamId` (null if no account), `getMatchStats` (paged, from/to in ms), `toFormSamples` (input for balancing F). No lifetime client: balancing never reads lifetime stats.
 - `http.ts`: `getJson` with timeout, Next.js data cache (`revalidate`) and `ExternalApiError`; URLs are never logged (the Steam key is in the query).
 - `leetify.ts` (M3-2): display only, Leetify data must never be stored.
 
