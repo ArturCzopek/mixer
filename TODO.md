@@ -10,9 +10,6 @@ the MVP (M1-9) if it is ready; P0-6 (separate prod Supabase) comes right before 
 
 ## Owner (Artur)
 
-- [ ] **Vercel Production env:** add `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SECRET_KEY` (values
-      from `.env.local`, tick Production), then Redeploy. The home page lists anything still missing.
-      Then "Sign In Through Steam" on Production and tell Claude if you land back as site admin (closes M1-1).
 - [ ] **S5 FACEIT Club:** create a free Club + private queue for the group (D17); send Claude the Club
       link; after the first mix, the match room link(s).
 - [ ] *(optional)* FACEIT developer terms: if you see a clause against storing match stats, tell Claude (D20).
@@ -26,11 +23,11 @@ the MVP (M1-9) if it is ready; P0-6 (separate prod Supabase) comes right before 
 through `lib/i18n` (English default, Polish toggle); push straight to `main` after test, lint,
 typecheck, format:check and build. Pushes to `main` deploy to Vercel **Production**.
 
-- **State:** see the ticked rows in the roadmap. M1-1 works locally (owner logged in, `players` row
-  with `is_site_admin`); waiting for the Production env vars above.
+- **State:** see the ticked rows in the roadmap. Production is `https://mixer-gray.vercel.app`; Steam
+  login works there (M1-1). Deployment-hash URLs keep the env of their own build.
 - **Showcase** `/demo`: the real popflash evening of 16.12.2024 on the real engine, all four states,
   live Leetify card, public votes with a seeded tie-break, admin panel (buttons do nothing yet).
-- **Next tasks, in order:** close M1-1 → **M1-G** groups UI + seed our group from
+- **Next tasks, in order:** **M1-G** groups UI + seed our group from
   `db/seed/roster.json` → **P0-4** deploy pipeline + keep-alive cron → M1-3 roster → M1-5 lobby →
   M1-6 variants → M1-7 voting (close rules in D33).
 

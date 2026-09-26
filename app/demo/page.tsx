@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { MixView } from "@/components/mix/mix-view";
-import { parseMixState, StateSwitcher } from "@/components/mix/state-switcher";
+import { SwitchableMix } from "@/components/mix/state-switcher";
 import { getDict } from "@/lib/i18n/server";
 import { showcaseViewData } from "@/lib/showcase/evening";
 
@@ -14,16 +13,14 @@ export default async function ShowcasePage({
   searchParams,
 }: PageProps<"/demo">) {
   const { state } = await searchParams;
-  const current = parseMixState(state, "voting");
   const t = await getDict();
   return (
-    <>
-      <StateSwitcher
-        label={t.switcher.label}
-        current={current}
-        names={t.switcher}
-      />
-      <MixView key={current} state={current} data={await showcaseViewData()} />
-    </>
+    <SwitchableMix
+      initial={state}
+      fallback="voting"
+      data={await showcaseViewData()}
+      label={t.switcher.label}
+      names={t.switcher}
+    />
   );
 }
