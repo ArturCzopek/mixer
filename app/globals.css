@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "tw-animate-css";
 
 /*
  * Palette tuned for contrast: body text and dim text ≥ 4.5:1 on window, sheet and well.
@@ -8,26 +7,8 @@
  */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: "DejaVu Sans", Tahoma, Verdana, sans-serif;
   --font-mono: "DejaVu Sans Mono", "Lucida Console", monospace;
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
 
   /* VGUI palette */
   --color-ground: var(--vg-ground);
@@ -66,39 +47,19 @@
   --vg-lo: #262a20;
   --vg-alert: #d8704f;
 
-  --radius: 0;
-  --background: var(--vg-ground);
-  --foreground: var(--vg-text);
-  --card: var(--vg-window);
-  --card-foreground: var(--vg-text);
-  --popover: var(--vg-window);
-  --popover-foreground: var(--vg-text);
-  --primary: var(--vg-gold);
-  --primary-foreground: var(--vg-lo);
-  --secondary: var(--vg-sheet);
-  --secondary-foreground: var(--vg-text);
-  --muted: var(--vg-well);
-  --muted-foreground: var(--vg-dim);
-  --accent: var(--vg-gold-deep);
-  --accent-foreground: #fff;
-  --destructive: var(--vg-alert);
-  --border: var(--vg-lo);
-  --input: var(--vg-well);
-  --ring: var(--vg-gold);
-
   color-scheme: dark;
   scrollbar-color: var(--vg-sheet) var(--vg-well);
 }
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: var(--vg-lo);
   }
   html {
     -webkit-tap-highlight-color: transparent;
   }
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-ground text-text font-sans;
     font-size: 13px;
     line-height: 1.4;
     font-variant-numeric: tabular-nums;

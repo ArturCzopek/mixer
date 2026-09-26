@@ -53,13 +53,10 @@ npm run dev                  # http://localhost:3000
 | `npm run lint` | ESLint |
 | `npm run typecheck` | Generate Next route types + `tsc` |
 | `npm run format` | Prettier (write) |
-| `npm run ui:add -- <names>` | Add shadcn/ui components (+ their deps) |
 
 CI runs format check, lint, typecheck, tests and build on every PR.
 
-UI components come from [shadcn/ui](https://ui.shadcn.com) (new-york style, `components.json` is configured).
-Add them with `npm run ui:add -- card dialog` — it fetches the component source from the shadcn GitHub repo,
-so it also works where `ui.shadcn.com` is blocked (cloud sandboxes). `npx shadcn@latest add <component>` works too.
+UI is built from the VGUI primitives in `components/vgui/` (Tailwind v4, rules in `DESIGN.md`).
 
 ## Stack
 

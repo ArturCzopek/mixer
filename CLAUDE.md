@@ -21,7 +21,7 @@ Read `docs/` before making design changes. The decision log (`docs/08-decisions.
 ## Conventions
 - Next.js 16 App Router: check `node_modules/next/dist/docs/` before using APIs you're unsure of (see @AGENTS.md).
 - Look: 2003 Steam / CS 1.6 **olive VGUI** (roadmap UI-0). Rules in `DESIGN.md`, product context in `PRODUCT.md`; build screens from `components/vgui/` (bevel, well, tabs, SkillBar); the showcase at `/demo` shows every mix state.
-- UI: Tailwind v4 + shadcn/ui (`components/ui/`, `cn()` from `@/lib/utils`). Add components with `npm run ui:add -- <names>` (`ui.shadcn.com` is blocked in the cloud sandbox; the script pulls from GitHub).
+- UI: Tailwind v4 + the VGUI primitives in `components/vgui/`, `cn()` from `@/lib/utils`. No shadcn/ui (dropped 2026-09-26, unused).
 - Push straight to `main` (no PRs needed). Keep CI green.
 
 - `lib/balance` and `lib/demo` are pure TS with unit tests; keep them free of I/O.

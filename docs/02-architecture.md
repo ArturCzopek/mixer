@@ -42,7 +42,7 @@ flowchart LR
 | Realtime | **Supabase Realtime** (Postgres changes) | Live lobby and votes without running our own socket server |
 | Auth | **Steam OpenID 2.0**, own session cookie | Steam has no OAuth2 for third parties; we only need the SteamID64 |
 | Demo parsing | **demoparser2** (Rust → WASM) in a **Web Worker** | Demos are 50–300 MB; parsing client-side avoids upload limits and storage costs |
-| UI | Tailwind CSS + shadcn/ui | Fast to build, looks decent out of the box |
+| UI | Tailwind CSS + own VGUI primitives (`components/vgui/`) | The olive 2003 Steam look (UI-0); shadcn/ui was dropped 2026-09-26, unused |
 | Charts | Recharts (or similar) | Profile trend charts |
 | Validation | Zod | Validate parsed demo payloads and API responses |
 | ORM / queries | Drizzle ORM (or supabase-js) | Typed schema + migrations in the repo |

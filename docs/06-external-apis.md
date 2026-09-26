@@ -29,8 +29,13 @@ Base URL `https://open.faceit.com/data/v4`, header `Authorization: Bearer <FACEI
 
 Recorded by `scripts/faceit-spike.mjs` via the manual **API spike** GitHub workflow (the cloud sandbox
 cannot reach `open.faceit.com`: Cloudflare answers with a bot challenge; FACEIT docs are blocked too).
-Fixtures: `lib/external/__fixtures__/faceit/{players,history,games-stats,lifetime,matches}/`, report with
+Fixtures: `lib/external/__fixtures__/faceit/{players,games-stats,matches}/`, report with
 all statuses, headers and field paths: `lib/external/__fixtures__/spike-report.json`.
+
+The `history/` and `lifetime/` recordings (12 players each) were removed on 2026-09-26: no test or
+client reads them. To get them back, restore the last recording from git:
+`git checkout ebe9ecc -- lib/external/__fixtures__/faceit/history lib/external/__fixtures__/faceit/lifetime`,
+or re-run the **API spike** workflow, which records fresh copies and commits them.
 
 - **All 12 roster SteamIDs have a FACEIT CS2 account** (ELO 938–2189, levels 4–10).
 - **Stat values are strings** (`"104.2"`, `"18"`); parse with Zod `z.coerce.number()`. Only

@@ -204,7 +204,7 @@ There are no blur shadows. Depth comes from tonal layering plus the 1px two-tone
 
 ## Shapes
 
-Every corner is square (radius 0, including shadcn's radius tokens). Borders are always 1px solid: bevel pairs for surfaces, bevel-lo for dividers and avatar frames, olive-row for list rows. Dotted 1px lines separate explanation terms. A dashed 1px bevel-hi square marks an empty lobby slot. The hatch (135deg stripes, 4px each, olive-window / hatch-stripe) is the only pattern. It marks badges and rule conflicts, so they never depend on colour alone. Status indicators are 7px squares, not dots.
+Every corner is square (radius 0, including Tailwind's radius tokens). Borders are always 1px solid: bevel pairs for surfaces, bevel-lo for dividers and avatar frames, olive-row for list rows. Dotted 1px lines separate explanation terms. A dashed 1px bevel-hi square marks an empty lobby slot. The hatch (135deg stripes, 4px each, olive-window / hatch-stripe) is the only pattern. It marks badges and rule conflicts, so they never depend on colour alone. Status indicators are 7px squares, not dots.
 
 ## Components
 
