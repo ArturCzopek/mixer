@@ -27,3 +27,16 @@ Read `docs/` before making design changes. The decision log (`docs/08-decisions.
 - `lib/balance` and `lib/demo` are pure TS with unit tests; keep them free of I/O.
 - SteamID64 is always a `string`.
 - Our rating is called **Mixer Rating**, never "HLTV rating".
+
+## Before implementing a roadmap task
+
+Before any change, tell Artur what it is: a short description in plain words (what exists today, what changes, why), then the plan (files to touch, tests, what stays out of scope). Only then implement.
+
+## Delegating to Codex
+
+- Delegate only work that [AGENTS.md](AGENTS.md) lets Codex own. Never claim a delegation that did not run.
+- Write the handoff to a scratchpad file: repository path and branch (Codex checks `git rev-parse --show-toplevel` and `git status --short --branch` before editing, stops on a mismatch and preserves uncommitted changes), context, scope and allowed files, out of scope, validation commands, report format. No commit, push or deploy.
+- Run it in the background with model `gpt-6-luna` and reasoning effort `xhigh`:
+  `~/.codex/.sandbox-bin/codex.exe exec -m gpt-6-luna -c model_reasoning_effort="xhigh" -s workspace-write -C <repo> -o <scratchpad>/codex-result.md - < <scratchpad>/codex-brief.md`
+  If the model or effort cannot be set, tell Artur. If Codex reports "code-mode host executable is missing", copy `codex-code-mode-host.exe` from `(Get-AppxPackage OpenAI.Codex).InstallLocation\app\resources` to `~/.codex/.sandbox-bin` and rerun.
+- Do not edit Codex's files while it runs. Afterwards review the diff, run the validation yourself, and report to Artur separately: the handoff, Codex's result, your review.
