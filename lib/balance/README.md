@@ -8,4 +8,6 @@ Implemented in roadmap tasks M1-4 (engine) and M1-4b (explanation).
   sessions). Contributions are whole points and sum to S. This object is the `skill_snapshot`.
 - `variants.ts`: `generateVariants()` → variants with imbalance, soft-rule penalties (cost = imbalance +
   penalties), rank among all candidates and the duo status (D15; not shown as a badge, D28).
+- `faceit-rating.ts`: per-match FACEIT rating. `splits.ts`: 5v5 enumeration, split identity and distance.
 - `config.ts`: defaults (`weights`, `form.asymmetry` anchors, `activity.anchors`, rules).
+- `index.ts`: public exports.

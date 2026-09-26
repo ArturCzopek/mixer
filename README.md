@@ -40,10 +40,12 @@ The app does the balancing and voting, and pulls per-map stats from the FACEIT A
 Requires Node.js 22+.
 
 ```bash
-npm install
+npm ci
 cp .env.example .env.local   # fill in keys (see comments in the file)
 npm run dev                  # http://localhost:3000
 ```
+
+Only the Supabase URL and publishable key are browser-safe; keep the other environment keys server-side.
 
 | Command | What it does |
 |---|---|
@@ -53,6 +55,7 @@ npm run dev                  # http://localhost:3000
 | `npm run lint` | ESLint |
 | `npm run typecheck` | Generate Next route types + `tsc` |
 | `npm run format` | Prettier (write) |
+| `npm run format:check` | Check formatting without writing |
 
 CI runs format check, lint, typecheck, tests and build on every PR.
 

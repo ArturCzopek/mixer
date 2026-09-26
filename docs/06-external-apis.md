@@ -23,7 +23,7 @@ Base URL `https://open.faceit.com/data/v4`, header `Authorization: Bearer <FACEI
 | ELO + level | `GET /players/{player_id}` → `games.cs2.faceit_elo`, `games.cs2.skill_level` |
 | Matches in the last 30 days | `GET /players/{player_id}/history?game=cs2&from={unix now−30d}&to={unix now}&limit=100` |
 | Per-match stats (form) | `GET /players/{player_id}/games/cs2/stats?limit=100`, filtered to the 30-day window (or `/matches/{match_id}/stats` per match) |
-| Lifetime stats (baseline) | `GET /players/{player_id}/stats/cs2` |
+| Lifetime stats (not used by the client or balancing) | `GET /players/{player_id}/stats/cs2` |
 
 ### Spike S3 findings (2026-09-24)
 
@@ -105,7 +105,7 @@ the lobby / variant, profile header). Owner (2026-09-25): **FACEIT matches of th
 (`/v3/profile/matches`, `data_source = "faceit"`, `finished_at` within 30 days): per match the date,
 map, score and the player's **Leetify Rating** exactly as Leetify shows it, plus the count of matches
 and wins. No profile-wide numbers (aim, positioning…) and no averages or other scores computed from
-Leetify data (their terms forbid recalculating). With the "Data Provided by Leetify" logo. Fetched by a server route with a 5–10 min HTTP cache, never written to
+Leetify data (their terms forbid recalculating). With the "Data Provided by Leetify" logo. Fetched by a server route with `cache: "no-store"`, never written to
 the database, never an input to balancing. `privacy_mode` on → the card says the profile is private.
 
 ### Leetify developer guidelines: hard rules for us
@@ -139,6 +139,6 @@ One site-wide bot. Env: `DISCORD_BOT_TOKEN`, `DISCORD_CLIENT_ID`, `DISCORD_CLIEN
 
 | Data | TTL |
 |---|---|
-| Steam names / avatars | 24 h (stored in `players`, refreshed on login and daily) |
-| FACEIT ELO / form | 10 min cache; snapshot stored when teams are generated |
-| Leetify profile / matches | 5–10 min HTTP cache only, never persisted |
+| Steam names / avatars | 1 h fetch cache; stored in `players` and refreshed on login (no daily refresh job yet) |
+| FACEIT ELO / form | 10 min fetch cache; per-mix snapshot storage is planned |
+| Leetify profile / matches | No fetch cache (`no-store`); never persisted |

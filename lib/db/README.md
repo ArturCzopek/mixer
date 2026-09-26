@@ -10,3 +10,5 @@ Supabase clients and typed queries. Writes use the service role, server-side onl
 - **Applying:** the `DB migrate` GitHub workflow runs `scripts/db-migrate.mjs --verify` on every push to `main`
   that touches `db/`, using the repo secrets (Supabase Management API, recorded in
   `supabase_migrations.schema_migrations`). Manual run: Actions → DB migrate → Run workflow.
+- `--verify` applies pending migrations before its checks. `--dry-run` still creates the
+  `supabase_migrations` bookkeeping schema and table if they are missing.

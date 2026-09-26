@@ -21,7 +21,7 @@
 
 - Map veto / side pick (done by the FACEIT Club queue).
 - Running or orchestrating game servers in v1 (considered as an optional later path, see
-  [demo pipeline](05-demo-pipeline.md#path-b--own-server-dathost--matchzy)).
+  [demo pipeline](05-demo-pipeline.md#path-b-own-server-dathost--matchzy-optional-later)).
 - Paid / hosted product features (billing, quotas, private groups). The app is built for our group first,
   but the data model supports **several groups** (D18) so other friend groups can use the same instance.
 
@@ -74,7 +74,7 @@ that record automatically (matched on SteamID64). Any logged-in player can creat
 - Only participants vote; one vote per player, changeable until voting closes.
 - Live vote counts.
 - Closes when **all 10 voted** or when **the admin closes it**. No time limit.
-- Winner = most votes; tie → variant with the win probability closest to 50%; still tied → lower variant number.
+- Winner = most votes; ties are broken by a random pick seeded with the mix id ([D33](08-decisions.md#d33-voting-public-votes-moving-a-vote-closing-ties-pair-spread-accepted-2026-09-26)).
 - Admin can cast a vote on behalf of a participant (marked as "by admin").
 - The chosen lineup is shown as a clean "Team A / Team B" card to share with the group.
 

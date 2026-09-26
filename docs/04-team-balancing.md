@@ -90,8 +90,8 @@ Resulting F for a few ELOs (β = 500, F_max = 150; ratio^ is the ratio **after**
 So a player above 2000 gets at most +15 from form and loses up to −90; a player around 1100 with an
 average-plus month (ratio^ 1.05, e.g. 25 matches at a raw ratio of 1.07) gets a clear +34.
 
-The FACEIT client must fetch enough history to have a baseline before the window (paginate if all
-of the last 100 matches fall inside 30 days). Exact FACEIT field names are confirmed in spike S3.
+The FACEIT client fetches pages of 100, up to 200 records by default, to include a baseline before the
+window when needed. Exact FACEIT field names are confirmed in spike S3.
 
 ### A: activity (D26)
 
