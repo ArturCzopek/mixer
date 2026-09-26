@@ -264,7 +264,14 @@ describe("leetify client (invented sample, Leetify data is never stored)", () =>
       { team_number: 3, score: 9 },
     ],
     stats: [
-      { steam64_id: me, initial_team_number: 3, leetify_rating: -0.0291 },
+      {
+        steam64_id: me,
+        initial_team_number: 3,
+        leetify_rating: -0.0291,
+        total_kills: 14,
+        total_assists: 3,
+        total_deaths: 17,
+      },
     ],
     ...over,
   });
@@ -290,6 +297,7 @@ describe("leetify client (invented sample, Leetify data is never stored)", () =>
         map: "de_nuke",
         score: [9, 13],
         leetifyRating: -2.91,
+        kad: [14, 3, 17],
       },
     ]);
   });

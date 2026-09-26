@@ -548,7 +548,7 @@ function Labels({ variant }: { variant: Variant }) {
 }
 
 const LEETIFY_ROWS = 8;
-const LEETIFY_COLS = "grid-cols-[3rem_1fr_3rem_5.6rem]";
+const LEETIFY_COLS = "grid-cols-[3.6rem_1fr_2.8rem_3.6rem_3.4rem]";
 
 /**
  * Leetify preview (M3-2) as an old-client property window: the player's FACEIT matches in the
@@ -606,7 +606,7 @@ function LeetifyCard({ player }: { player: Player }) {
             title={`${m.map} ${m.score[0]}:${m.score[1]}`}
             className={cn(
               "size-[7px]",
-              m.score[0] > m.score[1] ? "bg-gold" : "bg-lo",
+              m.score[0] > m.score[1] ? "bg-win" : "bg-loss",
             )}
           />
         ))}
@@ -614,13 +614,14 @@ function LeetifyCard({ player }: { player: Player }) {
       <Well className="mt-1.5">
         <div
           className={cn(
-            "border-lo bg-window text-dim grid gap-x-2 border-b px-1.5 py-1 text-[10px] tracking-[0.06em] uppercase",
+            "border-lo bg-window text-dim grid items-end gap-x-2 border-b px-1.5 py-1 text-[10px] leading-tight tracking-[0.06em] uppercase",
             LEETIFY_COLS,
           )}
         >
           <span>{t.leetify.date}</span>
           <span>{t.leetify.map}</span>
           <span className="text-right">{t.leetify.score}</span>
+          <span className="text-right">{t.leetify.kad}</span>
           <span className="text-right">{t.leetify.rating}</span>
         </div>
         <div className="relative">
@@ -637,20 +638,20 @@ function LeetifyCard({ player }: { player: Player }) {
                 {m && (
                   <>
                     <span className="text-dim text-[11px]">
-                      {m.finishedAt.slice(8, 10)}.{m.finishedAt.slice(5, 7)}
+                      {m.score[0] > m.score[1] ? (
+                        <b className="text-win">{t.leetify.win}</b>
+                      ) : (
+                        <b className="text-loss">{t.leetify.loss}</b>
+                      )}{" "}
+                      {ddmm(m.finishedAt)}
                     </span>
                     <span className="truncate">{m.map.replace("de_", "")}</span>
                     <span className="text-right">
-                      <b
-                        className={
-                          m.score[0] > m.score[1] ? "text-gold" : "text-text"
-                        }
-                      >
-                        {m.score[0]}
-                      </b>
+                      {m.score[0]}
                       <span className="text-dim">:</span>
                       {m.score[1]}
                     </span>
+                    <span className="text-right">{m.kad.join("/")}</span>
                     <b className="text-right">{rating(m.leetifyRating)}</b>
                   </>
                 )}

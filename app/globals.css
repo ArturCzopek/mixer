@@ -24,6 +24,8 @@
   --color-hi: var(--vg-hi);
   --color-lo: var(--vg-lo);
   --color-alert: var(--vg-alert);
+  --color-win: var(--vg-win);
+  --color-loss: var(--vg-loss);
 
   --radius-sm: 0;
   --radius-md: 0;
@@ -46,6 +48,9 @@
   --vg-hi: #7f8d72;
   --vg-lo: #262a20;
   --vg-alert: #d8704f;
+  /* Won / lost match letters on olive-well: 6.6:1 and 5.3:1. */
+  --vg-win: #9fd36a;
+  --vg-loss: #f09a7f;
 
   color-scheme: dark;
   scrollbar-color: var(--vg-sheet) var(--vg-well);

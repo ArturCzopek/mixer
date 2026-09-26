@@ -23,6 +23,8 @@ export interface LeetifyMatch {
    * Leetify as +1.23): formatting only, the number itself is Leetify's.
    */
   leetifyRating: number;
+  /** `total_kills` / `total_assists` / `total_deaths`, as Leetify reports them. */
+  kad: [number, number, number];
 }
 
 const matchSchema = z.object({
@@ -37,6 +39,9 @@ const matchSchema = z.object({
       steam64_id: z.string(),
       initial_team_number: z.number(),
       leetify_rating: z.number().nullable(),
+      total_kills: z.number(),
+      total_assists: z.number(),
+      total_deaths: z.number(),
     }),
   ),
 });
@@ -72,6 +77,7 @@ export function toFaceitMatches(
       map: m.map_name,
       score: [ours.score, theirs.score],
       leetifyRating: Math.round(me.leetify_rating * 10000) / 100,
+      kad: [me.total_kills, me.total_assists, me.total_deaths],
     });
   }
   return out.sort((a, b) => b.finishedAt.localeCompare(a.finishedAt));

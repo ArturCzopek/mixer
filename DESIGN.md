@@ -15,6 +15,8 @@ colors:
   pale-text: "#dfe4da"
   dim-text: "#c2cab7"
   alert-rust: "#d8704f"
+  win-green: "#9fd36a"
+  loss-red: "#f09a7f"
   white: "#ffffff"
 typography:
   display:
@@ -75,7 +77,6 @@ components:
     padding: "10px 12px"
   button-pressed:
     backgroundColor: "{colors.olive-window}"
-    padding: "11px 12px 9px"
   button-disabled:
     textColor: "{colors.dim-text}"
   window:
@@ -147,6 +148,7 @@ A low-chroma olive family with bevel-edge tints and one warm gold highlight, tun
 
 ### Tertiary
 - **Alert Rust** (alert-rust): the destructive role. It is defined but not yet used on shipped surfaces. Reserve it for destructive or error states only.
+- **Win Green / Loss Red** (win-green, loss-red): only won / lost match markers (the W / L letter and the result squares of the Leetify card). Never for scores, buttons or panels.
 
 ### Neutral
 - **Olive Ground** (olive-ground): page background and browser theme-color.
@@ -194,7 +196,7 @@ Spacing is tight and follows a 2px step: 2px (tab gaps), 4px (row padding, badge
 
 ## Elevation & Depth
 
-There are no blur shadows. Depth comes from tonal layering plus the 1px two-tone bevel. Raised surfaces (window, sheet, button, tab, chip) use a light top-left edge and a dark bottom-right edge. Sunken wells invert it and drop to olive-well. A pressed button inverts its bevel and shifts its label 1px down-right in the padding, so it sinks the way the old client's did.
+There are no blur shadows. Depth comes from tonal layering plus the 1px two-tone bevel. Raised surfaces (window, sheet, button, tab, chip) use a light top-left edge and a dark bottom-right edge. Sunken wells invert it and drop to olive-well. A pressed button inverts its bevel and moves 1px down (a transform, so its size never changes), so it sinks the way the old client's did.
 
 ### Shadow Vocabulary
 - **Engraved disabled text** (`text-shadow: 1px 1px 0 var(--vg-hi)`): only on disabled button labels, the classic etched-out look.
@@ -213,7 +215,7 @@ Bevelled and literal: they press in.
 - **Shape:** square (0), 1px raised bevel on olive-sheet.
 - **Primary:** gold label, bold 13px, 10px 12px padding. One per action bar, at double width.
 - **Secondary:** the same button with a pale-text label.
-- **Pressed:** the bevel inverts, the background drops to olive-window, and the label nudges down 1px. There is no transition.
+- **Pressed:** the bevel inverts, the background drops to olive-window, and the button nudges down 1px without changing size. There is no transition.
 - **Focus:** 1px dotted gold outline, offset 2px.
 - **Disabled:** dim label with the engraved hi text-shadow and a not-allowed cursor.
 - **Labels:** short verb phrases. Title Case like the old client ("Join Mix", "Vote Variant 1", "Upload Demo").
