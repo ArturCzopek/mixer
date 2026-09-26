@@ -9,7 +9,7 @@ export type FetchLike = (
 
 export class ExternalApiError extends Error {
   constructor(
-    readonly service: "steam" | "faceit",
+    readonly service: "steam" | "faceit" | "leetify",
     readonly status: number,
     message: string,
   ) {
@@ -21,7 +21,7 @@ export class ExternalApiError extends Error {
 export interface GetJsonOptions {
   service: ExternalApiError["service"];
   headers?: Record<string, string>;
-  /** Seconds the Next.js data cache may reuse the response (0 = no cache). */
+  /** Seconds the Next.js data cache may reuse the response (0 = never cached, e.g. Leetify). */
   revalidate: number;
   fetch?: FetchLike;
   /** Return null instead of throwing on 404. */
@@ -51,7 +51,9 @@ export async function getJson<S extends z.ZodType>(
   const init: RequestInit & { next?: { revalidate: number } } = {
     headers: { Accept: "application/json", ...opts.headers },
     signal: AbortSignal.timeout(10_000),
-    next: { revalidate: opts.revalidate },
+    ...(opts.revalidate === 0
+      ? { cache: "no-store" as const }
+      : { next: { revalidate: opts.revalidate } }),
   };
   const res = await doFetch(url, init);
   if (res.status === 404 && opts.allowNotFound) return null;

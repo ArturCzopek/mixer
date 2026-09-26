@@ -10,6 +10,7 @@ import {
   type FaceitMatchStat,
 } from "./faceit";
 import { ExternalApiError, type FetchLike } from "./http";
+import { getFaceitMatches, toFaceitMatches } from "./leetify";
 import {
   getPlayerSummaries,
   parseSteamInput,
@@ -259,5 +260,60 @@ describe("faceit client", () => {
     });
     expect(life).toMatchObject({ matches: 995, winRatePct: 51 });
     expect(life!.adr).toBeCloseTo(83.72);
+  });
+});
+
+describe("leetify client (invented sample, Leetify data is never stored)", () => {
+  const me = "76561197993187687";
+  const match = (over: Record<string, unknown>) => ({
+    finished_at: "2026-09-20T20:00:00.000Z",
+    data_source: "faceit",
+    map_name: "de_nuke",
+    team_scores: [
+      { team_number: 2, score: 13 },
+      { team_number: 3, score: 9 },
+    ],
+    stats: [
+      { steam64_id: me, initial_team_number: 3, leetify_rating: -0.0291 },
+    ],
+    ...over,
+  });
+  const range = {
+    from: new Date("2026-08-26T00:00:00Z"),
+    to: new Date("2026-09-25T00:00:00Z"),
+  };
+
+  it("keeps FACEIT matches in the window, our score first, rating in Leetify's display format", () => {
+    const out = toFaceitMatches(
+      [
+        match({}),
+        match({ data_source: "matchmaking" }),
+        match({ finished_at: "2026-07-01T20:00:00.000Z" }),
+      ],
+      me,
+      range,
+    );
+    expect(out).toEqual([
+      {
+        finishedAt: "2026-09-20T20:00:00.000Z",
+        dataSource: "faceit",
+        map: "de_nuke",
+        score: [9, 13],
+        leetifyRating: -2.91,
+      },
+    ]);
+  });
+
+  it("sends the _leetify_key header and never caches", async () => {
+    const seen: RequestInit[] = [];
+    await getFaceitMatches(me, range, {
+      apiKey: "k",
+      fetch: async (_url, init) => {
+        seen.push(init!);
+        return json([]);
+      },
+    });
+    expect((seen[0].headers as Record<string, string>)._leetify_key).toBe("k");
+    expect(seen[0].cache).toBe("no-store");
   });
 });

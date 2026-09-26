@@ -441,3 +441,33 @@ describe("variant labels (D28)", () => {
     }
   });
 });
+
+describe("pair spread across variants (D33)", () => {
+  const sets = [
+    ELOS,
+    DUO_ELOS,
+    [2200, 2150, 1900, 1800, 1500, 1450, 1400, 1300, 1100, 900],
+  ];
+  it.each(sets.map((e) => [e]))(
+    "never leaves more pairs together than the plain greedy pick, within the cost budget (%j)",
+    (elos) => {
+      const players = withElos(elos);
+      const off = generateVariants({
+        players,
+        config: resolveConfig({ pairSpread: { maxExtraCost: 0 } }),
+      });
+      const on = generateVariants({ players, config: DEFAULT_BALANCE_CONFIG });
+      expect(on.alwaysTogether.length).toBeLessThanOrEqual(
+        off.alwaysTogether.length,
+      );
+      expect(on.variants[0].key).toBe(off.variants[0].key);
+      const maxCost = (r: typeof on) =>
+        Math.max(...r.variants.map((v) => v.cost));
+      expect(maxCost(on)).toBeLessThanOrEqual(
+        maxCost(off) + DEFAULT_BALANCE_CONFIG.pairSpread.maxExtraCost + 1e-9,
+      );
+      for (const [a, b] of on.alwaysTogether)
+        for (const v of on.variants) expect(together(v, a, b)).toBe(true);
+    },
+  );
+});

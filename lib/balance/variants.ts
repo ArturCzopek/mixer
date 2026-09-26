@@ -78,6 +78,8 @@ export interface GenerateVariantsResult<
   candidateCount: number;
   /** True if `minDistance` had to be relaxed to fill all variants. */
   relaxed: boolean;
+  /** Pairs who are teammates in every chosen variant (ideally none, D33). */
+  alwaysTogether: [string, string][];
 }
 
 const EPSILON = 1e-9;
@@ -221,9 +223,15 @@ export function generateVariants<P extends RankedPlayer>(
     candidates,
     config.variants,
     config.minDistance,
+    config.pairSpread.maxExtraCost,
   );
   labelVariants(chosen);
-  return { variants: chosen, candidateCount: candidates.length, relaxed };
+  return {
+    variants: chosen,
+    candidateCount: candidates.length,
+    relaxed,
+    alwaysTogether: chosen.length > 1 ? pairsTogetherInAll(chosen) : [],
+  };
 }
 
 /** Pairs of players who were teammates last time and are teammates again in this split. */
@@ -257,8 +265,29 @@ function labelVariants<P extends RankedPlayer>(chosen: Variant<P>[]) {
   uniqueMin((v) => v.repeatedPairs)?.labels.push("fresh");
 }
 
+/** Teammate pairs of a split, as "idA|idB" with the smaller id first. */
+function teammatePairs(v: { teamA: RankedPlayer[]; teamB: RankedPlayer[] }) {
+  const pairs = new Set<string>();
+  for (const team of [v.teamA, v.teamB]) {
+    const ids = team.map((p) => p.steamId).sort();
+    for (let i = 0; i < ids.length; i++)
+      for (let j = i + 1; j < ids.length; j++) pairs.add(`${ids[i]}|${ids[j]}`);
+  }
+  return pairs;
+}
+
+/** Pairs of players who are teammates in every given variant (D33). */
+export function pairsTogetherInAll(
+  variants: { teamA: RankedPlayer[]; teamB: RankedPlayer[] }[],
+): [string, string][] {
+  const [first, ...rest] = variants.map(teammatePairs);
+  return [...first]
+    .filter((pair) => rest.every((s) => s.has(pair)))
+    .map((pair) => pair.split("|") as [string, string]);
+}
+
 /** Greedy: best first, then the next best far enough from all chosen; relax to ≥1 if needed. */
-function pickDiverse<P extends RankedPlayer>(
+function pickGreedy<P extends RankedPlayer>(
   sorted: Variant<P>[],
   count: number,
   minDistance: number,
@@ -278,6 +307,53 @@ function pickDiverse<P extends RankedPlayer>(
   if (strict < count && minDistance > 1) fill(1);
   return { chosen, relaxed: chosen.length > strict };
 }
+
+/**
+ * Greedy pick (above), then, for three variants, look for a better trio that keeps the most even
+ * split first and leaves fewer pairs of teammates in all three (D33). A trio qualifies only if its
+ * most expensive variant costs at most `maxExtraCost` pp more than the greedy trio's.
+ */
+function pickDiverse<P extends RankedPlayer>(
+  sorted: Variant<P>[],
+  count: number,
+  minDistance: number,
+  maxExtraCost: number,
+) {
+  const greedy = pickGreedy(sorted, count, minDistance);
+  const g = greedy.chosen;
+  if (count !== 3 || g.length !== 3 || maxExtraCost <= 0) return greedy;
+  const togetherIn = (trio: Variant<P>[]) => pairsTogetherInAll(trio).length;
+  let best = { trio: g, together: togetherIn(g), cost: sum(g) };
+  if (best.together === 0) return greedy;
+
+  const ids = (v: Variant<P>) => v.teamA.map((p) => p.steamId);
+  const distance = greedy.relaxed ? 1 : minDistance;
+  const limit = Math.max(...g.map((v) => v.cost)) + maxExtraCost;
+  const first = g[0];
+  const pool = sorted.filter(
+    (c) =>
+      c !== first &&
+      c.cost <= limit + EPSILON &&
+      splitDistance(ids(first), ids(c)) >= distance,
+  );
+  for (let i = 0; i < pool.length; i++)
+    for (let j = i + 1; j < pool.length; j++) {
+      if (splitDistance(ids(pool[i]), ids(pool[j])) < distance) continue;
+      const trio = [first, pool[i], pool[j]];
+      const together = togetherIn(trio);
+      const cost = sum(trio);
+      if (
+        together < best.together ||
+        (together === best.together && cost < best.cost - EPSILON)
+      )
+        best = { trio, together, cost };
+    }
+  // Keep the order by cost (variant 1 = most even).
+  best.trio.sort((x, y) => x.cost - y.cost);
+  return { chosen: best.trio, relaxed: greedy.relaxed };
+}
+
+const sum = (vs: Variant<RankedPlayer>[]) => vs.reduce((s, v) => s + v.cost, 0);
 
 function isSameRoster([a, b]: [string[], string[]], ids: readonly string[]) {
   const all = new Set([...a, ...b]);

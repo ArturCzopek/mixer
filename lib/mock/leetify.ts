@@ -3,18 +3,9 @@
 // of the last 30 days, shown as-is with the "Data Provided by Leetify" attribution, and never
 // stored (CLAUDE.md, M3-2). No averages or other scores are computed from it.
 
-export interface LeetifyMatchSample {
-  /** `finished_at` */
-  finishedAt: string;
-  /** `data_source` (the card keeps only "faceit") */
-  dataSource: "faceit";
-  /** `map_name` */
-  map: string;
-  /** Our team's rounds : theirs, from `team_scores`. */
-  score: [number, number];
-  /** The player's `leetify_rating` for that match, in Leetify's display format (e.g. +1.23). */
-  leetifyRating: number;
-}
+import type { LeetifyMatch } from "@/lib/external/leetify";
+
+export type LeetifyMatchSample = LeetifyMatch;
 
 const MAPS = [
   "de_mirage",

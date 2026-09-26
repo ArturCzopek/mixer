@@ -68,6 +68,12 @@ export interface BalanceConfig {
   };
   variants: number;
   minDistance: number;
+  /**
+   * Avoid a pair of players being teammates in every proposed variant (owner, D33): the last
+   * variant may cost up to `maxExtraCost` pp more than the best eligible one to split such pairs.
+   * 0 turns it off.
+   */
+  pairSpread: { maxExtraCost: number };
 }
 
 export const DEFAULT_BALANCE_CONFIG: BalanceConfig = {
@@ -115,6 +121,7 @@ export const DEFAULT_BALANCE_CONFIG: BalanceConfig = {
   },
   variants: 3,
   minDistance: 2,
+  pairSpread: { maxExtraCost: 3 },
 };
 
 export type BalanceConfigOverrides = {
@@ -126,6 +133,7 @@ export type BalanceConfigOverrides = {
   rules?: { [K in keyof BalanceConfig["rules"]]?: Partial<RuleConfig> };
   variants?: number;
   minDistance?: number;
+  pairSpread?: Partial<BalanceConfig["pairSpread"]>;
 };
 
 /** Fills a partial config (e.g. admin tweaks) with defaults. Anchor lists are replaced, not merged. */
@@ -148,5 +156,6 @@ export function resolveConfig(
     },
     variants: overrides.variants ?? d.variants,
     minDistance: overrides.minDistance ?? d.minDistance,
+    pairSpread: { ...d.pairSpread, ...overrides.pairSpread },
   };
 }
