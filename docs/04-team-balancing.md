@@ -16,7 +16,7 @@ S = wE·E + wF·F + wM·M + wA·A     # weights from config (D22): wE = 1, wF = 
 
 | Term | Meaning | Source |
 |---|---|---|
-| **E**: base | Current FACEIT ELO | FACEIT Data API. Fallback: `group_members.manual_skill_override` |
+| **E**: base | Resolved base ELO | FACEIT ELO → this group's `manual_skill_override` → mean of other players' sourced FACEIT/manual ELO in this mix → neutral 1500 only when nobody in the roster has sourced ELO (D40); each source is shown in the panel |
 | **F**: FACEIT form | Recent FACEIT performance vs. the player's own baseline, scaled by ELO (asymmetry) | FACEIT matches from the **last 30 days** |
 | **M**: mix form | How the player performs **in our mixes** | Our own mix stats (FACEIT import or demo) |
 | **A**: activity | Rust penalty / small bonus for regular play | Sessions in the last 30 days (FACEIT history + mix maps) |
@@ -25,6 +25,13 @@ The engine returns every intermediate number with S (M1-4b, `SkillBreakdown` in 
 and the "How was this calculated?" panel shows each term as its own line: value, weight, contribution.
 Each contribution `w·term` is rounded to whole ELO points and **S is their sum**, so the panel always
 adds up exactly. A weight of 0 switches a term off (it is still explained).
+
+At generation, `skill_snapshot` stores both the original inputs and the resolved E source. The mix
+mean uses other players' available FACEIT/manual ELO values; it does not recursively average inferred
+means. If no one in the lineup has FACEIT or group manual ELO, 1500 is the neutral engine-compatible
+seed. A failed FACEIT form request is marked **form unavailable** and contributes F = 0; an empty
+successful response is still explained as no recent matches. These are data fallbacks, not changes to
+the engine's formulas or defaults.
 
 ### F: recent FACEIT form
 

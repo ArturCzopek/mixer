@@ -18,6 +18,6 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Codex model selection
 
-- Default Codex delegation to gpt-6-luna with reasoning effort xhigh; set both explicitly for every task.
-- For more advanced, clearly scoped work, Claude may recommend gpt-6-sol with medium effort, or high when deeper analysis or review is warranted. State why and the proposed settings to Artur. Unless Artur selects Sol, keep the Luna default.
+- Owner rule (2026-09-27): important work (schema/integrity, authorization, concurrency, balancing inputs, larger features) goes to gpt-6-sol with medium effort, or high when deeper analysis is needed. Less important work (UI, copy, small queries, docs, simple fixes) goes to gpt-6-luna with xhigh, or high to finish faster.
+- Set model and effort explicitly for every task and tell Artur which one was used.
 - If the delegation mechanism cannot set and confirm the chosen model and effort, tell Artur; a prompt alone does not guarantee model selection.

@@ -45,7 +45,7 @@ async function sql(query) {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const groupId = randomUUID();
-const mixIds = [randomUUID(), randomUUID()];
+const mixIds = [randomUUID(), randomUUID(), randomUUID()];
 const playerIds = Array.from({ length: 11 }, () => randomUUID());
 const steamStart = BigInt(`7${Date.now()}${Math.floor(Math.random() * 1000)}`);
 const players = playerIds.map((id, i) => ({
@@ -74,9 +74,9 @@ async function createFixture() {
     )
     .join(",\n");
   const participantValues = mixIds
-    .flatMap((mixId) =>
+    .flatMap((mixId, index) =>
       players
-        .slice(0, 9)
+        .slice(0, index === 2 ? 10 : 9)
         .map(({ id }) => `(${q(mixId)}, ${q(id)}, ${q(playerIds[0])})`),
     )
     .join(",\n");
@@ -111,6 +111,19 @@ async function race(mixId, statement, assertion) {
   const result = await contender;
   if (holderError) throw holderError;
   await assertion(result);
+}
+
+function variantPayload(teamAssignments, prefix) {
+  return teamAssignments.map(([teamA, teamB], index) => ({
+    splitKey: `${prefix}-${index + 1}`,
+    teamA,
+    teamB,
+    avgA: 1500 + index,
+    avgB: 1500 - index,
+    winProbA: 0.5,
+    penalty: 0,
+    details: {},
+  }));
 }
 
 try {
@@ -163,10 +176,138 @@ try {
     },
   );
 
+  const playerIdsForMix = players.slice(0, 10).map(({ id }) => id);
+  const teamAssignments = [
+    [playerIdsForMix.slice(0, 5), playerIdsForMix.slice(5)],
+    [
+      [playerIdsForMix[0], ...playerIdsForMix.slice(5, 9)],
+      playerIdsForMix.slice(1, 5).concat(playerIdsForMix[9]),
+    ],
+    [
+      [playerIdsForMix[0], playerIdsForMix[1], ...playerIdsForMix.slice(6, 9)],
+      [
+        playerIdsForMix[2],
+        playerIdsForMix[3],
+        playerIdsForMix[4],
+        playerIdsForMix[5],
+        playerIdsForMix[9],
+      ],
+    ],
+  ];
+  const snapshots = playerIdsForMix.map((playerId, index) => ({
+    playerId,
+    snapshot: {
+      input: { steamId: players[index].steamId, eloSource: "faceit" },
+      breakdown: { steamId: players[index].steamId, S: 1500 },
+    },
+  }));
+  const initialSet = q(
+    JSON.stringify(variantPayload(teamAssignments, "initial")),
+  );
+  await sql(`
+    update public.mixes set status = 'balancing' where id = ${q(mixIds[2])};
+    select public.create_mix_variant_set(
+      ${q(mixIds[2])}, '{}'::jsonb, ${q(JSON.stringify(snapshots))}::jsonb, ${initialSet}::jsonb
+    );
+  `);
+
+  const rerollSet = q(
+    JSON.stringify(
+      variantPayload(
+        [
+          [
+            [
+              playerIdsForMix[0],
+              playerIdsForMix[2],
+              playerIdsForMix[4],
+              playerIdsForMix[6],
+              playerIdsForMix[8],
+            ],
+            [
+              playerIdsForMix[1],
+              playerIdsForMix[3],
+              playerIdsForMix[5],
+              playerIdsForMix[7],
+              playerIdsForMix[9],
+            ],
+          ],
+          [
+            [
+              playerIdsForMix[0],
+              playerIdsForMix[1],
+              playerIdsForMix[4],
+              playerIdsForMix[7],
+              playerIdsForMix[9],
+            ],
+            [
+              playerIdsForMix[2],
+              playerIdsForMix[3],
+              playerIdsForMix[5],
+              playerIdsForMix[6],
+              playerIdsForMix[8],
+            ],
+          ],
+          [
+            [
+              playerIdsForMix[0],
+              playerIdsForMix[3],
+              playerIdsForMix[5],
+              playerIdsForMix[6],
+              playerIdsForMix[9],
+            ],
+            [
+              playerIdsForMix[1],
+              playerIdsForMix[2],
+              playerIdsForMix[4],
+              playerIdsForMix[7],
+              playerIdsForMix[8],
+            ],
+          ],
+        ],
+        "reroll",
+      ),
+    ),
+  );
+  const simultaneous = await Promise.all([
+    sql(`select public.approve_mix_variant_set(${q(mixIds[2])}, 1);`).then(
+      () => ({ ok: true }),
+      (error) => ({ ok: false, error }),
+    ),
+    sql(
+      `select public.reroll_mix_variant_set(${q(mixIds[2])}, 1, ${rerollSet}::jsonb);`,
+    ).then(
+      () => ({ ok: true }),
+      (error) => ({ ok: false, error }),
+    ),
+  ]);
+  assert.equal(
+    simultaneous.filter((result) => result.ok).length,
+    1,
+    "exactly one concurrent approve or re-roll must commit",
+  );
+  const raceState = await sql(`
+    select m.status, coalesce(max(v.generation), 0)::int as generation,
+      count(*) filter (where v.is_published)::int as published,
+      count(*) filter (where v.rejected_at is not null)::int as rejected
+    from public.mixes m left join public.variants v on v.mix_id = m.id
+    where m.id = ${q(mixIds[2])}
+    group by m.id
+  `);
+  if (raceState[0]?.status === "voting") {
+    assert.equal(raceState[0]?.generation, 1);
+    assert.equal(raceState[0]?.published, 3);
+  } else {
+    assert.equal(raceState[0]?.status, "balancing");
+    assert.equal(raceState[0]?.generation, 2);
+    assert.equal(raceState[0]?.published, 0);
+    assert.equal(raceState[0]?.rejected, 3);
+  }
+
   console.log("ok concurrent join cap (23514, exactly 10 participants)");
   console.log(
     "ok status update waits for tenth join (balancing, exactly 10 participants)",
   );
+  console.log("ok concurrent approve vs re-roll (one operation wins)");
 } finally {
   try {
     await sql(`

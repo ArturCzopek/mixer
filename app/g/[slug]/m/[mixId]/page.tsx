@@ -3,10 +3,12 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import { LobbyRealtime } from "@/components/mix/lobby-realtime";
 import { MixLobbyView } from "@/components/mix/lobby-view";
+import { MixView } from "@/components/mix/mix-view";
 import { hasGroupRole } from "@/lib/auth/roles";
 import { getSession } from "@/lib/auth/server";
 import { groupBySlug } from "@/lib/groups/queries";
-import { mixLobby } from "@/lib/mix/queries";
+import { groupMixes, mixLobby, mixVariantPage } from "@/lib/mix/queries";
+import { mixVariantViewData } from "@/lib/mix/view";
 
 export async function generateMetadata({
   params,
@@ -44,6 +46,34 @@ export default async function MixLobbyPage({
     "admin",
     session?.isSiteAdmin ?? false,
   );
+
+  if (
+    mix.status === "balancing" ||
+    mix.status === "voting" ||
+    mix.status === "locked"
+  ) {
+    const page = await mixVariantPage(mix.id, canManage);
+    if (!page) notFound();
+    const mixes = await groupMixes(group.id);
+    const number = mixes.findIndex((item) => item.id === mix.id) + 1;
+    const data = mixVariantViewData(page, {
+      number,
+      meSteamId:
+        mix.participants.find(
+          (participant) => participant.playerId === session?.playerId,
+        )?.steamId ?? null,
+      viewerIsAdmin: canManage,
+      groupMembers: group.members,
+    });
+
+    return (
+      <>
+        <LobbyRealtime mixId={mix.id} />
+        <MixView state={mix.status} data={data} />
+      </>
+    );
+  }
+
   const joined = new Set(
     mix.participants.map((participant) => participant.playerId),
   );

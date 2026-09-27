@@ -25,6 +25,8 @@ declare
   p14 uuid;
   actual uuid[];
   expected uuid[];
+  full_roster uuid[];
+  variant_set jsonb;
   failed boolean;
   i integer;
 begin
@@ -160,11 +162,19 @@ begin
   end;
   if not failed then raise exception 'ASSERT: participant delete worked after sign-ups closed'; end if;
 
-  -- Same-state updates are harmless. These later edges are staged for M1-6 / M1-7 guards.
+  -- Reopening clears any pending set. A fresh set must be approved before voting starts.
   update public.mixes set status = 'balancing' where id = full_mix;
   update public.mixes set status = 'open' where id = full_mix;
   update public.mixes set status = 'balancing' where id = full_mix;
-  update public.mixes set status = 'voting' where id = full_mix;
+  select array_agg(player_id order by created_at, player_id) into full_roster
+  from public.mix_participants where mix_id = full_mix;
+  variant_set := jsonb_build_array(
+    jsonb_build_object('splitKey', 'lobby-1', 'teamA', to_jsonb(full_roster[1:5]), 'teamB', to_jsonb(full_roster[6:10]), 'avgA', 1500, 'avgB', 1500, 'winProbA', 0.5),
+    jsonb_build_object('splitKey', 'lobby-2', 'teamA', to_jsonb(array[full_roster[1], full_roster[2], full_roster[3], full_roster[4], full_roster[6]]), 'teamB', to_jsonb(array[full_roster[5], full_roster[7], full_roster[8], full_roster[9], full_roster[10]]), 'avgA', 1501, 'avgB', 1499, 'winProbA', 0.51),
+    jsonb_build_object('splitKey', 'lobby-3', 'teamA', to_jsonb(array[full_roster[1], full_roster[2], full_roster[3], full_roster[7], full_roster[8]]), 'teamB', to_jsonb(array[full_roster[4], full_roster[5], full_roster[6], full_roster[9], full_roster[10]]), 'avgA', 1499, 'avgB', 1501, 'winProbA', 0.49)
+  );
+  perform public.create_mix_variant_set(full_mix, '{}'::jsonb, null, variant_set);
+  perform public.approve_mix_variant_set(full_mix, 1);
   update public.mixes set status = 'locked' where id = full_mix;
   update public.mixes set status = 'voting' where id = full_mix;
   update public.mixes set status = 'locked' where id = full_mix;

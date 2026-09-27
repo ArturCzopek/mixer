@@ -6,7 +6,9 @@ Migrations: `db/migrations/` (how they are applied: [lib/db/README.md](../lib/db
 
 Integrity enforced in the database (Phase 1):
 - **Mix lobby (M1-5):** titles are 2–60 non-whitespace characters. The participant `before insert` trigger locks the mix, requires `open` status and an active member of that group, then counts in a separate volatile statement before allowing at most ten. Participant deletes are allowed only while open, except during a mix/group cascade; group deletion cascades through memberships and mixes. Realtime lobby rows are ordered by `created_at, player_id`.
-- **Status transitions (M1-5):** same-status updates are no-ops; legal changes are `open → balancing` (exactly ten participants), `balancing → open|voting`, `voting → locked`, `locked → voting|played`, and `open|balancing|voting|locked → cancelled`. `played` and `cancelled` are terminal. M1-6 adds the published-variant check to `balancing → voting`; M1-7 adds the chosen-variant check to `voting → locked`.
+- **Status transitions:** `open → balancing` requires ten participants; `balancing → voting` requires exactly three published variants in the latest generation and no other published set. `balancing → open` deletes unpublished variants and clears their snapshots/config in the same transaction. Existing voting/locked/cancelled edges are unchanged; `played` and `cancelled` are terminal.
+- **Variant lifecycle (M1-6):** create, re-roll, approve and swap RPCs lock the mix row and re-check status/generation. Re-roll rejects the current unpublished set and cannot reuse any split already shown; numbers continue 4–6, 7–9, etc. Once any variant is published, no variant can be added/deleted, unpublished, or have its team/score details changed. Rejected variants cannot be published later. Browser roles can read only published variants.
+- **1:1 swaps (D39):** `swap_mix_participant` is the single write path for `balancing`, `voting` and `locked`: the leaver must be in the mix and the replacement an active group member not already in it. The transaction removes the leaver's vote, replaces their player ID in the participant row and every variant's same team slot, preserves scores, marks the inherited skill snapshot, and appends `mixes.swap_log`. Direct participant deletes remain guarded by the M1-5 trigger.
 - **Only active group members join a mix:** the same trigger copies the mix's `group_id` and rejects players whose membership is closed; the composite fks make a participant from another group impossible.
 - **Votes:** `(mix_id, voter_id)` references `mix_participants` (only participants vote); `(variant_id, mix_id)` references `variants (id, mix_id)` (only a variant of the same mix). Same composite key pins `mixes.chosen_variant_id` to the mix.
 - **RLS:** enabled on all tables (incl. `groups`, `group_members`); browsers see only published variants and their players. Column grants hide `players.is_site_admin`, `players.last_login_at`, and `groups.discord_settings`; new columns stay private by default. The service role bypasses RLS.
@@ -79,7 +81,8 @@ One Steam identity across the whole app (can be in several groups).
 | status | text | `open` · `balancing` · `voting` · `locked` · `played` · `cancelled` |
 | created_by | uuid fk players | |
 | chosen_variant_id | uuid fk variants null | set when locked |
-| balance_config | jsonb | weights used (for reproducibility) |
+| balance_config | jsonb | resolved config used for generation (for reproducibility) |
+| swap_log | jsonb array | from/to/admin names and IDs plus timestamp; public lineup-change history |
 
 ## mix_participants
 | column | type | notes |
@@ -88,15 +91,19 @@ One Steam identity across the whole app (can be in several groups).
 | player_id | uuid fk | |
 | group_id | uuid | copied from the mix by the insert trigger; fks to `mixes (id, group_id)` and `group_members (group_id, player_id)` |
 | added_by | uuid fk players | self or admin |
-| skill_snapshot | jsonb | inputs at balancing time: FACEIT ELO, form, mix rating, final score |
+| skill_snapshot | jsonb null | original inputs + `SkillBreakdown`, resolved E source, form availability and final S; null until generated or after reopening sign-ups |
 
 ## variants
 | column | type | notes |
 |---|---|---|
 | id | uuid pk | |
 | mix_id | uuid fk | |
-| number | smallint | 1..3 (increments on re-roll: 4..6 …) |
+| number | smallint | starts at 1..3; increments by three for every re-roll (4..6, 7..9 …) |
+| generation | integer | current/rejected set sequence, starts at 1 |
 | is_published | bool | |
+| rejected_at | timestamptz null | marks an unpublished set rejected by re-roll |
+| split_key | text | canonical team split key; compared against every split already shown |
+| details | jsonb | engine labels, ranks, penalties, duo/pair notes and candidate count |
 | team_a_score / team_b_score | numeric | summed / averaged skill |
 | win_prob_a | numeric | 0..1 |
 | penalty | numeric | pairing penalty (debug/explanation) |
@@ -107,6 +114,11 @@ One Steam identity across the whole app (can be in several groups).
 | variant_id | uuid fk | pk (variant_id, player_id) |
 | player_id | uuid fk | |
 | team | char(1) | `A` / `B` |
+
+Variant and player-row triggers serialize on the owning mix. Swapping may update a published
+variant's `player_id` only after the participant row has been replaced by the swap function; the
+team slot and all stored scores remain frozen. Reopening before approval removes unpublished rows
+and their player rows by cascade, clears `skill_snapshot`, and resets `balance_config` to `{}`.
 
 ## votes
 | column | type | notes |

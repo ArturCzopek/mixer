@@ -5,6 +5,10 @@ const auth = vi.hoisted(() => ({
   requireSession: vi.fn(),
   requireGroupRole: vi.fn(),
 }));
+const variantService = vi.hoisted(() => ({
+  initialVariantPlan: vi.fn(),
+  rerollVariantPlan: vi.fn(),
+}));
 const db = vi.hoisted(() => ({
   writes: [] as {
     table: string;
@@ -16,10 +20,19 @@ const db = vi.hoisted(() => ({
     string,
     { data: unknown; error: { code: string; message: string } | null }
   >,
+  rpcCalls: [] as { name: string; args: Record<string, unknown> }[],
+  rpcResponse: { data: null, error: null } as {
+    data: unknown;
+    error: { code: string; message: string } | null;
+  },
 }));
 
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/auth/server", () => auth);
+vi.mock("@/lib/mix/variant-service", () => ({
+  ...variantService,
+  StaleVariantSetError: class extends Error {},
+}));
 vi.mock("next/navigation", () => ({
   redirect: (url: string) => {
     throw new Error(`redirect ${url}`);
@@ -27,6 +40,10 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("@/lib/db/admin", () => ({
   adminDb: () => ({
+    rpc: (name: string, args: Record<string, unknown>) => {
+      db.rpcCalls.push({ name, args });
+      return Promise.resolve(db.rpcResponse);
+    },
     from: (table: string) => {
       let op: string | null = null;
       let values: unknown;
@@ -84,11 +101,16 @@ const {
   leaveMix,
   removeParticipant,
   setMixStatus,
+  approveMixVariants,
+  generateMixVariants,
+  rerollMixVariants,
+  swapMixParticipant,
 } = await import("./actions");
 
 const GROUP = "6f1b3c2a-8d4e-4f5a-9b6c-7d8e9f0a1b2c";
 const PLAYER = "1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d";
 const OTHER_PLAYER = "7c6b5a4d-3e2f-4a1b-8c9d-0e1f2a3b4c5d";
+const JOINING_PLAYER = "2c6b5a4d-3e2f-4a1b-8c9d-0e1f2a3b4c5d";
 const MIX = "4d0ea03c-bf8a-4d4b-a37b-21d3d40c5d55";
 const validTitle = (value: string) => {
   const form = new FormData();
@@ -99,11 +121,21 @@ const noPrev = undefined;
 
 beforeEach(() => {
   db.writes.length = 0;
+  db.rpcCalls.length = 0;
+  db.rpcResponse = { data: null, error: null };
   for (const key of Object.keys(db.responses)) delete db.responses[key];
   auth.requireSession.mockReset();
   auth.requireGroupRole.mockReset();
   auth.requireSession.mockResolvedValue({ playerId: PLAYER });
   auth.requireGroupRole.mockResolvedValue({ playerId: PLAYER });
+  variantService.initialVariantPlan.mockReset();
+  variantService.rerollVariantPlan.mockReset();
+  variantService.initialVariantPlan.mockResolvedValue({
+    balanceConfig: { weights: { elo: 1 } },
+    snapshots: [],
+    variants: [],
+  });
+  variantService.rerollVariantPlan.mockResolvedValue({ variants: [] });
 });
 
 const everyAction = {
@@ -113,6 +145,11 @@ const everyAction = {
   addParticipant: () => addParticipant(MIX, OTHER_PLAYER),
   removeParticipant: () => removeParticipant(MIX, OTHER_PLAYER),
   setMixStatus: () => setMixStatus(MIX, "open", "balancing"),
+  generateMixVariants: () => generateMixVariants(MIX),
+  rerollMixVariants: () => rerollMixVariants(MIX, 1),
+  approveMixVariants: () => approveMixVariants(MIX, 1),
+  swapMixParticipant: () =>
+    swapMixParticipant(MIX, OTHER_PLAYER, JOINING_PLAYER),
 };
 
 describe("mix actions authorize before writing", () => {
@@ -135,6 +172,9 @@ describe("mix actions authorize before writing", () => {
         }
         expect(await run()).toEqual({ error });
         expect(db.writes).toEqual([]);
+        expect(db.rpcCalls).toEqual([]);
+        expect(variantService.initialVariantPlan).not.toHaveBeenCalled();
+        expect(variantService.rerollVariantPlan).not.toHaveBeenCalled();
       },
     );
   }
@@ -179,7 +219,14 @@ describe("mix action validation and writes", () => {
     expect(await setMixStatus(MIX, "open", "locked" as "open")).toEqual({
       error: "forbidden",
     });
+    expect(await generateMixVariants("bad")).toEqual({ error: "forbidden" });
+    expect(await rerollMixVariants(MIX, 0)).toEqual({ error: "forbidden" });
+    expect(await approveMixVariants(MIX, 0)).toEqual({ error: "forbidden" });
+    expect(await swapMixParticipant(MIX, PLAYER, PLAYER)).toEqual({
+      error: "forbidden",
+    });
     expect(db.writes).toEqual([]);
+    expect(db.rpcCalls).toEqual([]);
     expect(auth.requireSession).not.toHaveBeenCalled();
     expect(auth.requireGroupRole).not.toHaveBeenCalled();
   });
@@ -294,5 +341,56 @@ describe("mix action validation and writes", () => {
     expect(await setMixStatus(MIX, "open", "cancelled")).toEqual({
       error: "stale",
     });
+  });
+
+  it("calls generation RPCs with the expected generation after admin authorization", async () => {
+    expect(await generateMixVariants(MIX)).toEqual({ ok: true });
+    expect(variantService.initialVariantPlan).toHaveBeenCalledWith(MIX);
+    expect(db.rpcCalls[0]).toMatchObject({
+      name: "create_mix_variant_set",
+      args: { p_mix_id: MIX, p_variants: [] },
+    });
+
+    db.rpcCalls.length = 0;
+    expect(await rerollMixVariants(MIX, 3)).toEqual({ ok: true });
+    expect(variantService.rerollVariantPlan).toHaveBeenCalledWith(MIX, 3);
+    expect(db.rpcCalls[0]).toMatchObject({
+      name: "reroll_mix_variant_set",
+      args: { p_mix_id: MIX, p_expected_generation: 3, p_variants: [] },
+    });
+
+    db.rpcCalls.length = 0;
+    expect(await approveMixVariants(MIX, 3)).toEqual({ ok: true });
+    expect(db.rpcCalls[0]).toEqual({
+      name: "approve_mix_variant_set",
+      args: { p_mix_id: MIX, p_expected_generation: 3 },
+    });
+  });
+
+  it("uses the session admin and delegates 1:1 swap validation to the database", async () => {
+    expect(await swapMixParticipant(MIX, OTHER_PLAYER, JOINING_PLAYER)).toEqual(
+      {
+        ok: true,
+      },
+    );
+    expect(db.rpcCalls[0]).toEqual({
+      name: "swap_mix_participant",
+      args: {
+        p_mix_id: MIX,
+        p_leaving_player_id: OTHER_PLAYER,
+        p_joining_player_id: JOINING_PLAYER,
+        p_admin_id: PLAYER,
+      },
+    });
+
+    db.rpcResponse = {
+      data: null,
+      error: { code: "23503", message: "not active" },
+    };
+    expect(await swapMixParticipant(MIX, OTHER_PLAYER, JOINING_PLAYER)).toEqual(
+      {
+        error: "notMember",
+      },
+    );
   });
 });

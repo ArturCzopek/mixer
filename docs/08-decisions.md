@@ -326,7 +326,7 @@ Owner clarification:
 - Acceptance publishes the set and starts `voting`. The approved set cannot be regenerated, replaced or edited for the rest of that mix, even by an admin.
 - Reopening voting before the match starts (D33) retains exactly the same approved variants; it does not return to `balancing` or restore re-roll.
 - M1-6/M1-7 must enforce this on the server, including concurrent acceptance/re-roll requests and stale admin pages. Hiding the button is not sufficient.
-- The showcase no longer offers re-roll during voting. Production generation/publication endpoints are still pending in M1-6; the showcase is not evidence of server enforcement.
+- The showcase no longer offers re-roll during voting. M1-6 implements the production generation and publication guards; live migration/race verification remains pending.
 
 ## D38. Browser visibility: published variants only, private columns hidden, Accepted (2026-09-27)
 Browser roles can read only published variants and their players. Column-level grants expose the approved public fields on `players` and `groups`, while hiding `players.is_site_admin`, `players.last_login_at`, and `groups.discord_settings`; new columns remain private until explicitly granted. The migration enforces row visibility with RLS and column visibility with grants, while `service_role` retains its direct access and RLS bypass.
@@ -334,4 +334,8 @@ Browser roles can read only published variants and their players. Column-level g
 ## D39. Mix lobby rules and 1:1 swap after sign-ups close, Accepted (2026-09-27)
 M1-5 enforces 2–60 non-whitespace-character titles, a hard ten-player cap, active-group-member sign-ups while status is `open`, and the staged status edges `open → balancing` (exactly ten participants), `balancing → open|voting`, `voting → locked`, `locked → voting|played`, and `open|balancing|voting|locked → cancelled`; `played` and `cancelled` are terminal. The lobby is shown in join order (`created_at, player_id`).
 
-After sign-ups close, a group admin may replace a participant who drops out with one active group member, one for one, while the mix is `balancing`, `voting`, or `locked`. Amending D37: this does not regenerate or unapprove the split. In M1-6, one SQL function will update `mix_participants.player_id`, remove the leaver's vote, preserve the same team slot in every approved variant, and mark the swap in the UI. M1-5 adds no participant-update trigger; its delete guard remains in place.
+After sign-ups close, a group admin may replace a participant who drops out with one active group member, one for one, while the mix is `balancing`, `voting`, or `locked`. Amending D37: this does not regenerate or unapprove the split. M1-6's `swap_mix_participant` function locks the mix, updates `mix_participants.player_id`, removes the leaver's vote, preserves the same team slot in every variant, leaves stored scores unchanged, and records the swap for the UI. M1-5 adds no participant-update trigger; its delete guard remains in place.
+
+## D40. Generation fallback when FACEIT data is missing, Accepted (2026-09-27)
+
+For each player, E uses FACEIT ELO first, then that group's `manual_skill_override`, then the mean of other players' available FACEIT/manual ELO values in the same mix. Each source is recorded in the snapshot and named in the calculation panel. If the entire ten-player roster has no sourced ELO, use a neutral 1500 ELO seed and show that source explicitly so generation still completes. A failed FACEIT form fetch stores no form samples, records the form as unavailable, and contributes F = 0. The existing engine, formulas, and defaults do not change. FACEIT's existing client retry on 429/5xx remains in effect (A4/Q2).

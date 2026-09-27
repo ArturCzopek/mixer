@@ -6,6 +6,7 @@ import { adminDb } from "@/lib/db/admin";
 import type { GroupRole } from "@/lib/auth/roles";
 
 export interface GroupLink {
+  id: string;
   slug: string;
   name: string;
 }
@@ -22,7 +23,6 @@ export interface GroupMember {
 }
 
 export interface GroupPage extends GroupLink {
-  id: string;
   faceitClubUrl: string | null;
   /** Active members only, admins first, then by join date. */
   members: GroupMember[];
@@ -52,7 +52,7 @@ interface GroupRow {
 export async function myGroups(playerId: string): Promise<GroupLink[]> {
   const { data, error } = await adminDb()
     .from("group_members")
-    .select("group:groups(slug, name)")
+    .select("group:groups!group_members_group_id_fkey(id, slug, name)")
     .eq("player_id", playerId)
     .is("left_at", null)
     .returns<{ group: GroupLink }[]>();

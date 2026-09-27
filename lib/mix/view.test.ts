@@ -10,6 +10,13 @@ import type { MixViewData } from "./view";
 vi.mock("@/lib/external/leetify", () => ({
   getFaceitMatches: vi.fn().mockResolvedValue(null),
 }));
+vi.mock("@/lib/mix/actions", () => ({
+  approveMixVariants: vi.fn(),
+  generateMixVariants: vi.fn(),
+  rerollMixVariants: vi.fn(),
+  setMixStatus: vi.fn(),
+  swapMixParticipant: vi.fn(),
+}));
 
 let data: MixViewData;
 beforeAll(async () => {

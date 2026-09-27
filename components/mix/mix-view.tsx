@@ -1,11 +1,11 @@
 "use client";
 
-// Mix page in the VGUI world. Renders plain `MixViewData` built on the server: the showcase
-// (lib/showcase/) and later the database (M1-5..M1-7). Every string comes from lib/i18n. Buttons do
-// nothing yet.
+// Mix page in the VGUI world. Renders plain `MixViewData` built on the server: the showcase and
+// stored mix variants share the same presentation components.
 
 import * as React from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { ChevronDown, ExternalLink, Lock } from "lucide-react";
 import {
   Badge,
@@ -29,8 +29,16 @@ import { votingOutcome } from "@/lib/mix/voting";
 import { useLang, useT } from "@/components/i18n";
 import type { Dict } from "@/lib/i18n/dict";
 import { cn } from "@/lib/utils";
+import {
+  approveMixVariants,
+  generateMixVariants,
+  rerollMixVariants,
+  setMixStatus,
+  swapMixParticipant,
+  type MixActionState,
+} from "@/lib/mix/actions";
 
-export type MixState = "lobby" | "voting" | "locked" | "played";
+export type MixState = "lobby" | "balancing" | "voting" | "locked" | "played";
 
 type Player = ViewPlayer;
 type Line = Omit<ViewLine, "steamId"> & { player: Player };
@@ -50,13 +58,17 @@ function resolve(data: MixViewData) {
   const joinIndex = new Map(data.participants.map((x, i) => [x.steamId, i]));
   const lines = (ls: ViewLine[]): Line[] =>
     ls.map(({ steamId, ...l }) => ({ ...l, player: player(steamId) }));
-  const outcome = votingOutcome(data.variants, data.mix.id);
-  const winnerData = data.variants.find((v) => v.number === outcome.winner)!;
-  const winner: Variant = {
-    ...winnerData,
-    teamA: team(winnerData.teamA),
-    teamB: team(winnerData.teamB),
-  };
+  const outcome = data.variants.length
+    ? votingOutcome(data.variants, data.mix.id)
+    : { winner: 0, tied: [] };
+  const winnerData = data.variants.find((v) => v.number === outcome.winner);
+  const winner: Variant | null = winnerData
+    ? {
+        ...winnerData,
+        teamA: team(winnerData.teamA),
+        teamB: team(winnerData.teamB),
+      }
+    : null;
   const maps: MapResult[] = data.result.maps.map((m) => ({
     ...m,
     lines: lines(m.lines),
@@ -126,9 +138,14 @@ export function MixView({
     minute: "2-digit",
     timeZone: "Europe/Warsaw",
   }).format(new Date(data.mixAt));
-  const [variantNo, setVariantNo] = React.useState(1);
+  const [variantNo, setVariantNo] = React.useState(
+    data.variants[0]?.number ?? 1,
+  );
   const [focusId, setFocusId] = React.useState(data.mix.meId);
-  const variant = mix.variants.find((v) => v.number === variantNo)!;
+  const activeVariantNo = mix.variants.some((v) => v.number === variantNo)
+    ? variantNo
+    : (mix.variants[0]?.number ?? 1);
+  const variant = mix.variants.find((v) => v.number === activeVariantNo);
   const count = state === "lobby" ? mix.lobby.length : 10;
 
   return (
@@ -149,30 +166,44 @@ export function MixView({
 
             {state === "lobby" && <Lobby />}
 
+            {state === "balancing" && (
+              <BalancingPanel
+                variant={variant}
+                variantNo={activeVariantNo}
+                onVariantChange={setVariantNo}
+                focusId={focusId}
+                onFocus={setFocusId}
+              />
+            )}
+
             {state === "voting" && (
               <div className="mt-2.5">
                 <Tabs
                   label={t.variants.aria}
-                  value={variantNo}
+                  value={activeVariantNo}
                   onChange={setVariantNo}
                   items={mix.variants.map((v) => ({
                     value: v.number,
                     label: (
                       <>
                         {t.variants.variant(v.number)}{" "}
-                        <span className="text-gold font-bold">{v.votes}</span>
+                        {data.showcase && (
+                          <span className="text-gold font-bold">{v.votes}</span>
+                        )}
                       </>
                     ),
                   }))}
                 />
                 <Sheet>
-                  <VariantBody
-                    variant={variant}
-                    focusId={focusId}
-                    onFocus={setFocusId}
-                  />
-                  <Tally />
-                  {data.viewerIsAdmin && (
+                  {variant && (
+                    <VariantBody
+                      variant={variant}
+                      focusId={focusId}
+                      onFocus={setFocusId}
+                    />
+                  )}
+                  {data.showcase && variant && <Tally />}
+                  {data.showcase && data.viewerIsAdmin && (
                     <div className="mt-2.5">
                       <AdminPanel state="voting" />
                     </div>
@@ -183,10 +214,17 @@ export function MixView({
 
             {state === "locked" && <Locked />}
             {state === "played" && <Played />}
+
+            {!data.showcase && <SwapHistory />}
+            {data.viewerIsAdmin &&
+              ["balancing", "voting", "locked"].includes(state) &&
+              !data.showcase && <SwapPanel />}
           </Window>
           <Quip state={state} />
         </div>
-        <ActionBar state={state} variantNo={variantNo} />
+        {data.showcase && (
+          <ActionBar state={state} variantNo={activeVariantNo} />
+        )}
       </div>
     </MixContext.Provider>
   );
@@ -212,15 +250,18 @@ function StatusLine({ state }: { state: MixState }) {
   const voted = data.variants.reduce((s, v) => s + v.votes, 0);
   const text = {
     lobby: <>{t.status.lobby(10 - lobby.length)}</>,
-    voting: (
+    balancing: <>{t.status.balancing}</>,
+    voting: data.showcase ? (
       <>
         {t.status.voting(voted)} <b className="text-text">{waitingFor.name}</b>
       </>
+    ) : (
+      <>{t.status.votingReady}</>
     ),
     locked: (
       <>
         {t.status.lockedBefore}{" "}
-        <b className="text-text">{t.variants.variant(winner.number)}</b>{" "}
+        <b className="text-text">{t.variants.variant(winner!.number)}</b>{" "}
         {t.status.lockedAfter}
       </>
     ),
@@ -236,6 +277,258 @@ function StatusLine({ state }: { state: MixState }) {
         )}
       />
       <span className="min-w-0">{text}</span>
+    </Well>
+  );
+}
+
+function BalancingPanel({
+  variant,
+  variantNo,
+  onVariantChange,
+  focusId,
+  onFocus,
+}: {
+  variant?: Variant;
+  variantNo: number;
+  onVariantChange: (number: number) => void;
+  focusId: string;
+  onFocus: (id: string) => void;
+}) {
+  const { data } = useMix();
+  const t = useT();
+  if (!data.viewerIsAdmin) return <Lobby />;
+  return (
+    <div className="mt-2.5 space-y-2.5">
+      {data.variants.length === 0 ? (
+        <>
+          <Well className="p-2 text-[11px]">
+            <p className="text-gold font-bold">{t.admin.previewWaiting}</p>
+            <p className="text-dim mt-1">{t.admin.previewNote}</p>
+          </Well>
+          <Lobby />
+        </>
+      ) : (
+        <>
+          <Tabs
+            label={t.variants.aria}
+            value={variantNo}
+            onChange={onVariantChange}
+            items={data.variants.map((item) => ({
+              value: item.number,
+              label: t.variants.variant(item.number),
+            }))}
+          />
+          <Sheet>
+            {variant && (
+              <VariantBody
+                variant={variant}
+                focusId={focusId}
+                onFocus={onFocus}
+              />
+            )}
+          </Sheet>
+        </>
+      )}
+      <VariantAdminControls />
+    </div>
+  );
+}
+
+function VariantAdminControls() {
+  const { data } = useMix();
+  const t = useT();
+  const router = useRouter();
+  const [pending, setPending] = React.useState<string | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
+  const run = async (key: string, action: () => Promise<MixActionState>) => {
+    setPending(key);
+    setError(null);
+    try {
+      const result = await action();
+      if (result && "error" in result) setError(t.lobby.errors[result.error]);
+      else router.refresh();
+    } catch {
+      setError(t.lobby.errors.failed);
+    } finally {
+      setPending(null);
+    }
+  };
+  const generation = data.generation;
+  const generated = data.variants.length === 3 && generation !== undefined;
+  const isPending = pending !== null;
+  return (
+    <Well className="p-2 text-[11px]">
+      <p className="text-gold mb-1 font-bold">{t.admin.title}</p>
+      <p className="text-dim mb-2">
+        {generated ? t.admin.previewReady(generation) : t.admin.previewWaiting}
+      </p>
+      {error && (
+        <p role="alert" className="text-loss mb-2">
+          {error}
+        </p>
+      )}
+      <div className="flex flex-wrap gap-1.5">
+        {!generated && (
+          <VButton
+            primary
+            disabled={isPending}
+            onClick={() =>
+              void run("generate", () => generateMixVariants(data.mix.id))
+            }
+          >
+            {pending === "generate" ? t.admin.generating : t.admin.generate}
+          </VButton>
+        )}
+        {generated && (
+          <>
+            <VButton
+              disabled={isPending}
+              onClick={() =>
+                void run("reroll", () =>
+                  rerollMixVariants(data.mix.id, generation),
+                )
+              }
+            >
+              {pending === "reroll" ? t.admin.rerolling : t.admin.reroll}
+            </VButton>
+            <VButton
+              primary
+              disabled={isPending}
+              onClick={() =>
+                void run("approve", () =>
+                  approveMixVariants(data.mix.id, generation),
+                )
+              }
+            >
+              {pending === "approve" ? t.admin.approving : t.admin.approve}
+            </VButton>
+          </>
+        )}
+        <VButton
+          disabled={isPending}
+          onClick={() =>
+            void run("reopen", () =>
+              setMixStatus(data.mix.id, "balancing", "open"),
+            )
+          }
+        >
+          {pending === "reopen" ? t.admin.reopening : t.lobby.reopen}
+        </VButton>
+        <VButton
+          disabled={isPending}
+          onClick={() =>
+            void run("cancel", () =>
+              setMixStatus(data.mix.id, "balancing", "cancelled"),
+            )
+          }
+        >
+          {pending === "cancel" ? t.admin.cancelling : t.lobby.cancel}
+        </VButton>
+      </div>
+    </Well>
+  );
+}
+
+function SwapPanel() {
+  const { data } = useMix();
+  const t = useT();
+  const router = useRouter();
+  const leavers = data.swapLeavers ?? [];
+  const candidates = data.swapCandidates ?? [];
+  const [leavingId, setLeavingId] = React.useState(leavers[0]?.playerId ?? "");
+  const [joiningId, setJoiningId] = React.useState(
+    candidates[0]?.playerId ?? "",
+  );
+  const [pending, setPending] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const leaving = leavers.some((p) => p.playerId === leavingId)
+    ? leavingId
+    : (leavers[0]?.playerId ?? "");
+  const joining = candidates.some((p) => p.playerId === joiningId)
+    ? joiningId
+    : (candidates[0]?.playerId ?? "");
+  const swap = async () => {
+    setPending(true);
+    setError(null);
+    try {
+      const result = await swapMixParticipant(data.mix.id, leaving, joining);
+      if (result && "error" in result) setError(t.lobby.errors[result.error]);
+      else router.refresh();
+    } catch {
+      setError(t.lobby.errors.failed);
+    } finally {
+      setPending(false);
+    }
+  };
+  return (
+    <Well className="mt-2.5 p-2 text-[11px]">
+      <p className="text-gold mb-2 font-bold">{t.admin.swapTitle}</p>
+      {leavers.length > 0 && candidates.length > 0 ? (
+        <div className="flex flex-col gap-1.5 sm:flex-row">
+          <label className="min-w-0 flex-1">
+            <span className="text-dim mb-0.5 block">{t.admin.swapLeaving}</span>
+            <select
+              className="bevel bg-window w-full min-w-0 px-2 py-1.5"
+              value={leaving}
+              disabled={pending}
+              onChange={(event) => setLeavingId(event.target.value)}
+            >
+              {leavers.map((player) => (
+                <option key={player.playerId} value={player.playerId}>
+                  {player.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="min-w-0 flex-1">
+            <span className="text-dim mb-0.5 block">{t.admin.swapJoining}</span>
+            <select
+              className="bevel bg-window w-full min-w-0 px-2 py-1.5"
+              value={joining}
+              disabled={pending}
+              onChange={(event) => setJoiningId(event.target.value)}
+            >
+              {candidates.map((player) => (
+                <option key={player.playerId} value={player.playerId}>
+                  {player.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <VButton
+            primary
+            className="self-end"
+            disabled={pending || !leaving || !joining}
+            onClick={() => void swap()}
+          >
+            {pending ? t.admin.swapping : t.admin.swap}
+          </VButton>
+        </div>
+      ) : (
+        <p className="text-dim">{t.admin.noSwapCandidates}</p>
+      )}
+      {error && (
+        <p role="alert" className="text-loss mt-1.5">
+          {error}
+        </p>
+      )}
+    </Well>
+  );
+}
+
+function SwapHistory() {
+  const { data } = useMix();
+  const t = useT();
+  if (!data.swapLog?.length) return null;
+  return (
+    <Well className="mt-2.5 p-2 text-[11px]">
+      <ul className="text-dim space-y-0.5">
+        {data.swapLog.map((swap, index) => (
+          <li key={`${swap.at}-${index}`}>
+            {t.admin.swapRecorded(swap.fromName, swap.toName, swap.byName)}
+          </li>
+        ))}
+      </ul>
     </Well>
   );
 }
@@ -276,8 +569,9 @@ function PlayerRow({
   selected?: boolean;
   onSelect?: () => void;
 }) {
-  const { skill } = useMix();
+  const { data, skill } = useMix();
   const t = useT();
+  const hasSkill = data.breakdowns[player.steamId] !== undefined;
   const Tag = onSelect ? "button" : "div";
   return (
     <Tag
@@ -285,7 +579,8 @@ function PlayerRow({
       title={joinedAt && t.lists.joined(joinedAt)}
       aria-pressed={onSelect ? selected : undefined}
       className={cn(
-        "border-row grid w-full grid-cols-[1fr_46%] items-center gap-2 border-b px-1.5 py-1 text-left",
+        "border-row grid w-full items-center gap-2 border-b px-1.5 py-1 text-left",
+        hasSkill ? "grid-cols-[1fr_46%]" : "grid-cols-[1fr]",
         selected ? "bg-gold-deep text-white" : onSelect && "hover:bg-hover",
       )}
     >
@@ -305,13 +600,13 @@ function PlayerRow({
           </span>
         )}
       </span>
-      <SkillBar value={skill(player)} selected={selected} />
+      {hasSkill && <SkillBar value={skill(player)} selected={selected} />}
     </Tag>
   );
 }
 
 function Lobby() {
-  const { lobby } = useMix();
+  const { data, lobby } = useMix();
   const t = useT();
   const slots: ((typeof lobby)[number] | null)[] = [
     ...lobby,
@@ -321,7 +616,9 @@ function Lobby() {
     <Well className="mt-2.5">
       <ListHead>
         <span className="flex-1 pl-6">{t.lists.playerJoinOrder}</span>
-        <span className="w-[46%]">{t.lists.skill}</span>
+        {Object.keys(data.breakdowns).length > 0 && (
+          <span className="w-[46%]">{t.lists.skill}</span>
+        )}
       </ListHead>
       <div className="md:divide-row md:grid md:grid-flow-col md:grid-cols-2 md:grid-rows-5 md:divide-x">
         {slots.map((p, i) =>
@@ -628,7 +925,15 @@ function LeetifyCard({ player }: { player: Player }) {
                       {m.score[1]}
                     </span>
                     <span className="text-right">{m.kad.join("/")}</span>
-                    <b className="text-right">{rating(m.leetifyRating)}</b>
+                    <b
+                      className={cn(
+                        "text-right",
+                        m.leetifyRating > 0 && "text-win",
+                        m.leetifyRating < 0 && "text-loss",
+                      )}
+                    >
+                      {rating(m.leetifyRating)}
+                    </b>
                   </>
                 )}
               </div>
@@ -719,6 +1024,7 @@ function PlayerExplanation({
   const { data, explain, nameOf } = useMix();
   const t = useT();
   const x = explain(player);
+  const input = data.skillInputs?.[player.steamId];
   const w = x.weights;
   const c = x.contributions;
   const v = variant.engine;
@@ -742,16 +1048,28 @@ function PlayerExplanation({
         name={t.explain.eName}
         value={c.E}
         note={
-          x.eSource === "faceit"
+          input?.eloSource === "faceit"
             ? t.explain.eNote(player.level)
-            : t.explain.eManual
+            : input?.eloSource === "group-manual"
+              ? t.explain.eManual
+              : input?.eloSource === "mix-mean"
+                ? t.explain.eMixMean
+                : input?.eloSource === "neutral-default"
+                  ? t.explain.eNeutral
+                  : input?.eloSource === "swap-slot"
+                    ? t.explain.eSwapSlot(input.swapInheritedFrom ?? "")
+                    : t.explain.eManual
         }
       />
       <Term
         k="F"
         name={t.explain.fName(config.form.windowDays)}
         value={signed(c.F)}
-        note={formNote(x, config, t)}
+        note={
+          input?.faceitFormAvailable === false
+            ? t.explain.fUnavailable
+            : formNote(x, config, t)
+        }
       />
       <Term
         k="M"
@@ -942,29 +1260,36 @@ function Tally() {
 function Locked() {
   const { winner, outcome, real, data } = useMix();
   const t = useT();
+  const lockedWinner = winner!;
   const tie = outcome.tied.length > 1;
   return (
     <div className="mt-2.5 lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start lg:gap-3">
       <div>
         <Well className="mb-2 flex items-baseline gap-2 px-2 py-1.5">
-          <b className="text-gold text-[16px]">{t.locked.won(winner.number)}</b>
+          <b className="text-gold text-[16px]">
+            {t.locked.won(lockedWinner.number)}
+          </b>
           <span className="text-dim text-[11px]">
             {tie
               ? t.locked.tie(
-                  winner.votes,
+                  lockedWinner.votes,
                   outcome.tied
-                    .filter((n) => n !== winner.number)
+                    .filter((n) => n !== lockedWinner.number)
                     .join(t.locked.and),
                 )
-              : t.locked.ofVotes(winner.votes)}
+              : t.locked.ofVotes(lockedWinner.votes)}
           </span>
         </Well>
         <Odds
-          avgA={winner.engine.avgA}
-          avgB={winner.engine.avgB}
-          winProbA={winner.engine.winProbA}
+          avgA={lockedWinner.engine.avgA}
+          avgB={lockedWinner.engine.avgB}
+          winProbA={lockedWinner.engine.winProbA}
         />
-        <Teams teamA={winner.teamA} teamB={winner.teamB} order="join" />
+        <Teams
+          teamA={lockedWinner.teamA}
+          teamB={lockedWinner.teamB}
+          order="join"
+        />
       </div>
       <div className="mt-2.5 space-y-2.5 lg:mt-0">
         <Well className="p-2">
@@ -993,7 +1318,7 @@ function Locked() {
             </p>
           </Well>
         )}
-        {data.viewerIsAdmin && <AdminPanel state="locked" />}
+        {data.showcase && data.viewerIsAdmin && <AdminPanel state="locked" />}
       </div>
     </div>
   );
@@ -1197,11 +1522,14 @@ function Scoreboard({ lines }: { lines: Line[] }) {
 }
 
 function Quip({ state }: { state: MixState }) {
-  const { result, waitingFor, skill } = useMix();
+  const { data, result, waitingFor, skill } = useMix();
   const t = useT();
   const text = {
     lobby: t.quips.lobby,
-    voting: t.quips.voting(waitingFor.name),
+    balancing: t.quips.balancing,
+    voting: data.showcase
+      ? t.quips.voting(waitingFor.name)
+      : t.quips.votingReady,
     locked: t.quips.locked,
     played: playedQuip(result.all, skill, t),
   }[state];

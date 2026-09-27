@@ -35,6 +35,18 @@ const en = {
     siteAdmin: "site admin",
     showcase: "See a Real Mix: 16 Dec 2024",
     source: "source",
+    openSignups: "Open sign-ups",
+    noOpenSignups: "No open sign-ups right now.",
+    inProgress: "My mixes in progress",
+    noInProgress: "No mixes in progress.",
+    myGroups: "My groups",
+    createGroup: "Create group",
+    youAreIn: "You are in",
+    mixStatus: {
+      balancing: "Balancing",
+      voting: "Voting",
+      locked: "Lineup locked",
+    },
   },
   switcher: {
     label: "Showcase:",
@@ -50,7 +62,9 @@ const en = {
   status: {
     lobby: (left: number) =>
       `Open · ${left} slots left · balancing starts at 10/10`,
+    balancing: "Balancing · admin review",
     voting: (voted: number) => `Voting · ${voted} of 10 voted · waiting for`,
+    votingReady: "Voting · the approved lineups are ready",
     lockedBefore: "Voting closed ·",
     lockedAfter: "won",
     played: (maps: number, source: string) =>
@@ -101,7 +115,11 @@ const en = {
     eName: "FACEIT ELO",
     eNote: (level: number) =>
       `${level ? `Level ${level}, ` : ""}live from FACEIT`,
-    eManual: "No FACEIT account: the group admin's manual ELO",
+    eManual: "FACEIT ELO missing: the group admin's manual ELO",
+    eMixMean: "Fallback: mean ELO of the other players in this mix",
+    eNeutral: "No sourced ELO in the lineup: neutral default of 1500",
+    eSwapSlot: (steamId: string) =>
+      `Keeps the approved slot's skill; inherited from ${steamId}`,
     fName: (days: number) => `FACEIT form, last ${days} days`,
     mName: (weight: number) =>
       `Mix form${weight === 1 ? "" : ` · weight ${weight}`}`,
@@ -125,6 +143,7 @@ const en = {
     fThin: (n: number, base: number, need: number) =>
       `${n} matches, but only ${base} older ones for a baseline (needs ${need}): no form.`,
     fInvalid: "No usable baseline rating.",
+    fUnavailable: "FACEIT form unavailable; F = 0 for this mix.",
     fParts: (p: {
       n: number;
       span: string;
@@ -205,6 +224,26 @@ const en = {
     proxy: "Vote for Someone",
     reopen: "Reopen Voting",
     result: "Enter Result",
+    previewWaiting: "No variants generated yet.",
+    previewNote:
+      "Generation uses FACEIT ELO, group fallback ELO or the mix mean. Missing FACEIT form counts as zero.",
+    previewReady: (generation: number) => `Showing generation ${generation}.`,
+    generate: "Generate 3 Variants",
+    generating: "Generating…",
+    reroll: "Re-roll 3 Variants",
+    rerolling: "Re-rolling…",
+    approve: "Approve for Voting",
+    approving: "Approving…",
+    reopening: "Reopening…",
+    cancelling: "Cancelling…",
+    swapTitle: "1:1 lineup swap",
+    swapLeaving: "Replace player",
+    swapJoining: "With active member",
+    swap: "Swap players",
+    swapping: "Swapping…",
+    noSwapCandidates: "No active group member is available to join this mix.",
+    swapRecorded: (from: string, to: string, by: string) =>
+      `Lineup changed by a swap: ${from} → ${to} (by ${by}).`,
   },
   played: {
     mapsWon: "Maps won, Team A : Team B",
@@ -225,7 +264,9 @@ const en = {
   },
   quips: {
     lobby: "Last one in brings the energy drinks.",
+    balancing: "Ten players in. Time to see how the teams shake out.",
     voting: (name: string) => `${name} is late. As tradition demands.`,
+    votingReady: "The lineups are ready. Voting opens soon.",
     locked: "Teams are final. Complaints go to the algorithm.",
     carried: (name: string) =>
       `${name} carried. Screenshots or it didn't happen.`,
@@ -343,6 +384,7 @@ const en = {
       notOpen: "Sign-ups are closed for this mix.",
       notFull: "Ten players must join before balancing starts.",
       stale: "This mix changed in another browser and has been refreshed.",
+      noVariants: "Generate or refresh the three variants before continuing.",
       unauthorized: "Sign in through Steam first.",
       forbidden: "You cannot do that for this group.",
       failed: "Could not update this mix. Try again.",
@@ -382,6 +424,18 @@ const pl: Dict = {
     siteAdmin: "admin strony",
     showcase: "Zobacz prawdziwy miks: 16.12.2024",
     source: "kod",
+    openSignups: "Otwarte zapisy",
+    noOpenSignups: "Nie ma teraz otwartych zapisów.",
+    inProgress: "Moje trwające miksy",
+    noInProgress: "Nie masz żadnych trwających miksów.",
+    myGroups: "Moje grupy",
+    createGroup: "Utwórz grupę",
+    youAreIn: "Jesteś zapisany",
+    mixStatus: {
+      balancing: "Balansowanie",
+      voting: "Głosowanie",
+      locked: "Skład zamknięty",
+    },
   },
   switcher: {
     label: "Pokaz:",
@@ -397,7 +451,9 @@ const pl: Dict = {
   status: {
     lobby: (left) =>
       `Otwarty · ${left} ${plural(left, "wolne miejsce", "wolne miejsca", "wolnych miejsc")} · balans rusza przy 10/10`,
+    balancing: "Balansowanie · podgląd admina",
     voting: (voted) => `Głosowanie · zagłosowało ${voted} z 10 · czekamy na`,
+    votingReady: "Głosowanie · zatwierdzone składy są gotowe",
     lockedBefore: "Głosowanie zamknięte ·",
     lockedAfter: "wygrał",
     played: (maps, source) =>
@@ -446,7 +502,11 @@ const pl: Dict = {
     title: "Jak to policzyliśmy?",
     eName: "ELO FACEIT",
     eNote: (level) => `${level ? `Poziom ${level}, ` : ""}na żywo z FACEIT`,
-    eManual: "Brak konta FACEIT: ręczne ELO od admina grupy",
+    eManual: "Brak ELO FACEIT: ręczne ELO od admina grupy",
+    eMixMean: "Zapasowe: średnia ELO pozostałych graczy w tym miksie",
+    eNeutral: "Brak ELO w składzie: neutralna wartość 1500",
+    eSwapSlot: (steamId) =>
+      `Zachowano siłę zatwierdzonego miejsca w składzie; dane gracza ${steamId}`,
     fName: (days) => `Forma na FACEIT, ostatnie ${days} dni`,
     mName: (weight) =>
       `Forma w miksach${weight === 1 ? "" : ` · waga ${weight}`}`,
@@ -460,6 +520,7 @@ const pl: Dict = {
     fThin: (n, base, need) =>
       `${n} ${plural(n, "mecz", "mecze", "meczów")}, ale tylko ${base} starszych do porównania (potrzeba ${need}): bez formy.`,
     fInvalid: "Brak sensownego ratingu bazowego.",
+    fUnavailable: "Forma FACEIT niedostępna; F = 0 w tym miksie.",
     fParts: (p) =>
       [
         `${p.n} ${plural(p.n, "mecz", "mecze", "meczów")} ${p.span} · rating ${p.window} vs ${p.base} z ${p.baseN} starszych`,
@@ -509,6 +570,27 @@ const pl: Dict = {
     proxy: "Zagłosuj za kogoś",
     reopen: "Otwórz głosowanie",
     result: "Wpisz wynik",
+    previewWaiting: "Nie wygenerowano jeszcze wariantów.",
+    previewNote:
+      "ELO pochodzi z FACEIT, zapasowego ELO grupy albo średniej miksu. Brak formy FACEIT liczy się jako zero.",
+    previewReady: (generation) => `Podgląd zestawu ${generation}.`,
+    generate: "Wygeneruj 3 warianty",
+    generating: "Generowanie…",
+    reroll: "Przelosuj 3 warianty",
+    rerolling: "Przelosowywanie…",
+    approve: "Zatwierdź do głosowania",
+    approving: "Zatwierdzanie…",
+    reopening: "Otwieranie zapisów…",
+    cancelling: "Anulowanie…",
+    swapTitle: "Wymiana 1:1 w składzie",
+    swapLeaving: "Zastąp gracza",
+    swapJoining: "Aktywnym członkiem",
+    swap: "Zamień graczy",
+    swapping: "Zamienianie…",
+    noSwapCandidates:
+      "Brak aktywnego członka grupy, który może dołączyć do miksu.",
+    swapRecorded: (from, to, by) =>
+      `Skład zmieniono przez wymianę: ${from} → ${to} (admin: ${by}).`,
   },
   played: {
     mapsWon: "Wygrane mapy, drużyna A : drużyna B",
@@ -523,7 +605,9 @@ const pl: Dict = {
   },
   quips: {
     lobby: "Ostatni zapisany stawia energetyki.",
+    balancing: "Dziesiątka zebrana. Zobaczmy, jak wyjdą składy.",
     voting: (name) => `${name} się spóźnia. Tradycji musi stać się zadość.`,
+    votingReady: "Składy są gotowe. Głosowanie pojawi się wkrótce.",
     locked: "Składy zamknięte. Reklamacje do algorytmu.",
     carried: (name) =>
       `${name} wyniósł drużynę na plecach. Screeny albo nie było.`,
@@ -642,6 +726,7 @@ const pl: Dict = {
       notOpen: "Zapisy do tego miksu są zamknięte.",
       notFull: "Do rozpoczęcia podziału składów potrzeba dziesięciu graczy.",
       stale: "Miks zmienił się w innej przeglądarce i został odświeżony.",
+      noVariants: "Wygeneruj trzy warianty albo odśwież stronę.",
       unauthorized: "Najpierw zaloguj się przez Steam.",
       forbidden: "Nie możesz wykonać tej czynności w tej grupie.",
       failed: "Nie udało się zmienić miksu. Spróbuj ponownie.",

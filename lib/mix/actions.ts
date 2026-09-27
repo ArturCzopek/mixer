@@ -5,6 +5,11 @@ import { z } from "zod";
 import { AuthError } from "@/lib/auth/roles";
 import { requireGroupRole, requireSession } from "@/lib/auth/server";
 import { adminDb } from "@/lib/db/admin";
+import {
+  initialVariantPlan,
+  rerollVariantPlan,
+  StaleVariantSetError,
+} from "@/lib/mix/variant-service";
 
 const MIX_STATUSES = [
   "open",
@@ -23,6 +28,7 @@ export type MixActionError =
   | "notOpen"
   | "notFull"
   | "stale"
+  | "noVariants"
   | "unauthorized"
   | "forbidden"
   | "failed";
@@ -302,4 +308,123 @@ export async function setMixStatus(
     return logFailure("setMixStatus", error);
   }
   return data ? { ok: true } : { error: "stale" };
+}
+
+async function variantRpc(
+  action: string,
+  name: string,
+  args: Record<string, unknown>,
+): Promise<MixActionState> {
+  const result = await dbCall(action, () => adminDb().rpc(name, args));
+  if (!result.ok) return result.state;
+  if (result.value.error) {
+    if (result.value.error.code === PG_STATE) return { error: "stale" };
+    if (result.value.error.code === PG_CHECK) return { error: "noVariants" };
+    if (
+      action === "swapMixParticipant" &&
+      result.value.error.code === PG_FOREIGN_KEY
+    )
+      return { error: "notMember" };
+    return logFailure(action, result.value.error);
+  }
+  return { ok: true };
+}
+
+function generationError(action: string, error: unknown): MixActionState {
+  if (error instanceof StaleVariantSetError) return { error: "stale" };
+  return logFailure(action, error);
+}
+
+/** Fetches participant inputs and stores the first unpublished three-variant set. */
+export async function generateMixVariants(
+  mixId: string,
+): Promise<MixActionState> {
+  if (!uuid.safeParse(mixId).success) return { error: "forbidden" };
+  const auth = await authorizedMix("generateMixVariants", mixId, "admin");
+  if ("error" in auth) return auth;
+
+  try {
+    const plan = await initialVariantPlan(mixId);
+    return variantRpc("generateMixVariants", "create_mix_variant_set", {
+      p_mix_id: mixId,
+      p_balance_config: plan.balanceConfig,
+      p_snapshots: plan.snapshots,
+      p_variants: plan.variants,
+    });
+  } catch (error) {
+    return generationError("generateMixVariants", error);
+  }
+}
+
+/** Marks the current set rejected and creates the next numbered set from its saved snapshots. */
+export async function rerollMixVariants(
+  mixId: string,
+  expectedGeneration: number,
+): Promise<MixActionState> {
+  if (
+    !uuid.safeParse(mixId).success ||
+    !Number.isSafeInteger(expectedGeneration) ||
+    expectedGeneration < 1
+  )
+    return { error: "forbidden" };
+  const auth = await authorizedMix("rerollMixVariants", mixId, "admin");
+  if ("error" in auth) return auth;
+
+  try {
+    const plan = await rerollVariantPlan(mixId, expectedGeneration);
+    return variantRpc("rerollMixVariants", "reroll_mix_variant_set", {
+      p_mix_id: mixId,
+      p_expected_generation: expectedGeneration,
+      p_variants: plan.variants,
+    });
+  } catch (error) {
+    return generationError("rerollMixVariants", error);
+  }
+}
+
+/** Atomically publishes the shown set and transitions the mix to voting. */
+export async function approveMixVariants(
+  mixId: string,
+  expectedGeneration: number,
+): Promise<MixActionState> {
+  if (
+    !uuid.safeParse(mixId).success ||
+    !Number.isSafeInteger(expectedGeneration) ||
+    expectedGeneration < 1
+  )
+    return { error: "forbidden" };
+  const auth = await authorizedMix("approveMixVariants", mixId, "admin");
+  if ("error" in auth) return auth;
+  return variantRpc("approveMixVariants", "approve_mix_variant_set", {
+    p_mix_id: mixId,
+    p_expected_generation: expectedGeneration,
+  });
+}
+
+/** Replace one mix participant with an active group member while keeping the same team slots. */
+export async function swapMixParticipant(
+  mixId: string,
+  leavingPlayerId: string,
+  joiningPlayerId: string,
+): Promise<MixActionState> {
+  if (
+    !uuid.safeParse(mixId).success ||
+    !uuid.safeParse(leavingPlayerId).success ||
+    !uuid.safeParse(joiningPlayerId).success ||
+    leavingPlayerId === joiningPlayerId
+  )
+    return { error: "forbidden" };
+  const auth = await authorizedMix("swapMixParticipant", mixId, "admin");
+  if ("error" in auth) return auth;
+  const result = await variantRpc(
+    "swapMixParticipant",
+    "swap_mix_participant",
+    {
+      p_mix_id: mixId,
+      p_leaving_player_id: leavingPlayerId,
+      p_joining_player_id: joiningPlayerId,
+      p_admin_id: auth.session.playerId,
+    },
+  );
+  return result;
 }

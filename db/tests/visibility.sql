@@ -40,6 +40,11 @@ insert into public.groups (
   '{"private_test_setting":"must-not-be-public"}'::jsonb,
   '00000000-0000-4000-8000-000000000001'
 );
+insert into public.group_members (group_id, player_id)
+values (
+  '00000000-0000-4000-8000-000000000010',
+  '00000000-0000-4000-8000-000000000002'
+);
 
 insert into public.mixes (id, group_id, title, created_by)
 values (
@@ -48,6 +53,10 @@ values (
   'Visibility test mix',
   '00000000-0000-4000-8000-000000000001'
 );
+insert into public.mix_participants (mix_id, player_id, added_by)
+values
+  ('00000000-0000-4000-8000-000000000020', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000001'),
+  ('00000000-0000-4000-8000-000000000020', '00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-000000000001');
 
 insert into public.variants (
   id, mix_id, number, is_published, team_a_score, team_b_score, win_prob_a
@@ -56,7 +65,7 @@ insert into public.variants (
     '00000000-0000-4000-8000-000000000101',
     '00000000-0000-4000-8000-000000000020',
     1,
-    true,
+    false,
     1500,
     1490,
     0.51
@@ -83,6 +92,9 @@ values
     '00000000-0000-4000-8000-000000000002',
     'B'
   );
+update public.variants
+set is_published = true
+where id = '00000000-0000-4000-8000-000000000101';
 
 set local role anon;
 

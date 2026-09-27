@@ -39,19 +39,24 @@ product). 2026-09-27: **A2** is decision D36.
 - **Q2:** retry FACEIT once on 429/5xx (honour `Retry-After`). A player with no FACEIT ELO gets E =
   the mean E of the other players in that mix, shown as its own source in "How was this calculated?".
   Order: FACEIT ELO → group manual ELO (D18) → mix mean, so generation never blocks. A failed *form*
-  fetch gives F = 0 with "form unavailable". Record as a new decision + docs/04 E row when A4 lands.
-  No change to formulas or other defaults.
+  fetch gives F = 0 with "form unavailable". Recorded in D40 and docs/04. If the whole roster has no
+  sourced ELO, the generation fallback is neutral 1500, shown as its own source. No formula/default
+  changes.
 - **Q5** open until P0-6: which Supabase project the `DB migrate` workflow targets.
 
 **Open, in order** (C = Claude decides/reviews, X = bounded Codex task):
 
 1. **A3 code done 2026-09-27** (Q1): RLS migration, `db/tests` assertions and publishable-key
    check in `scripts/db-migrate.mjs`; Supabase `--verify` remains pending until Q5 selects the
-   target project. **Before M1-6.**
-2. **X A4 ELO/form fallback at generation** (Q2). **Client resilience done 2026-09-27:**
-   `getJson` retries FACEIT once on 429/5xx, honours `Retry-After` (seconds/date), and gives each
-   attempt a fresh 10 s timeout; regression tests pass. Generation does not exist yet: wire the
-   approved FACEIT → group manual ELO → mix mean fallback and "form unavailable" in **M1-6**.
+   target project.
+2. **M1-5 code done 2026-09-27:** sign-up race check and two-browser live check remain pending.
+3. **A4 + M1-6 code done 2026-09-27:** FACEIT → group manual ELO → mix mean fallback, neutral
+   1500 for a wholly unsourced lineup, and unavailable form as F = 0 are implemented under D40.
+   Generation, approval/re-roll guards, read-only variant presentation, swaps and focused tests are
+   complete. The complete SQL test suite passed in local PGlite. Claude must apply/verify the
+   migration on the intended Supabase project, run `scripts/db-race-check.mjs` (which now includes
+   approve-vs-re-roll), and check generation/approval with the real roster. Those live checks have
+   not been run here.
 
 **A5 done 2026-09-27:** `faceitForm()` skips invalid `finishedAt` values instead of counting them
 in the baseline; regression tests cover unchanged valid inputs and the thin-baseline threshold.
@@ -74,9 +79,10 @@ already shows a thin baseline) and logout CSRF (harmless).
 - **Groups (M1-G, 2026-09-27):** our group is `/g/skarpeciarze` (FACEIT Club linked, 12 roster players
   seeded with `scripts/seed-group.mjs`; names fill in on first login or with M1-3). One menu bar in
   the root layout on every page (mixer › group menu, backdrop, language, account).
-- **Next tasks, in order:** **P0-4** deploy pipeline + keep-alive cron → M1-3 roster → A3
-  (Supabase verify pending) → M1-5 lobby (code done 2026-09-27; race script + two-browser check
-  pending) → A4 → M1-6 variants → M1-7 voting (close rules in D33).
+- **Next tasks, in order:** choose the migration target and complete A3 verification → run the M1-5
+  two-browser/race checks → apply and live-check M1-6 (migration, FACEIT generation, approval, and
+  approve-vs-re-roll race) → M1-7 voting (close rules in D33). M1-6 only displays published variants
+  during voting; vote controls remain M1-7.
 
 ## Where the keys are
 
