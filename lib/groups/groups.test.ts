@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthError } from "@/lib/auth/roles";
-import { parseGroupForm } from "./form";
+import { parseGroupForm, toSlug } from "./form";
 
 // The actions run against mocks: the session/role checks and the DB client. What matters here is the
 // order (authorize before any write) and the error mapping; the DB invariants are in db/tests/groups.sql.
@@ -160,4 +160,14 @@ describe("group actions authorize before writing", () => {
       error: "lastAdmin",
     });
   });
+});
+
+describe("toSlug (address field while typing)", () => {
+  it.each([
+    ["Skarpeciarze", "skarpeciarze"],
+    ["Mixy Czwartek", "mixy-czwartek"],
+    ["Żubry Łódź", "zubry-lodz"],
+    ["-cs2  ekipa!", "cs2-ekipa"],
+    ["a-", "a-"],
+  ])("%s → %s", (typed, slug) => expect(toSlug(typed)).toBe(slug));
 });

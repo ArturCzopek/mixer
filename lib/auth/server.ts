@@ -21,6 +21,17 @@ import {
   signSession,
 } from "./session-token";
 
+/** Env vars login needs on the server. Only their names are ever shown, never values. */
+const AUTH_ENV = [
+  "SESSION_SECRET",
+  "NEXT_PUBLIC_SUPABASE_URL",
+  "SUPABASE_SECRET_KEY",
+] as const;
+export const missingAuthEnv = () =>
+  AUTH_ENV.filter((name) => !process.env[name]);
+/** False on a deployment without login env (e.g. a bare preview): pages then skip session lookups. */
+export const authConfigured = () => missingAuthEnv().length === 0;
+
 export interface Session {
   playerId: string;
   steamId: string;

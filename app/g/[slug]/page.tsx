@@ -3,9 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { GroupForm } from "@/components/groups/group-form";
-import { GroupSwitcher } from "@/components/groups/group-switcher";
 import { MemberActions } from "@/components/groups/member-actions";
-import { LanguageToggle } from "@/components/i18n";
 import { Badge, ListHead, Well, Window } from "@/components/vgui";
 import { hasGroupRole } from "@/lib/auth/roles";
 import { getSession } from "@/lib/auth/server";
@@ -36,15 +34,7 @@ export default async function GroupPage({ params }: PageProps<"/g/[slug]">) {
   );
   return (
     <main className="mx-auto w-full max-w-[460px] px-2 py-6">
-      <Window
-        title={group.name}
-        right={
-          <span className="flex items-center gap-2">
-            <GroupSwitcher session={session} current={group.slug} t={t} />
-            <LanguageToggle />
-          </span>
-        }
-      >
+      <Window title={group.name}>
         <p className="mb-2 text-[11px]">
           <span className="text-dim">{t.groups.club}: </span>
           {group.faceitClubUrl ? (

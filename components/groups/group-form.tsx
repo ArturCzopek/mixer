@@ -1,9 +1,10 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { VButton, Well } from "@/components/vgui";
 import { useT } from "@/components/i18n";
 import type { ActionState } from "@/lib/groups/actions";
+import { toSlug } from "@/lib/groups/form";
 
 type FormAction = (prev: ActionState, form: FormData) => Promise<ActionState>;
 
@@ -16,14 +17,18 @@ export function GroupForm({
   withSlug,
   defaults,
   submit,
+  host,
 }: {
   action: FormAction;
   withSlug: boolean;
   defaults?: { name: string; faceitClub: string | null };
   submit: string;
+  /** Shown in the address preview, e.g. mixer-gray.vercel.app. */
+  host?: string;
 }) {
   const t = useT();
   const [state, run, pending] = useActionState(action, undefined);
+  const [slug, setSlug] = useState("");
   return (
     <form action={run} className="flex flex-col gap-2">
       <label className="flex flex-col gap-0.5">
@@ -39,15 +44,22 @@ export function GroupForm({
       </label>
       {withSlug && (
         <label className="flex flex-col gap-0.5">
-          <span className="text-dim text-[11px]">{t.groups.slug} · /g/…</span>
+          <span className="text-dim text-[11px]">{t.groups.slug}</span>
           <input
             name="slug"
             required
             pattern="[a-z0-9][a-z0-9\-]{1,38}[a-z0-9]"
+            title={t.groups.errors.slug}
+            value={slug}
+            onChange={(e) => setSlug(toSlug(e.target.value))}
             autoCapitalize="none"
             spellCheck={false}
             className={input}
           />
+          <span className="text-[11px]">
+            <span className="text-dim">{t.groups.slugPreview} </span>
+            {host}/g/<b className="text-gold">{slug || "…"}</b>
+          </span>
           <span className="text-dim text-[11px]">{t.groups.slugHint}</span>
         </label>
       )}

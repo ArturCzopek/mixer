@@ -3,6 +3,7 @@ import "@fontsource/dejavu-sans/400.css";
 import "@fontsource/dejavu-sans/700.css";
 import "./globals.css";
 import { I18nProvider } from "@/components/i18n";
+import { MenuBar } from "@/components/menu-bar";
 import { getLang } from "@/lib/i18n/server";
 
 export const metadata: Metadata = {
@@ -28,7 +29,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <script dangerouslySetInnerHTML={{ __html: RESTORE_BACKDROP }} />
       </head>
       <body className="flex min-h-full flex-col">
-        <I18nProvider lang={lang}>{children}</I18nProvider>
+        <I18nProvider lang={lang}>
+          <MenuBar />
+          {children}
+        </I18nProvider>
       </body>
     </html>
   );

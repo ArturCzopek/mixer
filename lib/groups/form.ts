@@ -8,6 +8,22 @@ const FACEIT_URL = /^https:\/\/(www\.)?faceit\.com\//;
 const CLUB_ID =
   /\/club\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i;
 
+/**
+ * What the address field turns typing into: lowercase, Polish letters without accents, spaces as
+ * dashes, anything else dropped. A trailing dash stays so "a-b" can be typed; the server checks SLUG.
+ */
+export const toSlug = (typed: string) =>
+  typed
+    .toLowerCase()
+    .replaceAll("ł", "l")
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[\s_]+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-{2,}/g, "-")
+    .replace(/^-/, "")
+    .slice(0, 40);
+
 export type GroupField = "name" | "slug" | "faceitClub";
 
 export interface GroupFields {

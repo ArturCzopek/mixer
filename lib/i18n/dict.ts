@@ -30,6 +30,7 @@ const en = {
     notConfigured: (missing: string) =>
       `Login is not configured on this deployment. Missing: ${missing}.`,
     signIn: "Sign In Through Steam",
+    signInShort: "Sign In",
     signOut: "Sign Out",
     siteAdmin: "site admin",
     showcase: "See a Real Mix: 16 Dec 2024",
@@ -249,8 +250,10 @@ const en = {
     none: "No groups yet.",
     newGroup: "New Group",
     name: "Name",
-    slug: "Address",
-    slugHint: "Lowercase letters, digits, dashes. It cannot be changed later.",
+    slug: "Page address",
+    slugHint:
+      "3 to 40 characters: lowercase letters, digits and dashes, no dash at either end. Capitals and spaces are fixed as you type. It cannot be changed later.",
+    slugPreview: "Your group’s page:",
     faceitClub: "FACEIT Club link (optional)",
     create: "Create Group",
     settings: "Group settings",
@@ -305,6 +308,7 @@ const pl: Dict = {
     notConfigured: (missing: string) =>
       `Logowanie nie jest skonfigurowane na tym deployu. Brakuje: ${missing}.`,
     signIn: "Zaloguj przez Steam",
+    signInShort: "Zaloguj",
     signOut: "Wyloguj",
     siteAdmin: "admin strony",
     showcase: "Zobacz prawdziwy miks: 16.12.2024",
@@ -475,8 +479,10 @@ const pl: Dict = {
     none: "Nie masz jeszcze grup.",
     newGroup: "Nowa grupa",
     name: "Nazwa",
-    slug: "Adres",
-    slugHint: "Małe litery, cyfry, myślniki. Później nie da się go zmienić.",
+    slug: "Adres strony",
+    slugHint:
+      "Od 3 do 40 znaków: małe litery, cyfry i myślniki, bez myślnika na końcach. Wielkie litery, spacje i polskie znaki poprawiamy przy wpisywaniu. Później nie da się go zmienić.",
+    slugPreview: "Strona grupy:",
     faceitClub: "Link do klubu FACEIT (opcjonalnie)",
     create: "Utwórz grupę",
     settings: "Ustawienia grupy",

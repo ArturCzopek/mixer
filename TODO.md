@@ -10,8 +10,8 @@ the MVP (M1-9) if it is ready; P0-6 (separate prod Supabase) comes right before 
 
 ## Owner (Artur)
 
-- [ ] **S5 FACEIT Club:** create a free Club + private queue for the group (D17); send Claude the Club
-      link; after the first mix, the match room link(s).
+- [ ] **S5 FACEIT Club:** Club exists and is linked to the group (2026-09-27); still to do: the private
+      queue (D17) and, after the first mix, send Claude the match room link(s).
 - [ ] *(optional)* FACEIT developer terms: if you see a clause against storing match stats, tell Claude (D20).
 - [ ] *(optional, for M4-6)* S4 browser test of the demo parser once the spike page exists.
 - [ ] *(later, Phase 5)* Discord application + bot for D-1.
@@ -59,9 +59,9 @@ already shows a thin baseline) and logout CSRF (harmless).
   login works there (M1-1). Deployment-hash URLs keep the env of their own build.
 - **Showcase** `/demo`: the real popflash evening of 16.12.2024 on the real engine, all four states,
   live Leetify card, public votes with a seeded tie-break, admin panel (buttons do nothing yet).
-- **M1-G in progress:** code is on `main` (`/g/new`, `/g/[slug]`, switcher, D36 triggers,
-  `scripts/seed-group.mjs`). To finish: Artur creates our group at `/g/new` on Production (FACEIT link
-  now or later in its settings), then `seed-group.mjs --slug <it>` adds the 12 players; tick M1-G.
+- **Groups (M1-G, 2026-09-27):** our group is `/g/skarpeciarze` (FACEIT Club linked, 12 roster players
+  seeded with `scripts/seed-group.mjs`; names fill in on first login or with M1-3). One menu bar in
+  the root layout on every page (mixer › group menu, backdrop, language, account).
 - **Next tasks, in order:** **P0-4** deploy pipeline + keep-alive cron → M1-3 roster → M1-5 lobby →
   A3, A4 → M1-6 variants → M1-7 voting (close rules in D33).
 

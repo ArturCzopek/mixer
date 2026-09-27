@@ -6,10 +6,8 @@
 
 import * as React from "react";
 import Image from "next/image";
-import Link from "next/link";
-import { ChevronDown, ChevronRight, ExternalLink, Lock } from "lucide-react";
+import { ChevronDown, ExternalLink, Lock } from "lucide-react";
 import {
-  BackgroundToggle,
   Badge,
   ListHead,
   Sheet,
@@ -28,7 +26,7 @@ import {
   type ViewVariant,
 } from "@/lib/mix/view";
 import { votingOutcome } from "@/lib/mix/voting";
-import { LanguageToggle, useLang, useT } from "@/components/i18n";
+import { useLang, useT } from "@/components/i18n";
 import type { Dict } from "@/lib/i18n/dict";
 import { cn } from "@/lib/utils";
 
@@ -136,7 +134,6 @@ export function MixView({
   return (
     <MixContext.Provider value={mix}>
       <div className="mx-auto flex w-full max-w-[460px] flex-1 flex-col pb-[76px] md:max-w-[760px] lg:max-w-[1180px]">
-        <MenuBar />
         <div className="px-2">
           {data.showcase && <ShowcaseNote />}
           <Window
@@ -206,27 +203,6 @@ function ShowcaseNote() {
         ))}
       </ul>
     </Well>
-  );
-}
-
-function MenuBar() {
-  const { data, me } = useMix();
-  return (
-    <nav className="flex items-center gap-1 px-2.5 pt-2 pb-2 text-[12px]">
-      <Link href="/" className="text-gold font-bold tracking-wide no-underline">
-        mixer
-      </Link>
-      <ChevronRight className="text-dim size-3 shrink-0" aria-hidden />
-      <a href="#" className="text-text truncate no-underline hover:underline">
-        {data.mix.group}
-      </a>
-      <BackgroundToggle className="ml-auto" />
-      <LanguageToggle className="ml-2" />
-      <span className="text-dim ml-3 flex items-center gap-1.5">
-        {me.name}
-        <Avatar player={me} size={18} />
-      </span>
-    </nav>
   );
 }
 

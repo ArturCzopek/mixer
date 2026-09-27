@@ -56,6 +56,7 @@ export async function createGroup(
     console.error("createGroup failed", error);
     return { error: "failed" };
   }
+  revalidatePath("/", "layout"); // the menu bar lists the new group
   redirect(`/g/${slug}`);
 }
 
@@ -86,7 +87,7 @@ export async function updateGroup(
     console.error("updateGroup failed", error);
     return { error: "failed" };
   }
-  revalidatePath("/g/[slug]", "page");
+  revalidatePath("/", "layout");
   return { ok: true };
 }
 
@@ -126,6 +127,6 @@ export async function changeMember(
     console.error("changeMember failed", error);
     return { error: "failed" };
   }
-  revalidatePath("/g/[slug]", "page");
+  revalidatePath("/", "layout");
   return { ok: true };
 }
