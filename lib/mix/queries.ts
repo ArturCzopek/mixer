@@ -55,7 +55,9 @@ interface ParticipantRow {
 export async function groupMixes(groupId: string): Promise<GroupMix[]> {
   const { data, error } = await adminDb()
     .from("mixes")
-    .select("id, title, status, created_at, mix_participants!mix_participants_mix_id_fkey(player_id)")
+    .select(
+      "id, title, status, created_at, mix_participants!mix_participants_mix_id_fkey(player_id)",
+    )
     .eq("group_id", groupId)
     .order("created_at", { ascending: false })
     .returns<GroupMixRow[]>();
