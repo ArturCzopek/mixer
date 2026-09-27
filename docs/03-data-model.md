@@ -5,10 +5,11 @@ SteamIDs are stored as `text` (SteamID64 exceeds JS safe integers).
 Migrations: `db/migrations/` (how they are applied: [lib/db/README.md](../lib/db/README.md)).
 
 Integrity enforced in the database (Phase 1):
-- **Hard cap 10** per mix: `before insert` trigger on `mix_participants` locks the mix row, then counts (safe under concurrent joins).
+- **Mix lobby (M1-5):** titles are 2–60 non-whitespace characters. The participant `before insert` trigger locks the mix, requires `open` status and an active member of that group, then counts in a separate volatile statement before allowing at most ten. Participant deletes are allowed only while open, except during a mix/group cascade; group deletion cascades through memberships and mixes. Realtime lobby rows are ordered by `created_at, player_id`.
+- **Status transitions (M1-5):** same-status updates are no-ops; legal changes are `open → balancing` (exactly ten participants), `balancing → open|voting`, `voting → locked`, `locked → voting|played`, and `open|balancing|voting|locked → cancelled`. `played` and `cancelled` are terminal. M1-6 adds the published-variant check to `balancing → voting`; M1-7 adds the chosen-variant check to `voting → locked`.
 - **Only active group members join a mix:** the same trigger copies the mix's `group_id` and rejects players whose membership is closed; the composite fks make a participant from another group impossible.
 - **Votes:** `(mix_id, voter_id)` references `mix_participants` (only participants vote); `(variant_id, mix_id)` references `variants (id, mix_id)` (only a variant of the same mix). Same composite key pins `mixes.chosen_variant_id` to the mix.
-- **RLS:** enabled on all tables (incl. `groups`, `group_members`), one `select` policy for `anon`/`authenticated`, write grants revoked; the secret key (service role) bypasses RLS.
+- **RLS:** enabled on all tables (incl. `groups`, `group_members`); browsers see only published variants and their players. Column grants hide `players.is_site_admin`, `players.last_login_at`, and `groups.discord_settings`; new columns stay private by default. The service role bypasses RLS.
 - **Realtime publication:** `mixes`, `mix_participants`, `variants`, `votes`.
 
 ```mermaid

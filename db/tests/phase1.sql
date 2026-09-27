@@ -104,7 +104,7 @@ begin
   exception when foreign_key_violation then failed := true;
   end;
   if not failed then raise exception 'ASSERT: chosen variant from another mix was accepted'; end if;
-  update public.mixes set chosen_variant_id = var1, status = 'locked' where id = mix1;
+  update public.mixes set chosen_variant_id = var1 where id = mix1;
 
   -- SteamID64 format
   failed := false;

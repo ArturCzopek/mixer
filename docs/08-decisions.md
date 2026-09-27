@@ -318,3 +318,20 @@ UI cannot guarantee live in the database, in the same statement as the write: th
 becomes its admin (insert trigger), a group always keeps one active admin (update trigger, locks the
 group row so concurrent demotions serialize). Each action has a test that a missing session gives 401,
 a missing role gives 403, and nothing is written in either case (`lib/groups/groups.test.ts`).
+
+## D37. Approve variants before voting; no re-roll after approval, Accepted (2026-09-27)
+Owner clarification:
+- Close the ten-player participant list before generating the three proposed variants (`open` → `balancing`). This is the participant-list lock; the later `locked` state means the voted team lineup is final.
+- During `balancing`, the group admin reviews the entire set: accept the three variants, or reject and re-roll. Previously shown splits remain excluded.
+- Acceptance publishes the set and starts `voting`. The approved set cannot be regenerated, replaced or edited for the rest of that mix, even by an admin.
+- Reopening voting before the match starts (D33) retains exactly the same approved variants; it does not return to `balancing` or restore re-roll.
+- M1-6/M1-7 must enforce this on the server, including concurrent acceptance/re-roll requests and stale admin pages. Hiding the button is not sufficient.
+- The showcase no longer offers re-roll during voting. Production generation/publication endpoints are still pending in M1-6; the showcase is not evidence of server enforcement.
+
+## D38. Browser visibility: published variants only, private columns hidden, Accepted (2026-09-27)
+Browser roles can read only published variants and their players. Column-level grants expose the approved public fields on `players` and `groups`, while hiding `players.is_site_admin`, `players.last_login_at`, and `groups.discord_settings`; new columns remain private until explicitly granted. The migration enforces row visibility with RLS and column visibility with grants, while `service_role` retains its direct access and RLS bypass.
+
+## D39. Mix lobby rules and 1:1 swap after sign-ups close, Accepted (2026-09-27)
+M1-5 enforces 2–60 non-whitespace-character titles, a hard ten-player cap, active-group-member sign-ups while status is `open`, and the staged status edges `open → balancing` (exactly ten participants), `balancing → open|voting`, `voting → locked`, `locked → voting|played`, and `open|balancing|voting|locked → cancelled`; `played` and `cancelled` are terminal. The lobby is shown in join order (`created_at, player_id`).
+
+After sign-ups close, a group admin may replace a participant who drops out with one active group member, one for one, while the mix is `balancing`, `voting`, or `locked`. Amending D37: this does not regenerate or unapprove the split. In M1-6, one SQL function will update `mix_participants.player_id`, remove the leaver's vote, preserve the same team slot in every approved variant, and mark the swap in the UI. M1-5 adds no participant-update trigger; its delete guard remains in place.

@@ -59,6 +59,34 @@ Only the Supabase URL and publishable key are browser-safe; keep the other envir
 
 CI runs format check, lint, typecheck, tests and build on every PR.
 
+## Deployment and keep-alive
+
+The existing Vercel Git integration builds previews for pull requests and Production from `main`.
+`vercel.json` schedules `GET /api/cron/keepalive` daily at 05:00 UTC. Set a random `CRON_SECRET`
+in the Vercel Production environment before deploying; Vercel sends it as a bearer token.
+The endpoint performs a small, uncached database read, returns `200 {"ok":true}` on success,
+`401` without the correct secret (including when the variable is unset), and `503` when the DB
+is unavailable. It never returns database rows. No new tables or migrations are needed.
+
+After deployment, check the cron in Vercel Project → Settings → Cron Jobs and run it once;
+verify the function log returns 200. Cron jobs run on Production only, so previews and local
+development do not run the schedule. This and the bearer header follow the
+[Vercel cron setup](https://vercel.com/docs/cron-jobs/quickstart) and
+[cron management guide](https://vercel.com/docs/cron-jobs/manage-cron-jobs).
+
+## Group roster
+
+On `/g/<slug>`, group admins can add a player by SteamID64, Steam profile URL or vanity name.
+Steam fills the name and avatar; FACEIT is linked when available. Repeating an add is safe:
+it refreshes the profile without changing an active member's role or fallback ELO. If FACEIT
+is temporarily unavailable, adding still succeeds with a warning; repeat the add to retry.
+Closed memberships stay closed; a membership-reopening policy is outside M1-3.
+
+Fallback ELO is an optional integer from 100 to 5000, scoped to the group and used only when
+FACEIT ELO is missing. Clearing the field removes it. Remove closes membership without deleting
+history; the existing last-admin protection still applies. The first Steam login claims the
+same player identity, preserving group membership. Guests see the roster without edit controls.
+
 UI is built from the VGUI primitives in `components/vgui/` (Tailwind v4, rules in `DESIGN.md`).
 
 ## Stack

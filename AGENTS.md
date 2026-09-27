@@ -15,3 +15,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Escalate schema/integrity, authorization, privacy, and external-data policy to Claude. Do not change the balancing algorithm without the owner's explicit decision.
 - For code changes, add or update focused tests and run the affected tests, lint, typecheck, format check, and production build before delivery. Report any validation not run. Read the installed Next.js guide before using an unfamiliar Next.js API.
 - Keep code and repository documentation in English.
+
+## Codex model selection
+
+- Default Codex delegation to gpt-6-luna with reasoning effort xhigh; set both explicitly for every task.
+- For more advanced, clearly scoped work, Claude may recommend gpt-6-sol with medium effort, or high when deeper analysis or review is warranted. State why and the proposed settings to Artur. Unless Artur selects Sol, keep the Luna default.
+- If the delegation mechanism cannot set and confirm the chosen model and effort, tell Artur; a prompt alone does not guarantee model selection.

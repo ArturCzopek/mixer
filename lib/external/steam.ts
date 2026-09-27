@@ -34,7 +34,12 @@ export function parseSteamInput(raw: string): SteamInput | null {
     if (kind.toLowerCase() === "profiles") {
       return isSteamId64(value) ? { steamId: value } : null;
     }
-    return { vanity: decodeURIComponent(value) };
+    try {
+      const vanity = decodeURIComponent(value);
+      return /^[A-Za-z0-9_-]{2,32}$/.test(vanity) ? { vanity } : null;
+    } catch {
+      return null;
+    }
   }
 
   // Steam custom URLs: letters, digits, `_` and `-`, 2–32 chars.

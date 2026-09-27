@@ -100,6 +100,30 @@ if (args.has("--verify")) {
     );
   console.log("ok publishable key can select");
 
+  for (const path of [
+    "players?select=last_login_at",
+    "players?select=is_site_admin",
+    "groups?select=discord_settings",
+  ]) {
+    const response = await fetch(`${supabaseUrl}/rest/v1/${path}`, { headers });
+    const body = await response.json().catch(() => null);
+    if (response.status !== 401 || body?.code !== "42501")
+      throw new Error(
+        `${path} should return 401 with code 42501: ${response.status} ${JSON.stringify(body)}`,
+      );
+    console.log(`ok publishable key cannot select ${path}`);
+  }
+
+  const grantedColumn = await fetch(
+    `${supabaseUrl}/rest/v1/players?select=id,display_name&limit=1`,
+    { headers },
+  );
+  if (grantedColumn.status !== 200)
+    throw new Error(
+      `publishable key cannot select public player columns: ${grantedColumn.status} ${await grantedColumn.text()}`,
+    );
+  console.log("ok publishable key can select public player columns");
+
   const write = await fetch(`${supabaseUrl}/rest/v1/players`, {
     method: "POST",
     headers: { ...headers, Prefer: "return=minimal" },

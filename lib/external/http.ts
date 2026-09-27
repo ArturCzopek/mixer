@@ -50,12 +50,37 @@ export async function getJson<S extends z.ZodType>(
   const doFetch = opts.fetch ?? fetch;
   const init: RequestInit & { next?: { revalidate: number } } = {
     headers: { Accept: "application/json", ...opts.headers },
-    signal: AbortSignal.timeout(10_000),
     ...(opts.revalidate === 0
       ? { cache: "no-store" as const }
       : { next: { revalidate: opts.revalidate } }),
   };
-  const res = await doFetch(url, init);
+  let res = await doFetch(url, {
+    ...init,
+    signal: AbortSignal.timeout(10_000),
+  });
+  if (
+    opts.service === "faceit" &&
+    (res.status === 429 || (res.status >= 500 && res.status <= 599))
+  ) {
+    const retryAfter = res.headers.get("retry-after");
+    const seconds =
+      retryAfter !== null && /^\d+$/.test(retryAfter.trim())
+        ? Number(retryAfter)
+        : NaN;
+    const delay = Number.isFinite(seconds)
+      ? seconds * 1000
+      : retryAfter !== null
+        ? Date.parse(retryAfter) - Date.now()
+        : NaN;
+    await res.body?.cancel();
+    await new Promise((resolve) =>
+      setTimeout(resolve, Number.isFinite(delay) ? Math.max(0, delay) : 1000),
+    );
+    res = await doFetch(url, {
+      ...init,
+      signal: AbortSignal.timeout(10_000),
+    });
+  }
   if (res.status === 404 && opts.allowNotFound) return null;
   if (!res.ok) {
     throw new ExternalApiError(opts.service, res.status, `HTTP ${res.status}`);

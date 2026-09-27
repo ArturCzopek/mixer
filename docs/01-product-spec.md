@@ -62,18 +62,21 @@ that record automatically (matched on SteamID64). Any logged-in player can creat
 
 ### F3. Team balancing
 - When 10 participants are in, admin clicks **Generate teams**.
+- This closes the participant list and enters `balancing`; the admin reviews the proposed set before voting starts (D37).
 - The app fetches fresh data and shows **3 variants**. Each variant shows:
   - both lineups, each player's skill score,
   - team averages, estimated win probability (e.g. 50.4% / 49.6%),
   - "How was this calculated?": E / F / M / A per player and the cost split (D22); when a clear top or
     bottom duo exists, the panel says it is split (no badge, D28).
-- Admin can re-roll (exclude shown variants) or tweak weights before publishing.
+- While in `balancing`, the group admin can reject the set and re-roll (exclude shown variants), or accept all three variants and publish them for voting.
+- Accepting the set ends re-rolling permanently for that mix. No regeneration or edits to the approved variants during voting, after locking, or after reopening voting; the server must enforce this too (D37). Per-group weight editing remains a later feature (M4-7).
 - Details: [team balancing](04-team-balancing.md).
 
 ### F4. Voting
 - Only participants vote; one vote per player, changeable until voting closes.
 - Live vote counts.
-- Closes when **all 10 voted** or when **the admin closes it**. No time limit.
+- The admin closes voting, or it closes 60 minutes after the last vote once all ten participants have voted (D33).
+- The admin can reopen voting before play starts, using the same approved variants; this does not reopen variant generation (D37).
 - Winner = most votes; ties are broken by a random pick seeded with the mix id ([D33](08-decisions.md#d33-voting-public-votes-moving-a-vote-closing-ties-pair-spread-accepted-2026-09-26)).
 - Admin can cast a vote on behalf of a participant (marked as "by admin").
 - The chosen lineup is shown as a clean "Team A / Team B" card to share with the group.

@@ -169,7 +169,7 @@ export function faceitForm(
   const before: number[] = [];
   for (const m of player.faceit?.matches ?? []) {
     const t = Date.parse(m.finishedAt);
-    if (t > now.getTime()) continue;
+    if (!Number.isFinite(t) || t > now.getTime()) continue;
     (t >= from ? window : before).push(m.rating);
   }
   const n = window.length;

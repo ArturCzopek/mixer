@@ -45,12 +45,24 @@ product). 2026-09-27: **A2** is decision D36.
 
 **Open, in order** (C = Claude decides/reviews, X = bounded Codex task):
 
-1. **X A3 RLS migration** (Q1) + `db/tests` assertions + the publishable-key check in
-   `scripts/db-migrate.mjs`. **Before M1-6.**
-2. **X A4 FACEIT resilience + ELO fallback** (Q2) in `lib/external/http.ts` / `faceit.ts` and the
-   generation caller, fixture tests. **Before M1-6.**
-3. **X A5 Skip samples with an invalid `finishedAt`** in `faceitForm()` + regression test (valid
-   inputs unchanged). Any time.
+1. **A3 code done 2026-09-27** (Q1): RLS migration, `db/tests` assertions and publishable-key
+   check in `scripts/db-migrate.mjs`; Supabase `--verify` remains pending until Q5 selects the
+   target project. **Before M1-6.**
+2. **X A4 ELO/form fallback at generation** (Q2). **Client resilience done 2026-09-27:**
+   `getJson` retries FACEIT once on 429/5xx, honours `Retry-After` (seconds/date), and gives each
+   attempt a fresh 10 s timeout; regression tests pass. Generation does not exist yet: wire the
+   approved FACEIT → group manual ELO → mix mean fallback and "form unavailable" in **M1-6**.
+
+**A5 done 2026-09-27:** `faceitForm()` skips invalid `finishedAt` values instead of counting them
+in the baseline; regression tests cover unchanged valid inputs and the thin-baseline threshold.
+
+**P0-4 verification 2026-09-27:** local keepalive tests cover bearer authentication, a DB read on
+every invocation, empty tables, DB failures and the daily schedule. Production-build local smoke
+test against the configured real DB returned 401 without a token and 200 with a temporary local
+token; both responses had `Cache-Control: no-store`. All 230 tests, lint, typecheck, format check
+and production build passed. Live Vercel cron and PR preview verification remain open: GitHub CLI
+is signed out and the available Vercel browser session opens the login page. Code remains ready
+for deployment; no Vercel success has been claimed.
 
 Not planned: the 200-record FACEIT cap (F = 0 only after >190 matches in 30 days; the explanation
 already shows a thin baseline) and logout CSRF (harmless).
@@ -62,8 +74,9 @@ already shows a thin baseline) and logout CSRF (harmless).
 - **Groups (M1-G, 2026-09-27):** our group is `/g/skarpeciarze` (FACEIT Club linked, 12 roster players
   seeded with `scripts/seed-group.mjs`; names fill in on first login or with M1-3). One menu bar in
   the root layout on every page (mixer › group menu, backdrop, language, account).
-- **Next tasks, in order:** **P0-4** deploy pipeline + keep-alive cron → M1-3 roster → M1-5 lobby →
-  A3, A4 → M1-6 variants → M1-7 voting (close rules in D33).
+- **Next tasks, in order:** **P0-4** deploy pipeline + keep-alive cron → M1-3 roster → A3
+  (Supabase verify pending) → M1-5 lobby (code done 2026-09-27; race script + two-browser check
+  pending) → A4 → M1-6 variants → M1-7 voting (close rules in D33).
 
 ## Where the keys are
 

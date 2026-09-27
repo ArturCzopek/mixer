@@ -15,6 +15,8 @@ export interface GroupMember {
   steamId: string;
   displayName: string | null;
   avatarUrl: string | null;
+  faceitNickname: string | null;
+  manualElo: number | null;
   role: GroupRole;
   joinedAt: string;
 }
@@ -35,11 +37,13 @@ interface GroupRow {
     role: GroupRole;
     joined_at: string;
     left_at: string | null;
+    manual_skill_override: number | null;
     player: {
       id: string;
       steam_id: string;
       display_name: string | null;
       avatar_url: string | null;
+      faceit_nickname: string | null;
     };
   }[];
 }
@@ -60,7 +64,7 @@ export async function groupBySlug(slug: string): Promise<GroupPage | null> {
   const { data, error } = await adminDb()
     .from("groups")
     .select(
-      "id, slug, name, faceit_club_url, group_members(role, joined_at, left_at, player:players!group_members_player_id_fkey(id, steam_id, display_name, avatar_url))",
+      "id, slug, name, faceit_club_url, group_members(role, joined_at, left_at, manual_skill_override, player:players!group_members_player_id_fkey(id, steam_id, display_name, avatar_url, faceit_nickname))",
     )
     .eq("slug", slug)
     .maybeSingle<GroupRow>();
@@ -78,6 +82,8 @@ export async function groupBySlug(slug: string): Promise<GroupPage | null> {
         steamId: m.player.steam_id,
         displayName: m.player.display_name,
         avatarUrl: m.player.avatar_url,
+        faceitNickname: m.player.faceit_nickname,
+        manualElo: m.manual_skill_override,
         role: m.role,
         joinedAt: m.joined_at,
       }))

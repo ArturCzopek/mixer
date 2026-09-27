@@ -89,6 +89,22 @@ describe("faceitForm: raw F (docs/04 shrinkage examples)", () => {
     expect(form(p).matches).toBe(20);
   });
 
+  it("ignores invalid dates instead of including them in the baseline", () => {
+    const p = withForm(20, 1.3);
+    const expected = form(p);
+    p.faceit!.matches.push({ finishedAt: "invalid", rating: 100 });
+    p.faceit!.matches.push({ finishedAt: "", rating: 0 });
+    expect(form(p)).toEqual(expected);
+
+    const thin = withForm(20, 1.3, 1, 1, 9);
+    thin.faceit!.matches.push({ finishedAt: "invalid", rating: 1 });
+    expect(form(thin)).toMatchObject({
+      F: 0,
+      baselineMatches: 9,
+      status: "thin-baseline",
+    });
+  });
+
   it("raw F is clamped to ±max before the multiplier", () => {
     const hot = form(withForm(100, 3.0));
     expect(hot).toMatchObject({ raw: 150, rawClamped: true, F: 150 });

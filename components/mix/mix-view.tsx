@@ -1002,7 +1002,7 @@ function Locked() {
 /**
  * Group admin controls (D33). Voting never closes by itself on the 10th vote (a misclick could not
  * be undone): it closes when an admin says so, or 60 minutes after the last vote once all ten
- * have voted. Admins can reopen it until the match starts.
+ * have voted. Admins can reopen it until the match starts, on the same approved variants (D37).
  */
 function AdminPanel({ state }: { state: "voting" | "locked" }) {
   const t = useT();
@@ -1017,9 +1017,6 @@ function AdminPanel({ state }: { state: "voting" | "locked" }) {
           <>
             <VButton className="px-2 py-1.5 text-[11px]">
               {t.admin.close}
-            </VButton>
-            <VButton className="px-2 py-1.5 text-[11px]">
-              {t.admin.reroll}
             </VButton>
             <VButton className="px-2 py-1.5 text-[11px]">
               {t.admin.proxy}
