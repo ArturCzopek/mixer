@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { BackgroundToggle, VButton, Well, Window } from "@/components/vgui";
+import { GroupSwitcher } from "@/components/groups/group-switcher";
 import { LanguageToggle } from "@/components/i18n";
 import { getSession, type Session } from "@/lib/auth/server";
 import type { Dict } from "@/lib/i18n/dict";
@@ -25,6 +26,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
         title="mixer"
         right={
           <span className="flex items-center gap-2">
+            <GroupSwitcher session={session} t={t} />
             <BackgroundToggle />
             <LanguageToggle />
           </span>

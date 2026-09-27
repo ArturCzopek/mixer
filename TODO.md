@@ -29,7 +29,7 @@ Done 2026-09-26: **A1** Steam login state cookie (`mixer_login_state`, checked a
 callback; login now has to start on the host that finishes it, so a Production deployment-hash URL
 with `APP_URL` set ends in `?login=failed`); **A6–A8** stale docs fixed, audit docs folded into
 docs/01, 02, 04, 06 and the `lib/*/README.md` files and deleted, AGENTS.md roles (Artur decides
-product).
+product). 2026-09-27: **A2** is decision D36.
 
 **Artur's decisions (2026-09-26):**
 
@@ -45,14 +45,11 @@ product).
 
 **Open, in order** (C = Claude decides/reviews, X = bounded Codex task):
 
-1. **C A2 Write-path rule, with M1-G:** every server action starts with `requireSession` /
-   `requireGroupRole`, checks state in the same transaction as the write, and has a route-level test
-   for 401/403. Record as a decision; Codex can write the tests.
-2. **X A3 RLS migration** (Q1) + `db/tests` assertions + the publishable-key check in
+1. **X A3 RLS migration** (Q1) + `db/tests` assertions + the publishable-key check in
    `scripts/db-migrate.mjs`. **Before M1-6.**
-3. **X A4 FACEIT resilience + ELO fallback** (Q2) in `lib/external/http.ts` / `faceit.ts` and the
+2. **X A4 FACEIT resilience + ELO fallback** (Q2) in `lib/external/http.ts` / `faceit.ts` and the
    generation caller, fixture tests. **Before M1-6.**
-4. **X A5 Skip samples with an invalid `finishedAt`** in `faceitForm()` + regression test (valid
+3. **X A5 Skip samples with an invalid `finishedAt`** in `faceitForm()` + regression test (valid
    inputs unchanged). Any time.
 
 Not planned: the 200-record FACEIT cap (F = 0 only after >190 matches in 30 days; the explanation
@@ -62,8 +59,10 @@ already shows a thin baseline) and logout CSRF (harmless).
   login works there (M1-1). Deployment-hash URLs keep the env of their own build.
 - **Showcase** `/demo`: the real popflash evening of 16.12.2024 on the real engine, all four states,
   live Leetify card, public votes with a seeded tie-break, admin panel (buttons do nothing yet).
-- **Next tasks, in order:** **M1-G** groups UI (with A2) + seed our group from
-  `db/seed/roster.json` → **P0-4** deploy pipeline + keep-alive cron → M1-3 roster → M1-5 lobby →
+- **M1-G in progress:** code is on `main` (`/g/new`, `/g/[slug]`, switcher, D36 triggers,
+  `scripts/seed-group.mjs`). To finish: Artur creates our group at `/g/new` on Production (FACEIT link
+  now or later in its settings), then `seed-group.mjs --slug <it>` adds the 12 players; tick M1-G.
+- **Next tasks, in order:** **P0-4** deploy pipeline + keep-alive cron → M1-3 roster → M1-5 lobby →
   A3, A4 → M1-6 variants → M1-7 voting (close rules in D33).
 
 ## Where the keys are

@@ -40,14 +40,14 @@ A friend group using the app (D18). Everything mix-related belongs to one group.
 | faceit_club_id | text null | parsed from the link / Data API, to list club matches (M2-2) and exclude them from form F |
 | discord_guild_id | text unique null | Discord server linked to the group (Phase 5) |
 | discord_settings | jsonb | bot settings: lobby / team A / team B voice channel ids, notification channel |
-| created_by | uuid fk players | becomes the first group admin |
+| created_by | uuid fk players | becomes the first group admin (insert trigger, D36) |
 
 ## group_members
 | column | type | notes |
 |---|---|---|
 | group_id | uuid fk | pk (group_id, player_id) |
 | player_id | uuid fk | |
-| role | text | `admin` · `member` |
+| role | text | `admin` · `member`; an update that would leave the group without an active admin is rejected (trigger, D36) |
 | manual_skill_override | int null | group admin's fallback ELO if FACEIT data is missing |
 | added_by | uuid fk players null | |
 | joined_at | timestamptz | |

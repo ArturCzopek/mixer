@@ -309,3 +309,12 @@ app; the lineup they really played in 2024 is shown next to it for comparison, a
 shows that real lineup's result. The Leetify card is live (last 30 days before today; Leetify keeps
 no 2024 matches), fetched on every request, never cached or stored. The mock preview `/design/mix`
 was removed.
+
+## D36. Write path: authorize first, invariants in the database, Accepted (2026-09-27)
+From M1-G on (audit task A2). Every server action starts with `requireSession` /
+`requireGroupRole` (roles read from the DB per request, D18) before any read or write it does for
+the caller, and validates its own arguments (bound action arguments come from the browser). Rules the
+UI cannot guarantee live in the database, in the same statement as the write: the group creator
+becomes its admin (insert trigger), a group always keeps one active admin (update trigger, locks the
+group row so concurrent demotions serialize). Each action has a test that a missing session gives 401,
+a missing role gives 403, and nothing is written in either case (`lib/groups/groups.test.ts`).

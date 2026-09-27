@@ -22,7 +22,6 @@ begin
     values ('verify-group', 'Verify', 'https://www.faceit.com/en/club/00000000-0000-0000-0000-000000000000', admin_id)
     returning id into grp;
   insert into public.groups (slug, name, created_by) values ('verify-other', 'Other', admin_id) returning id into other_grp;
-  insert into public.group_members (group_id, player_id, role) values (grp, admin_id, 'admin');
   insert into public.group_members (group_id, player_id, left_at) values (grp, former_id, now());
   insert into public.group_members (group_id, player_id) values (other_grp, outsider_id);
   insert into public.mixes (group_id, title, created_by) values (grp, 'verify 1', admin_id) returning id into mix1;
