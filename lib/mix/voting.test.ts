@@ -28,4 +28,13 @@ describe("votingOutcome", () => {
     );
     expect(winners.size).toBeGreaterThan(1);
   });
+
+  it("matches the database's seeded winner for a fixed mix id", () => {
+    expect(
+      votingOutcome(v(5, 5, 0), "00000000-0000-4000-8000-000000000111"),
+    ).toEqual({
+      winner: 1,
+      tied: [1, 2],
+    });
+  });
 });

@@ -25,6 +25,7 @@ export type MixActionError =
   | "title"
   | "full"
   | "notMember"
+  | "notParticipant"
   | "notOpen"
   | "notFull"
   | "stale"
@@ -319,6 +320,8 @@ async function variantRpc(
   if (!result.ok) return result.state;
   if (result.value.error) {
     if (result.value.error.code === PG_STATE) return { error: "stale" };
+    if (action === "castMixVote" && result.value.error.code === PG_FOREIGN_KEY)
+      return { error: "notParticipant" };
     if (result.value.error.code === PG_CHECK) return { error: "noVariants" };
     if (
       action === "swapMixParticipant" &&
@@ -427,4 +430,71 @@ export async function swapMixParticipant(
     },
   );
   return result;
+}
+
+/** A participant may cast or move one public vote while voting remains open. */
+export async function castMixVote(
+  mixId: string,
+  variantId: string,
+): Promise<MixActionState> {
+  if (!uuid.safeParse(mixId).success || !uuid.safeParse(variantId).success)
+    return { error: "forbidden" };
+  const auth = await authorizedMix("castMixVote", mixId, "member");
+  if ("error" in auth) return auth;
+  return variantRpc("castMixVote", "cast_mix_vote", {
+    p_mix_id: mixId,
+    p_voter_id: auth.session.playerId,
+    p_variant_id: variantId,
+    p_cast_by: auth.session.playerId,
+  });
+}
+
+/** An admin may record a participant's vote, preserving who cast it. */
+export async function castProxyMixVote(
+  mixId: string,
+  voterId: string,
+  variantId: string,
+): Promise<MixActionState> {
+  if (
+    !uuid.safeParse(mixId).success ||
+    !uuid.safeParse(voterId).success ||
+    !uuid.safeParse(variantId).success
+  )
+    return { error: "forbidden" };
+  const auth = await authorizedMix("castMixVote", mixId, "admin");
+  if ("error" in auth) return auth;
+  return variantRpc("castMixVote", "cast_mix_vote", {
+    p_mix_id: mixId,
+    p_voter_id: voterId,
+    p_variant_id: variantId,
+    p_cast_by: auth.session.playerId,
+  });
+}
+
+export async function closeMixVoting(mixId: string): Promise<MixActionState> {
+  if (!uuid.safeParse(mixId).success) return { error: "forbidden" };
+  const auth = await authorizedMix("closeMixVoting", mixId, "admin");
+  if ("error" in auth) return auth;
+  return variantRpc("closeMixVoting", "close_mix_votes", {
+    p_mix_id: mixId,
+    p_require_due: false,
+  });
+}
+
+export async function reopenMixVoting(mixId: string): Promise<MixActionState> {
+  if (!uuid.safeParse(mixId).success) return { error: "forbidden" };
+  const auth = await authorizedMix("reopenMixVoting", mixId, "admin");
+  if ("error" in auth) return auth;
+  return variantRpc("reopenMixVoting", "reopen_mix_votes", {
+    p_mix_id: mixId,
+  });
+}
+
+export async function startMixMatch(mixId: string): Promise<MixActionState> {
+  if (!uuid.safeParse(mixId).success) return { error: "forbidden" };
+  const auth = await authorizedMix("startMixMatch", mixId, "admin");
+  if ("error" in auth) return auth;
+  return variantRpc("startMixMatch", "start_mix_match", {
+    p_mix_id: mixId,
+  });
 }

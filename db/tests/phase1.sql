@@ -1,5 +1,7 @@
 -- Behaviour checks for the Phase 1 schema. Runs inside a transaction that is rolled back:
 -- locally on PGlite (lib/db/migrations.test.ts) and against Supabase by scripts/db-migrate.mjs --verify.
+-- These original FK checks deliberately bypass the later voting-state trigger.
+alter table public.votes disable trigger votes_guard;
 do $$
 declare
   admin_id uuid;
@@ -115,6 +117,7 @@ begin
   if not failed then raise exception 'ASSERT: invalid steam_id was accepted'; end if;
 end;
 $$;
+alter table public.votes enable trigger votes_guard;
 
 -- anon can read but not write
 set local role anon;

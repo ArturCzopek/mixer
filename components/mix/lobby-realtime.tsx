@@ -40,6 +40,33 @@ export function LobbyRealtime({ mixId }: { mixId: string }) {
         },
         () => router.refresh(),
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "votes",
+          filter: `mix_id=eq.${mixId}`,
+        },
+        () => router.refresh(),
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "votes",
+          filter: `mix_id=eq.${mixId}`,
+        },
+        () => router.refresh(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "votes" },
+        (payload) => {
+          if (payload.old.mix_id === mixId) router.refresh();
+        },
+      )
       .subscribe();
 
     return () => {

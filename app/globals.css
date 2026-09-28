@@ -130,8 +130,17 @@
  * public/bg/cs16.jpg; without it the page keeps the plain olive ground. Dimmed so windows stay legible.
  */
 html[data-bg="cs16"] body {
+  isolation: isolate;
+}
+
+html[data-bg="cs16"] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
   background:
     linear-gradient(rgb(38 42 32 / 0.55), rgb(38 42 32 / 0.8)),
-    url("/bg/cs16.jpg") center / cover fixed,
-    var(--vg-ground);
+    url("/bg/cs16.jpg") center / cover;
+  transform: translateZ(0);
 }

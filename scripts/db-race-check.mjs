@@ -45,7 +45,7 @@ async function sql(query) {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const groupId = randomUUID();
-const mixIds = [randomUUID(), randomUUID(), randomUUID()];
+const mixIds = [randomUUID(), randomUUID(), randomUUID(), randomUUID()];
 const playerIds = Array.from({ length: 11 }, () => randomUUID());
 const steamStart = BigInt(`7${Date.now()}${Math.floor(Math.random() * 1000)}`);
 const players = playerIds.map((id, i) => ({
@@ -76,7 +76,7 @@ async function createFixture() {
   const participantValues = mixIds
     .flatMap((mixId, index) =>
       players
-        .slice(0, index === 2 ? 10 : 9)
+        .slice(0, index >= 2 ? 10 : 9)
         .map(({ id }) => `(${q(mixId)}, ${q(id)}, ${q(playerIds[0])})`),
     )
     .join(",\n");
@@ -96,13 +96,13 @@ async function race(mixId, statement, assertion) {
     begin;
     insert into public.mix_participants (mix_id, player_id, added_by)
       values (${q(mixId)}, ${q(playerIds[9])}, ${q(playerIds[0])});
-    select pg_sleep(3);
+    select pg_sleep(4);
     commit;
   `).then(
     () => null,
     (error) => error,
   );
-  await sleep(500);
+  await sleep(1000);
   const contender = sql(statement).then(
     () => ({ ok: true }),
     (error) => ({ ok: false, error }),
@@ -303,11 +303,69 @@ try {
     assert.equal(raceState[0]?.rejected, 3);
   }
 
+  await sql(`
+    update public.mixes set status = 'balancing' where id = ${q(mixIds[3])};
+    select public.create_mix_variant_set(
+      ${q(mixIds[3])}, '{}'::jsonb, ${q(JSON.stringify(snapshots))}::jsonb, ${initialSet}::jsonb
+    );
+    select public.approve_mix_variant_set(${q(mixIds[3])}, 1);
+  `);
+  const voteVariants = await sql(`
+    select id from public.variants where mix_id = ${q(mixIds[3])} order by number
+  `);
+  for (const [index, playerId] of playerIdsForMix.entries()) {
+    await sql(`select public.cast_mix_vote(
+      ${q(mixIds[3])}, ${q(playerId)}, ${q(voteVariants[index < 5 ? 0 : 1].id)}, ${q(playerId)}
+    );`);
+  }
+  await sql(`
+    begin;
+    alter table public.votes disable trigger votes_touch_updated_at;
+    update public.votes set updated_at = now() - interval '61 minutes'
+      where mix_id = ${q(mixIds[3])};
+    alter table public.votes enable trigger votes_touch_updated_at;
+    commit;
+  `);
+  const voteHolder = sql(`
+    begin;
+    select public.cast_mix_vote(
+      ${q(mixIds[3])}, ${q(playerIdsForMix[0])}, ${q(voteVariants[1].id)}, ${q(playerIdsForMix[0])}
+    );
+    select pg_sleep(4);
+    commit;
+  `).then(
+    () => null,
+    (error) => error,
+  );
+  await sleep(1000);
+  const dueClose = sql(`select public.close_due_mix_votes();`).then(
+    () => null,
+    (error) => error,
+  );
+  const [voteError, dueError] = await Promise.all([voteHolder, dueClose]);
+  if (voteError) throw voteError;
+  if (dueError) throw dueError;
+  const votingState = await sql(`
+    select m.status, m.chosen_variant_id, v.variant_id
+    from public.mixes m join public.votes v on v.mix_id = m.id
+    where m.id = ${q(mixIds[3])} and v.voter_id = ${q(playerIdsForMix[0])}
+  `);
+  assert.equal(
+    votingState[0]?.status,
+    "voting",
+    "a moved vote resets the close deadline",
+  );
+  assert.equal(votingState[0]?.chosen_variant_id, null);
+  assert.equal(votingState[0]?.variant_id, voteVariants[1].id);
+
   console.log("ok concurrent join cap (23514, exactly 10 participants)");
   console.log(
     "ok status update waits for tenth join (balancing, exactly 10 participants)",
   );
   console.log("ok concurrent approve vs re-roll (one operation wins)");
+  console.log(
+    "ok concurrent vote move vs due auto-close (vote resets deadline)",
+  );
 } finally {
   try {
     await sql(`

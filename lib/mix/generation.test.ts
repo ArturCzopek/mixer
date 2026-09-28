@@ -159,7 +159,7 @@ describe("mix skill generation", () => {
         snapshot.input.resolvedElo,
         snapshot.input.eloSource,
       ]),
-    ).toEqual(roster.map(() => [1500, "neutral-default"]));
+    ).toEqual(roster.map(() => [1400, "neutral-default"]));
   });
 
   it("records failed FACEIT form as unavailable and scores F as zero", async () => {

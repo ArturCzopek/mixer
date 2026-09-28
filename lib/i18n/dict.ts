@@ -65,6 +65,7 @@ const en = {
     balancing: "Balancing · admin review",
     voting: (voted: number) => `Voting · ${voted} of 10 voted · waiting for`,
     votingReady: "Voting · the approved lineups are ready",
+    votingAll: "Voting · all 10 voted · closes 60 minutes after the last vote",
     lockedBefore: "Voting closed ·",
     lockedAfter: "won",
     played: (maps: number, source: string) =>
@@ -117,7 +118,7 @@ const en = {
       `${level ? `Level ${level}, ` : ""}live from FACEIT`,
     eManual: "FACEIT ELO missing: the group admin's manual ELO",
     eMixMean: "Fallback: mean ELO of the other players in this mix",
-    eNeutral: "No sourced ELO in the lineup: neutral default of 1500",
+    eNeutral: "No sourced ELO in the lineup: neutral default of 1400",
     eSwapSlot: (steamId: string) =>
       `Keeps the approved slot's skill; inherited from ${steamId}`,
     fName: (days: number) => `FACEIT form, last ${days} days`,
@@ -197,6 +198,7 @@ const en = {
     aria: "Votes",
     you: "You",
     publicNotVoted: "Votes are public. Not voted yet:",
+    castBy: (name: string) => `by ${name}`,
   },
   locked: {
     won: (n: number) => `Variant ${n} won`,
@@ -224,6 +226,12 @@ const en = {
     proxy: "Vote for Someone",
     reopen: "Reopen Voting",
     result: "Enter Result",
+    proxyPlayer: "Player",
+    proxyVariant: "Variant",
+    startMatch: "Mark Match Started",
+    startConfirm:
+      "Mark the match as started? Voting cannot be reopened after this.",
+    matchStarted: "Match started · voting cannot reopen",
     previewWaiting: "No variants generated yet.",
     previewNote:
       "Generation uses FACEIT ELO, group fallback ELO or the mix mean. Missing FACEIT form counts as zero.",
@@ -267,6 +275,7 @@ const en = {
     balancing: "Ten players in. Time to see how the teams shake out.",
     voting: (name: string) => `${name} is late. As tradition demands.`,
     votingReady: "The lineups are ready. Voting opens soon.",
+    votingOpen: "Pick a lineup. You can move your vote until voting closes.",
     locked: "Teams are final. Complaints go to the algorithm.",
     carried: (name: string) =>
       `${name} carried. Screenshots or it didn't happen.`,
@@ -281,6 +290,7 @@ const en = {
     vote: (n: number) => `Vote Variant ${n}`,
     yourVote: (n: number) => `Your Vote: Variant ${n}`,
     moveVote: (n: number) => `Move Vote to Variant ${n}`,
+    savingVote: "Saving vote…",
     faceitClub: "FACEIT Club",
     uploadDemo: "Upload Demo",
     fullScoreboard: "Full Scoreboard",
@@ -381,6 +391,7 @@ const en = {
       title: "Use a title from 2 to 60 characters.",
       full: "This mix is full (10 players).",
       notMember: "Only active group members can join this mix.",
+      notParticipant: "Only mix participants can vote.",
       notOpen: "Sign-ups are closed for this mix.",
       notFull: "Ten players must join before balancing starts.",
       stale: "This mix changed in another browser and has been refreshed.",
@@ -454,6 +465,8 @@ const pl: Dict = {
     balancing: "Balansowanie · podgląd admina",
     voting: (voted) => `Głosowanie · zagłosowało ${voted} z 10 · czekamy na`,
     votingReady: "Głosowanie · zatwierdzone składy są gotowe",
+    votingAll:
+      "Głosowanie · zagłosowało 10 z 10 · zamknie się 60 minut po ostatnim głosie",
     lockedBefore: "Głosowanie zamknięte ·",
     lockedAfter: "wygrał",
     played: (maps, source) =>
@@ -504,7 +517,7 @@ const pl: Dict = {
     eNote: (level) => `${level ? `Poziom ${level}, ` : ""}na żywo z FACEIT`,
     eManual: "Brak ELO FACEIT: ręczne ELO od admina grupy",
     eMixMean: "Zapasowe: średnia ELO pozostałych graczy w tym miksie",
-    eNeutral: "Brak ELO w składzie: neutralna wartość 1500",
+    eNeutral: "Brak ELO w składzie: neutralna wartość 1400",
     eSwapSlot: (steamId) =>
       `Zachowano siłę zatwierdzonego miejsca w składzie; dane gracza ${steamId}`,
     fName: (days) => `Forma na FACEIT, ostatnie ${days} dni`,
@@ -543,6 +556,7 @@ const pl: Dict = {
     aria: "Głosy",
     you: "Ty",
     publicNotVoted: "Głosy są jawne. Jeszcze nie zagłosował:",
+    castBy: (name) => `przez ${name}`,
   },
   locked: {
     won: (n) => `Wygrał wariant ${n}`,
@@ -570,6 +584,12 @@ const pl: Dict = {
     proxy: "Zagłosuj za kogoś",
     reopen: "Otwórz głosowanie",
     result: "Wpisz wynik",
+    proxyPlayer: "Gracz",
+    proxyVariant: "Wariant",
+    startMatch: "Oznacz start meczu",
+    startConfirm:
+      "Oznaczyć start meczu? Nie będzie można ponownie otworzyć głosowania.",
+    matchStarted: "Mecz rozpoczęty · głosowania nie można otworzyć ponownie",
     previewWaiting: "Nie wygenerowano jeszcze wariantów.",
     previewNote:
       "ELO pochodzi z FACEIT, zapasowego ELO grupy albo średniej miksu. Brak formy FACEIT liczy się jako zero.",
@@ -608,6 +628,7 @@ const pl: Dict = {
     balancing: "Dziesiątka zebrana. Zobaczmy, jak wyjdą składy.",
     voting: (name) => `${name} się spóźnia. Tradycji musi stać się zadość.`,
     votingReady: "Składy są gotowe. Głosowanie pojawi się wkrótce.",
+    votingOpen: "Wybierz skład. Możesz zmienić głos do zamknięcia głosowania.",
     locked: "Składy zamknięte. Reklamacje do algorytmu.",
     carried: (name) =>
       `${name} wyniósł drużynę na plecach. Screeny albo nie było.`,
@@ -622,6 +643,7 @@ const pl: Dict = {
     vote: (n) => `Głosuj na wariant ${n}`,
     yourVote: (n) => `Twój głos: wariant ${n}`,
     moveVote: (n) => `Przenieś głos na wariant ${n}`,
+    savingVote: "Zapisywanie głosu…",
     faceitClub: "Klub FACEIT",
     uploadDemo: "Wrzuć demo",
     fullScoreboard: "Pełna tabela",
@@ -723,6 +745,7 @@ const pl: Dict = {
       title: "Nazwa musi mieć od 2 do 60 znaków.",
       full: "Miks jest pełny (10 graczy).",
       notMember: "Do miksu mogą dołączyć tylko aktywni członkowie grupy.",
+      notParticipant: "Głosować mogą tylko uczestnicy miksu.",
       notOpen: "Zapisy do tego miksu są zamknięte.",
       notFull: "Do rozpoczęcia podziału składów potrzeba dziesięciu graczy.",
       stale: "Miks zmienił się w innej przeglądarce i został odświeżony.",

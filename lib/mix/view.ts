@@ -16,6 +16,7 @@ export interface ViewPlayer {
 }
 
 export interface ViewVariant {
+  id?: string;
   number: number;
   teamA: string[];
   teamB: string[];
@@ -73,6 +74,15 @@ export interface MixViewData {
   alwaysTogether: [string, string][];
   /** The viewer is an admin of the mix's group (shows the admin panel). */
   viewerIsAdmin: boolean;
+  /** A signed-in participant may vote; guests and other group members may only read. */
+  viewerCanVote?: boolean;
+  chosenVariantNumber?: number;
+  votingTied?: number[];
+  winningVotes?: number;
+  matchStartedAt?: string | null;
+  /** Public attribution for votes recorded by an admin. */
+  proxyVotes?: Record<string, string>;
+  proxyTargets?: { playerId: string; name: string }[];
   /** Current unpublished generation on the admin balancing page. */
   generation?: number;
   /** Active group members not already in the mix, for 1:1 swaps. */
@@ -196,6 +206,7 @@ export function mixVariantViewData(
       .filter((vote) => vote.variantId === variant.id)
       .map((vote) => vote.voterSteamId);
     return {
+      id: variant.id,
       number: variant.number,
       teamA: variant.teamA.map((p) => p.steamId),
       teamB: variant.teamB.map((p) => p.steamId),
@@ -205,6 +216,25 @@ export function mixVariantViewData(
     };
   });
   const participantIds = players.map((player) => player.steamId);
+  const memberById = new Map(
+    options.groupMembers.map((member) => [
+      member.playerId,
+      member.displayName ?? member.steamId,
+    ]),
+  );
+  const participantBySteamId = new Map(
+    page.participants.map((participant) => [
+      participant.steamId,
+      participant.playerId,
+    ]),
+  );
+  const proxyVotes = Object.fromEntries(
+    page.votes.flatMap((vote) =>
+      participantBySteamId.get(vote.voterSteamId) === vote.castByPlayerId
+        ? []
+        : [[vote.voterSteamId, memberById.get(vote.castByPlayerId) ?? "Admin"]],
+    ),
+  );
   const voted = new Set(page.votes.map((vote) => vote.voterSteamId));
   const meId =
     options.meSteamId && participantIds.includes(options.meSteamId)
@@ -283,6 +313,21 @@ export function mixVariantViewData(
     lobbyCount: players.length,
     alwaysTogether,
     viewerIsAdmin: options.viewerIsAdmin,
+    viewerCanVote:
+      options.meSteamId !== null && participantIds.includes(options.meSteamId),
+    chosenVariantNumber: page.variants.find(
+      (variant) => variant.id === page.chosenVariantId,
+    )?.number,
+    votingTied: page.voteResult?.tied,
+    winningVotes: page.voteResult?.winnerVotes,
+    matchStartedAt: page.matchStartedAt,
+    proxyVotes,
+    proxyTargets: options.viewerIsAdmin
+      ? page.participants.map((participant) => ({
+          playerId: participant.playerId,
+          name: participant.displayName ?? participant.steamId,
+        }))
+      : [],
     generation,
     swapCandidates: options.viewerIsAdmin
       ? options.groupMembers

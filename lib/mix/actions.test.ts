@@ -102,9 +102,14 @@ const {
   removeParticipant,
   setMixStatus,
   approveMixVariants,
+  castMixVote,
+  castProxyMixVote,
+  closeMixVoting,
   generateMixVariants,
+  reopenMixVoting,
   rerollMixVariants,
   swapMixParticipant,
+  startMixMatch,
 } = await import("./actions");
 
 const GROUP = "6f1b3c2a-8d4e-4f5a-9b6c-7d8e9f0a1b2c";
@@ -112,6 +117,7 @@ const PLAYER = "1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d";
 const OTHER_PLAYER = "7c6b5a4d-3e2f-4a1b-8c9d-0e1f2a3b4c5d";
 const JOINING_PLAYER = "2c6b5a4d-3e2f-4a1b-8c9d-0e1f2a3b4c5d";
 const MIX = "4d0ea03c-bf8a-4d4b-a37b-21d3d40c5d55";
+const VARIANT = "0c784f5a-2496-4fa4-a4d7-37c27bf302f7";
 const validTitle = (value: string) => {
   const form = new FormData();
   form.set("title", value);
@@ -150,6 +156,11 @@ const everyAction = {
   approveMixVariants: () => approveMixVariants(MIX, 1),
   swapMixParticipant: () =>
     swapMixParticipant(MIX, OTHER_PLAYER, JOINING_PLAYER),
+  castMixVote: () => castMixVote(MIX, VARIANT),
+  castProxyMixVote: () => castProxyMixVote(MIX, OTHER_PLAYER, VARIANT),
+  closeMixVoting: () => closeMixVoting(MIX),
+  reopenMixVoting: () => reopenMixVoting(MIX),
+  startMixMatch: () => startMixMatch(MIX),
 };
 
 describe("mix actions authorize before writing", () => {
@@ -225,6 +236,13 @@ describe("mix action validation and writes", () => {
     expect(await swapMixParticipant(MIX, PLAYER, PLAYER)).toEqual({
       error: "forbidden",
     });
+    expect(await castMixVote(MIX, "bad")).toEqual({ error: "forbidden" });
+    expect(await castProxyMixVote(MIX, "bad", VARIANT)).toEqual({
+      error: "forbidden",
+    });
+    expect(await closeMixVoting("bad")).toEqual({ error: "forbidden" });
+    expect(await reopenMixVoting("bad")).toEqual({ error: "forbidden" });
+    expect(await startMixMatch("bad")).toEqual({ error: "forbidden" });
     expect(db.writes).toEqual([]);
     expect(db.rpcCalls).toEqual([]);
     expect(auth.requireSession).not.toHaveBeenCalled();
@@ -392,5 +410,54 @@ describe("mix action validation and writes", () => {
         error: "notMember",
       },
     );
+  });
+
+  it("uses the session identity for votes and the admin for proxy votes", async () => {
+    expect(await castMixVote(MIX, VARIANT)).toEqual({ ok: true });
+    expect(db.rpcCalls[0]).toEqual({
+      name: "cast_mix_vote",
+      args: {
+        p_mix_id: MIX,
+        p_voter_id: PLAYER,
+        p_variant_id: VARIANT,
+        p_cast_by: PLAYER,
+      },
+    });
+    expect(auth.requireGroupRole).toHaveBeenCalledWith(GROUP, "member");
+    expect(await castProxyMixVote(MIX, OTHER_PLAYER, VARIANT)).toEqual({
+      ok: true,
+    });
+    expect(db.rpcCalls[1]).toEqual({
+      name: "cast_mix_vote",
+      args: {
+        p_mix_id: MIX,
+        p_voter_id: OTHER_PLAYER,
+        p_variant_id: VARIANT,
+        p_cast_by: PLAYER,
+      },
+    });
+    expect(auth.requireGroupRole).toHaveBeenCalledWith(GROUP, "admin");
+
+    db.rpcResponse = {
+      data: null,
+      error: { code: "23503", message: "not a participant" },
+    };
+    expect(await castMixVote(MIX, VARIANT)).toEqual({
+      error: "notParticipant",
+    });
+  });
+
+  it("uses admin RPCs for closing, reopening, and starting a match", async () => {
+    expect(await closeMixVoting(MIX)).toEqual({ ok: true });
+    expect(await reopenMixVoting(MIX)).toEqual({ ok: true });
+    expect(await startMixMatch(MIX)).toEqual({ ok: true });
+    expect(db.rpcCalls).toEqual([
+      {
+        name: "close_mix_votes",
+        args: { p_mix_id: MIX, p_require_due: false },
+      },
+      { name: "reopen_mix_votes", args: { p_mix_id: MIX } },
+      { name: "start_mix_match", args: { p_mix_id: MIX } },
+    ]);
   });
 });

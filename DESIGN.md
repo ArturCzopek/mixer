@@ -276,4 +276,4 @@ A sunken well at 11px dim, led by a 7px square indicator: gold while the mix is 
 ## Layout and backdrop (2026-09-25)
 
 - Phone first, but desktop uses the width: from `md` Team A and Team B sit side by side and the lobby shows two columns of five slots; from `lg` (container up to 1180 px) the explanation and Leetify panels move to a right column, the played view puts the score left and the scoreboard right, and the action bar right-aligns its buttons.
-- Optional **CS 1.6 backdrop** (`BackgroundToggle`, off by default, remembered per browser): `html[data-bg="cs16"]` shows `public/bg/cs16.jpg` dimmed under the windows. Without the file the ground stays plain olive. Windows stay opaque, so contrast does not change.
+- Optional **CS 1.6 backdrop** (`BackgroundToggle`, off by default, remembered by cookie): `html[data-bg="cs16"]` shows `public/bg/cs16.jpg` on a fixed layer dimmed under the windows. Without the file the ground stays plain olive. Windows stay opaque, so contrast does not change.

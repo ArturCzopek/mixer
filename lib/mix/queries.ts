@@ -352,6 +352,9 @@ export async function mixGenerationData(
 
 export interface MixVariantPage {
   mix: MixLobby;
+  chosenVariantId: string | null;
+  voteResult: { tied?: number[]; winnerVotes?: number } | null;
+  matchStartedAt: string | null;
   groupName: string;
   balanceConfig: unknown;
   swapLog: unknown;
@@ -372,7 +375,7 @@ export interface MixVariantPage {
     teamA: { playerId: string; steamId: string }[];
     teamB: { playerId: string; steamId: string }[];
   }[];
-  votes: { variantId: string; voterSteamId: string }[];
+  votes: { variantId: string; voterSteamId: string; castByPlayerId: string }[];
 }
 
 interface VariantPageMixRow {
@@ -382,6 +385,9 @@ interface VariantPageMixRow {
   status: MixStatus;
   created_at: string;
   scheduled_at: string | null;
+  chosen_variant_id: string | null;
+  vote_result: { tied?: number[]; winnerVotes?: number } | null;
+  match_started_at: string | null;
   balance_config: unknown;
   swap_log: unknown;
   group: { name: string };
@@ -424,7 +430,7 @@ export async function mixVariantPage(
   const { data: mix, error: mixError } = await adminDb()
     .from("mixes")
     .select(
-      "id, group_id, title, status, created_at, scheduled_at, balance_config, swap_log, group:groups!mixes_group_id_fkey(name)",
+      "id, group_id, title, status, created_at, scheduled_at, chosen_variant_id, vote_result, match_started_at, balance_config, swap_log, group:groups!mixes_group_id_fkey(name)",
     )
     .eq("id", mixId)
     .maybeSingle<VariantPageMixRow>();
@@ -460,9 +466,10 @@ export async function mixVariantPage(
       : Promise.resolve({ data: [], error: null }),
     adminDb()
       .from("votes")
-      .select("variant_id, voter_id")
+      .select("variant_id, voter_id, cast_by")
       .eq("mix_id", mixId)
-      .returns<{ variant_id: string; voter_id: string }[]>(),
+      .order("updated_at", { ascending: true })
+      .returns<{ variant_id: string; voter_id: string; cast_by: string }[]>(),
   ]);
   if (participantResult.error)
     throw new Error(
@@ -493,6 +500,9 @@ export async function mixVariantPage(
       })),
     },
     groupName: mix.group.name,
+    chosenVariantId: mix.chosen_variant_id,
+    voteResult: mix.vote_result,
+    matchStartedAt: mix.match_started_at,
     balanceConfig: mix.balance_config,
     swapLog: mix.swap_log,
     participants: participantResult.data.map((participant) => ({
@@ -529,7 +539,14 @@ export async function mixVariantPage(
     })),
     votes: voteResult.data.flatMap((vote) => {
       const voterSteamId = votesByPlayer.get(vote.voter_id);
-      return voterSteamId ? [{ variantId: vote.variant_id, voterSteamId }] : [];
+      if (!voterSteamId) return [];
+      return [
+        {
+          variantId: vote.variant_id,
+          voterSteamId,
+          castByPlayerId: vote.cast_by,
+        },
+      ];
     }),
   };
 }

@@ -31,9 +31,14 @@ import type { Dict } from "@/lib/i18n/dict";
 import { cn } from "@/lib/utils";
 import {
   approveMixVariants,
+  castMixVote,
+  castProxyMixVote,
+  closeMixVoting,
   generateMixVariants,
+  reopenMixVoting,
   rerollMixVariants,
   setMixStatus,
+  startMixMatch,
   swapMixParticipant,
   type MixActionState,
 } from "@/lib/mix/actions";
@@ -58,9 +63,13 @@ function resolve(data: MixViewData) {
   const joinIndex = new Map(data.participants.map((x, i) => [x.steamId, i]));
   const lines = (ls: ViewLine[]): Line[] =>
     ls.map(({ steamId, ...l }) => ({ ...l, player: player(steamId) }));
-  const outcome = data.variants.length
+  const calculatedOutcome = data.variants.length
     ? votingOutcome(data.variants, data.mix.id)
     : { winner: 0, tied: [] };
+  const outcome = {
+    winner: data.chosenVariantNumber ?? calculatedOutcome.winner,
+    tied: data.votingTied ?? calculatedOutcome.tied,
+  };
   const winnerData = data.variants.find((v) => v.number === outcome.winner);
   const winner: Variant | null = winnerData
     ? {
@@ -99,8 +108,10 @@ function resolve(data: MixViewData) {
     outcome,
     winner,
     myVote:
-      data.variants.find((v) => v.voters.includes(data.mix.meId))?.number ??
-      null,
+      data.viewerCanVote === false
+        ? null
+        : (data.variants.find((v) => v.voters.includes(data.mix.meId))
+            ?.number ?? null),
     real: data.showcase && {
       ...data.showcase.real,
       teamA: team(data.showcase.real.teamA),
@@ -187,9 +198,7 @@ export function MixView({
                     label: (
                       <>
                         {t.variants.variant(v.number)}{" "}
-                        {data.showcase && (
-                          <span className="text-gold font-bold">{v.votes}</span>
-                        )}
+                        <span className="text-gold font-bold">{v.votes}</span>
                       </>
                     ),
                   }))}
@@ -202,11 +211,14 @@ export function MixView({
                       onFocus={setFocusId}
                     />
                   )}
-                  {data.showcase && variant && <Tally />}
+                  {variant && <Tally />}
                   {data.showcase && data.viewerIsAdmin && (
                     <div className="mt-2.5">
                       <AdminPanel state="voting" />
                     </div>
+                  )}
+                  {!data.showcase && data.viewerIsAdmin && (
+                    <VotingAdminPanel state="voting" />
                   )}
                 </Sheet>
               </div>
@@ -225,6 +237,10 @@ export function MixView({
         {data.showcase && (
           <ActionBar state={state} variantNo={activeVariantNo} />
         )}
+        {!data.showcase &&
+          state === "voting" &&
+          data.viewerCanVote &&
+          variant?.id && <VoteBar variant={variant} myVote={mix.myVote} />}
       </div>
     </MixContext.Provider>
   );
@@ -255,8 +271,12 @@ function StatusLine({ state }: { state: MixState }) {
       <>
         {t.status.voting(voted)} <b className="text-text">{waitingFor.name}</b>
       </>
+    ) : voted === 10 ? (
+      <>{t.status.votingAll}</>
     ) : (
-      <>{t.status.votingReady}</>
+      <>
+        {t.status.voting(voted)} <b className="text-text">{waitingFor.name}</b>
+      </>
     ),
     locked: (
       <>
@@ -345,8 +365,10 @@ function VariantAdminControls() {
     setError(null);
     try {
       const result = await action();
-      if (result && "error" in result) setError(t.lobby.errors[result.error]);
-      else router.refresh();
+      if (result && "error" in result) {
+        setError(t.lobby.errors[result.error]);
+        if (result.error === "stale") router.refresh();
+      } else router.refresh();
     } catch {
       setError(t.lobby.errors.failed);
     } finally {
@@ -452,8 +474,10 @@ function SwapPanel() {
     setError(null);
     try {
       const result = await swapMixParticipant(data.mix.id, leaving, joining);
-      if (result && "error" in result) setError(t.lobby.errors[result.error]);
-      else router.refresh();
+      if (result && "error" in result) {
+        setError(t.lobby.errors[result.error]);
+        if (result.error === "stale") router.refresh();
+      } else router.refresh();
     } catch {
       setError(t.lobby.errors.failed);
     } finally {
@@ -1208,10 +1232,16 @@ function Term({
 
 /** Public votes: who voted for which variant, and who has not voted yet. */
 function Tally() {
-  const { variants, me, waitingFor, data } = useMix();
+  const { variants, me, data } = useMix();
   const t = useT();
   const byId = new Map(data.players.map((p) => [p.steamId, p]));
   const top = Math.max(...variants.map((v) => v.votes));
+  const voted = new Set(variants.flatMap((variant) => variant.voters));
+  const notVoted = data.participants
+    .map((participant) => byId.get(participant.steamId))
+    .filter(
+      (player): player is Player => !!player && !voted.has(player.steamId),
+    );
   return (
     <section aria-label={t.tally.aria} className="mt-2.5">
       <div className="grid grid-cols-3 gap-1.5">
@@ -1231,17 +1261,21 @@ function Tally() {
             <ul className="min-h-[104px] py-0.5">
               {v.voters.map((id) => {
                 const p = byId.get(id)!;
+                const isMe =
+                  (data.showcase || data.viewerCanVote) && id === me.steamId;
                 return (
                   <li
                     key={id}
                     className={cn(
                       "flex items-center gap-1.5 px-1.5 py-0.5 text-[11px]",
-                      id === me.steamId && "text-gold font-bold",
+                      isMe && "text-gold font-bold",
                     )}
                   >
                     <Avatar player={p} size={14} />
                     <span className="truncate">
-                      {id === me.steamId ? t.tally.you : p.name}
+                      {isMe ? t.tally.you : p.name}
+                      {data.proxyVotes?.[id] &&
+                        ` (${t.tally.castBy(data.proxyVotes[id])})`}
                     </span>
                   </li>
                 );
@@ -1250,9 +1284,14 @@ function Tally() {
           </Well>
         ))}
       </div>
-      <p className="text-dim mt-1.5 px-0.5 text-[11px]">
-        {t.tally.publicNotVoted} <b className="text-text">{waitingFor.name}</b>
-      </p>
+      {notVoted.length > 0 && (
+        <p className="text-dim mt-1.5 px-0.5 text-[11px]">
+          {t.tally.publicNotVoted}{" "}
+          <b className="text-text">
+            {notVoted.map((player) => player.name).join(", ")}
+          </b>
+        </p>
+      )}
     </section>
   );
 }
@@ -1262,6 +1301,7 @@ function Locked() {
   const t = useT();
   const lockedWinner = winner!;
   const tie = outcome.tied.length > 1;
+  const winningVotes = data.winningVotes ?? lockedWinner.votes;
   return (
     <div className="mt-2.5 lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start lg:gap-3">
       <div>
@@ -1272,12 +1312,12 @@ function Locked() {
           <span className="text-dim text-[11px]">
             {tie
               ? t.locked.tie(
-                  lockedWinner.votes,
+                  winningVotes,
                   outcome.tied
                     .filter((n) => n !== lockedWinner.number)
                     .join(t.locked.and),
                 )
-              : t.locked.ofVotes(lockedWinner.votes)}
+              : t.locked.ofVotes(winningVotes)}
           </span>
         </Well>
         <Odds
@@ -1319,6 +1359,9 @@ function Locked() {
           </Well>
         )}
         {data.showcase && data.viewerIsAdmin && <AdminPanel state="locked" />}
+        {!data.showcase && data.viewerIsAdmin && (
+          <VotingAdminPanel state="locked" />
+        )}
       </div>
     </div>
   );
@@ -1359,6 +1402,186 @@ function AdminPanel({ state }: { state: "voting" | "locked" }) {
         )}
       </div>
     </Well>
+  );
+}
+
+function VotingAdminPanel({ state }: { state: "voting" | "locked" }) {
+  const { data, variants } = useMix();
+  const t = useT();
+  const router = useRouter();
+  const targets = data.proxyTargets ?? [];
+  const [voterId, setVoterId] = React.useState(targets[0]?.playerId ?? "");
+  const [variantId, setVariantId] = React.useState(variants[0]?.id ?? "");
+  const [pending, setPending] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [showProxy, setShowProxy] = React.useState(false);
+  const run = async (action: () => Promise<MixActionState>) => {
+    setPending(true);
+    setError(null);
+    try {
+      const result = await action();
+      if (result && "error" in result) {
+        setError(t.lobby.errors[result.error]);
+        if (result.error === "stale") router.refresh();
+      } else router.refresh();
+    } catch {
+      setError(t.lobby.errors.failed);
+    } finally {
+      setPending(false);
+    }
+  };
+  return (
+    <Well className="mt-2.5 p-2 text-[11px]">
+      <p className="text-gold mb-1 font-bold">{t.admin.title}</p>
+      <p className="text-dim mb-2">
+        {data.matchStartedAt
+          ? t.admin.matchStarted
+          : state === "voting"
+            ? t.admin.voting
+            : t.admin.locked}
+      </p>
+      <div className="flex flex-wrap gap-1.5">
+        {state === "voting" ? (
+          <>
+            <VButton
+              disabled={pending}
+              onClick={() => void run(() => closeMixVoting(data.mix.id))}
+            >
+              {t.admin.close}
+            </VButton>
+            <VButton
+              disabled={pending}
+              onClick={() => setShowProxy(!showProxy)}
+            >
+              {t.admin.proxy}
+            </VButton>
+          </>
+        ) : !data.matchStartedAt ? (
+          <>
+            <VButton
+              disabled={pending}
+              onClick={() => void run(() => reopenMixVoting(data.mix.id))}
+            >
+              {t.admin.reopen}
+            </VButton>
+            <VButton
+              disabled={pending}
+              onClick={() => {
+                if (window.confirm(t.admin.startConfirm))
+                  void run(() => startMixMatch(data.mix.id));
+              }}
+            >
+              {t.admin.startMatch}
+            </VButton>
+          </>
+        ) : null}
+      </div>
+      {showProxy && state === "voting" && (
+        <div className="mt-2 flex flex-wrap items-end gap-1.5">
+          <label>
+            <span className="text-dim mb-0.5 block">{t.admin.proxyPlayer}</span>
+            <select
+              className="bevel bg-window px-2 py-1.5"
+              value={voterId}
+              onChange={(event) => setVoterId(event.target.value)}
+              disabled={pending}
+            >
+              {targets.map((target) => (
+                <option key={target.playerId} value={target.playerId}>
+                  {target.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <span className="text-dim mb-0.5 block">
+              {t.admin.proxyVariant}
+            </span>
+            <select
+              className="bevel bg-window px-2 py-1.5"
+              value={variantId}
+              onChange={(event) => setVariantId(event.target.value)}
+              disabled={pending}
+            >
+              {variants.map((variant) => (
+                <option key={variant.number} value={variant.id}>
+                  {t.variants.variant(variant.number)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <VButton
+            primary
+            disabled={pending || !voterId || !variantId}
+            onClick={() =>
+              void run(() => castProxyMixVote(data.mix.id, voterId, variantId))
+            }
+          >
+            {t.admin.proxy}
+          </VButton>
+        </div>
+      )}
+      {error && (
+        <p role="alert" className="text-loss mt-2">
+          {error}
+        </p>
+      )}
+    </Well>
+  );
+}
+
+function VoteBar({
+  variant,
+  myVote,
+}: {
+  variant: Variant;
+  myVote: number | null;
+}) {
+  const { data } = useMix();
+  const t = useT();
+  const router = useRouter();
+  const [pending, setPending] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const vote = async () => {
+    if (!variant.id) return;
+    setPending(true);
+    setError(null);
+    try {
+      const result = await castMixVote(data.mix.id, variant.id);
+      if (result && "error" in result) {
+        setError(t.lobby.errors[result.error]);
+        if (result.error === "stale") router.refresh();
+      } else router.refresh();
+    } catch {
+      setError(t.lobby.errors.failed);
+    } finally {
+      setPending(false);
+    }
+  };
+  return (
+    <div className="border-hi bg-window fixed inset-x-0 bottom-0 z-10 border-t px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+      <div className="mx-auto max-w-[444px] md:max-w-[744px] lg:max-w-[1164px]">
+        {error && (
+          <p role="alert" className="text-loss mb-1 text-[11px]">
+            {error}
+          </p>
+        )}
+        <VButton
+          primary
+          className="w-full"
+          disabled={pending || myVote === variant.number}
+          onClick={() => void vote()}
+        >
+          {pending
+            ? t.actions.savingVote
+            : myVote === variant.number
+              ? t.actions.yourVote(variant.number)
+              : myVote === null
+                ? t.actions.vote(variant.number)
+                : t.actions.moveVote(variant.number)}
+        </VButton>
+      </div>
+    </div>
   );
 }
 
@@ -1529,7 +1752,7 @@ function Quip({ state }: { state: MixState }) {
     balancing: t.quips.balancing,
     voting: data.showcase
       ? t.quips.voting(waitingFor.name)
-      : t.quips.votingReady,
+      : t.quips.votingOpen,
     locked: t.quips.locked,
     played: playedQuip(result.all, skill, t),
   }[state];

@@ -175,9 +175,9 @@ begin
   );
   perform public.create_mix_variant_set(full_mix, '{}'::jsonb, null, variant_set);
   perform public.approve_mix_variant_set(full_mix, 1);
-  update public.mixes set status = 'locked' where id = full_mix;
-  update public.mixes set status = 'voting' where id = full_mix;
-  update public.mixes set status = 'locked' where id = full_mix;
+  perform public.close_mix_votes(full_mix);
+  perform public.reopen_mix_votes(full_mix);
+  perform public.close_mix_votes(full_mix);
   update public.mixes set status = 'played' where id = full_mix;
   failed := false;
   begin

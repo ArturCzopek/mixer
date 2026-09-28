@@ -276,7 +276,7 @@ begin
 
   -- Swaps remain available in balancing and locked, and are rejected while sign-ups are open.
   perform public.swap_mix_participant(reroll_mix, p[3], active_extra_id, admin_id);
-  update public.mixes set status = 'locked' where id = main_mix;
+  perform public.close_mix_votes(main_mix);
   perform public.swap_mix_participant(main_mix, p[2], active_extra_id, admin_id);
   failed := false;
   begin

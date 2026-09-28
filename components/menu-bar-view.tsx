@@ -23,10 +23,12 @@ export function MenuBarView({
   auth,
   me,
   groups,
+  initialBackdrop,
 }: {
   auth: boolean;
   me: Me | null;
   groups: GroupLink[];
+  initialBackdrop: boolean;
 }) {
   const t = useT();
   const path = usePathname();
@@ -73,7 +75,7 @@ export function MenuBarView({
           </details>
         </>
       )}
-      <BackgroundToggle className="ml-auto" />
+      <BackgroundToggle className="ml-auto" initialOn={initialBackdrop} />
       <LanguageToggle className="ml-2" />
       {me ? (
         <form

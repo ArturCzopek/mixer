@@ -78,10 +78,14 @@ group admin adds them (or the group has an open join link, later).
 - This avoids minting Supabase-compatible JWTs for a non-Supabase login provider and keeps
   authorization logic in one place (TypeScript).
 
-## Realtime (planned)
+## Realtime
 
-- The client subscribes to Postgres changes filtered by `mix_id` on `mix_participants`, `votes` and `mixes`.
-- Server code performs state transitions (e.g. auto-lock when 10/10 voted) inside a transaction.
+- The client subscribes to Postgres changes on `mix_participants`, `votes`, and `mixes`.
+  Insert and update events are filtered by `mix_id`; delete events are checked against the current mix in the client.
+- Supabase `pg_cron` calls `close_due_mix_votes()` each minute. A mix closes automatically only
+  after all ten have voted and 60 minutes have passed since the most recent vote; the function
+  locks the mix row and rechecks the deadline, so a concurrent moved vote wins safely.
+- Server code performs state transitions inside database transactions.
 - Why not Kafka: see [decisions](08-decisions.md#d3-realtime-supabase-realtime-not-kafka-accepted).
 
 ## Demo processing

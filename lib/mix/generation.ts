@@ -126,8 +126,8 @@ export async function skillSnapshots(
       resolvedElo = mean(otherKnown);
       eloSource = "mix-mean";
     } else {
-      // With no sourced ELO anywhere in the roster, 1500 is the neutral engine-compatible seed.
-      resolvedElo = 1500;
+      // Artur's neutral seed for a roster without sourced ELO.
+      resolvedElo = 1400;
       eloSource = "neutral-default";
     }
 

@@ -1,7 +1,7 @@
 "use client";
 
 // Optional CS 1.6 backdrop behind the windows. Off by default; the choice is a per-browser
-// convenience (localStorage), so it may come back empty and the page must work without it.
+// preference stored in a cookie, so the server-rendered checkbox matches the visible backdrop.
 
 import * as React from "react";
 import { useT } from "@/components/i18n";
@@ -12,9 +12,9 @@ const EVENT = "mixer-background";
 
 function read(): boolean {
   try {
-    return window.localStorage.getItem(KEY) === "cs16";
+    return document.cookie.split("; ").includes(`${KEY}=cs16`);
   } catch {
-    return false;
+    return document.documentElement.dataset.bg === "cs16";
   }
 }
 
@@ -27,21 +27,28 @@ function subscribe(onChange: () => void) {
   };
 }
 
-export function BackgroundToggle({ className }: { className?: string }) {
+export function BackgroundToggle({
+  className,
+  initialOn,
+}: {
+  className?: string;
+  initialOn: boolean;
+}) {
   const t = useT();
-  const on = React.useSyncExternalStore(subscribe, read, () => false);
+  const on = React.useSyncExternalStore(subscribe, read, () => initialOn);
 
   React.useEffect(() => {
-    if (on) document.documentElement.dataset.bg = "cs16";
+    if (read()) document.documentElement.dataset.bg = "cs16";
     else delete document.documentElement.dataset.bg;
   }, [on]);
 
   const toggle = () => {
+    document.cookie = `${KEY}=${on ? "off" : "cs16"}; Max-Age=31536000; Path=/; SameSite=Lax`;
     try {
       if (on) window.localStorage.removeItem(KEY);
       else window.localStorage.setItem(KEY, "cs16");
     } catch {
-      // Storage blocked: the toggle simply does not persist.
+      // The cookie remains the source of truth when localStorage is blocked.
     }
     window.dispatchEvent(new Event(EVENT));
   };
