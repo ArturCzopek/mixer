@@ -53,7 +53,7 @@ product). 2026-09-27: **A2** is decision D36.
 - Production returned HTTP 200 for `/`, `/demo`, `/g/skarpeciarze`, and
   `/g/skarpeciarze/m/<mix>`. The new homepage (open sign-ups, my active mixes, my groups) and
   Leetify rating colors are on Production.
-- 2026-09-28: migrations through `20260928110000` applied; `db-migrate.mjs --verify` passed six SQL
+- 2026-09-28: migrations through `20260928120000` applied; `db-migrate.mjs --verify` passed six SQL
   test files and publishable-key checks. The active `pg_cron` job checks due votes every minute.
   `db-race-check.mjs` passed the concurrent vote-move versus due-close case. Two browser tabs on
   the local app, reading the current Supabase project, received a test vote and the locked lineup
@@ -62,7 +62,12 @@ product). 2026-09-27: **A2** is decision D36.
 **Still to verify live:** generating variants with ten real FACEIT players; the admin re-roll,
 approval, and swap flow in a browser; and live sign-up updates in two browsers. Artur confirmed the two
 M1-6 (variant generation) decisions on 2026-09-28: neutral ELO 1400 when no player has sourced ELO,
-and a mix mean calculated only from players with sourced ELO.
+  and a mix mean calculated only from players with sourced ELO.
+
+**2026-09-28:** M1-8 (public read-only pages) adds a group directory, guest navigation and
+guest-safe empty states; logged-out mobile pages were checked at 375 px. Artur narrowed the
+per-group manual fallback ELO to 600–2500; migration `20260928120000` enforces the same range as
+the form and server action. Neutral all-unsourced ELO remains 1400.
 
 **A5 done 2026-09-27:** `faceitForm()` skips invalid `finishedAt` values instead of counting them
 in the baseline; regression tests cover unchanged valid inputs and the thin-baseline threshold.
@@ -86,9 +91,9 @@ already shows a thin baseline) and logout CSRF (harmless).
   seeded with `scripts/seed-group.mjs`; names fill in on first login or with M1-3). One menu bar in
   the root layout on every page (mixer › group menu, backdrop, language, account).
 - **Next tasks, in order:** finish the remaining M1-5 (mix sign-ups) and M1-6 (variant generation)
-  live checks above, then M1-8 (public read-only pages). M1-7 (voting under D33: public votes and
-  closing rules) is implemented and verified; the CS 1.6 backdrop now uses a stable fixed layer and
-  a cookie-backed preference.
+  live checks above; M1-7 (voting under D33: public votes and closing rules) and M1-8 (public
+  read-only pages) are implemented. P0-6 (separate Production Supabase) comes before the MVP release.
+  The CS 1.6 backdrop uses a stable fixed layer and a cookie-backed preference.
 
 ## Where the keys are
 

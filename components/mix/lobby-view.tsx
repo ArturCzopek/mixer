@@ -124,14 +124,22 @@ export function MixLobbyView({
               }
             />
           ))}
-          {Array.from({ length: Math.max(0, 10 - count) }, (_, index) => (
-            <div
-              key={`slot-${count + index + 1}`}
-              className="border-hi text-dim mx-1.5 my-1 flex min-h-9 items-center border border-dashed px-1.5 text-[11px] last:mb-1.5"
-            >
-              {t.lobby.freeSlot(count + index + 1)}
-            </div>
-          ))}
+          {!open && count === 0 && (
+            <p className="text-dim px-1.5 py-2 text-[11px]">
+              {t.lobby.noPlayers}
+            </p>
+          )}
+          {Array.from(
+            { length: open ? Math.max(0, 10 - count) : 0 },
+            (_, index) => (
+              <div
+                key={`slot-${count + index + 1}`}
+                className="border-hi text-dim mx-1.5 my-1 flex min-h-9 items-center border border-dashed px-1.5 text-[11px] last:mb-1.5"
+              >
+                {t.lobby.freeSlot(count + index + 1)}
+              </div>
+            ),
+          )}
         </Well>
 
         {feedback && (

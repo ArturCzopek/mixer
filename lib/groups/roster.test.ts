@@ -185,7 +185,7 @@ describe("roster writes", () => {
     ).toEqual({ error: "failed" });
     expect(db.upsert).toHaveBeenCalledTimes(1);
   });
-  it.each(["100", "5000", "1250", ""])(
+  it.each(["600", "2500", "1250", ""])(
     "saves fallback ELO %s only on the active membership of this group",
     async (elo) => {
       expect(
@@ -202,7 +202,7 @@ describe("roster writes", () => {
       expect(db.is).toHaveBeenCalledWith("left_at", null);
     },
   );
-  it.each(["99", "5001", "100.5", "NaN", "1e3", "0x100"])(
+  it.each(["599", "2501", "100.5", "NaN", "1e3", "0x100"])(
     "rejects invalid ELO %s",
     async (elo) => {
       expect(

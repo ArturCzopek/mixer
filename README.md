@@ -82,7 +82,7 @@ it refreshes the profile without changing an active member's role or fallback EL
 is temporarily unavailable, adding still succeeds with a warning; repeat the add to retry.
 Closed memberships stay closed; a membership-reopening policy is outside M1-3.
 
-Fallback ELO is an optional integer from 100 to 5000, scoped to the group and used only when
+Fallback ELO is an optional integer from 600 to 2500, scoped to the group and used only when
 FACEIT ELO is missing. Clearing the field removes it. Remove closes membership without deleting
 history; the existing last-admin protection still applies. The first Steam login claims the
 same player identity, preserving group membership. Guests see the roster without edit controls.

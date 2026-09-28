@@ -69,7 +69,7 @@ export default async function MixLobbyPage({
     return (
       <>
         <LobbyRealtime mixId={mix.id} />
-        <MixView state={mix.status} data={data} />
+        <MixView state={mix.status} data={data} groupSlug={group.slug} />
       </>
     );
   }

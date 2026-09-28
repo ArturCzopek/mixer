@@ -97,7 +97,7 @@ empty, instead of retrofitting `group_id` later.
 - A player is one Steam identity across groups. `players.is_site_admin` is the platform admin;
   group roles are checked per request in server code (not stored in the session cookie).
 - Membership is closed (`left_at`), never deleted, so history keeps resolving. The fallback ELO
-  (`manual_skill_override`) is per group.
+  (`manual_skill_override`) is per group and accepts 600–2500 (Artur, 2026-09-28).
 - Everything stays publicly readable (D2). Private groups would need per-player Supabase JWTs or
   server-proxied realtime: not planned.
 

@@ -298,6 +298,11 @@ const en = {
   groups: {
     switcher: "Groups",
     none: "No groups yet.",
+    browse: "Browse all groups",
+    directoryTitle: "Groups",
+    directoryEmpty: "No groups have been created yet.",
+    noMembers: "No active members yet.",
+    mix: "Mix",
     newGroup: "New Group",
     name: "Name",
     slug: "Page address",
@@ -340,7 +345,7 @@ const en = {
     editElo: "Edit fallback ELO",
     eloFor: (name: string) => `Fallback ELO for ${name}`,
     eloHint:
-      "100–5000, used only when FACEIT ELO is missing. Leave blank to clear. Applies to this group only.",
+      "600–2500, used only when FACEIT ELO is missing. Leave blank to clear. Applies to this group only.",
     faceitUnavailable:
       "Player saved. FACEIT is unavailable; add the same Steam profile again to retry linking it.",
     errors: {
@@ -349,7 +354,7 @@ const en = {
       steamUnavailable: "Steam is unavailable. Try again shortly.",
       closed:
         "This membership is closed. Reopening memberships is not available yet.",
-      elo: "Enter a whole number from 100 to 5000, or leave blank.",
+      elo: "Enter a whole number from 600 to 2500, or leave blank.",
       unauthorized: "Log in with Steam first.",
       forbidden: "Only group admins can manage the roster.",
       failed: "Could not save the player. Try again.",
@@ -357,8 +362,9 @@ const en = {
   },
   lobby: {
     lobby: "Lobby",
+    noPlayers: "No players joined this mix.",
     mixList: "Mixes",
-    noMixes: "No mixes yet. Make one and get the crew in.",
+    noMixes: "No mixes in this group yet.",
     newMix: "New Mix",
     mixTitle: "Mix title",
     create: "Create Mix",
@@ -651,6 +657,11 @@ const pl: Dict = {
   groups: {
     switcher: "Grupy",
     none: "Nie masz jeszcze grup.",
+    browse: "Wszystkie grupy",
+    directoryTitle: "Grupy",
+    directoryEmpty: "Nie utworzono jeszcze żadnej grupy.",
+    noMembers: "Nie ma jeszcze aktywnych członków.",
+    mix: "Miks",
     newGroup: "Nowa grupa",
     name: "Nazwa",
     slug: "Adres strony",
@@ -693,7 +704,7 @@ const pl: Dict = {
     editElo: "Zmień zapasowe ELO",
     eloFor: (name) => `Zapasowe ELO gracza ${name}`,
     eloHint:
-      "100–5000, używane tylko przy braku ELO FACEIT. Puste pole usuwa wartość. Dotyczy tylko tej grupy.",
+      "600–2500, używane tylko przy braku ELO FACEIT. Puste pole usuwa wartość. Dotyczy tylko tej grupy.",
     faceitUnavailable:
       "Gracz zapisany. FACEIT jest niedostępny; dodaj ten sam profil Steam ponownie, aby ponowić powiązanie.",
     errors: {
@@ -703,7 +714,7 @@ const pl: Dict = {
       steamUnavailable: "Steam jest niedostępny. Spróbuj za chwilę.",
       closed:
         "To członkostwo jest zamknięte. Ponowne otwieranie nie jest jeszcze dostępne.",
-      elo: "Podaj liczbę całkowitą od 100 do 5000 lub zostaw puste pole.",
+      elo: "Podaj liczbę całkowitą od 600 do 2500 lub zostaw puste pole.",
       unauthorized: "Najpierw zaloguj się przez Steam.",
       forbidden: "Składem mogą zarządzać tylko admini grupy.",
       failed: "Nie udało się zapisać gracza. Spróbuj ponownie.",
@@ -711,8 +722,9 @@ const pl: Dict = {
   },
   lobby: {
     lobby: "Lobby",
+    noPlayers: "Nikt nie dołączył do tego miksu.",
     mixList: "Miksy",
-    noMixes: "Nie ma jeszcze miksów. Utwórz jeden i zbierz ekipę.",
+    noMixes: "W tej grupie nie ma jeszcze miksów.",
     newMix: "Nowy miks",
     mixTitle: "Nazwa miksu",
     create: "Utwórz miks",

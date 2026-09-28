@@ -51,7 +51,7 @@ A friend group using the app (D18). Everything mix-related belongs to one group.
 | group_id | uuid fk | pk (group_id, player_id) |
 | player_id | uuid fk | |
 | role | text | `admin` · `member`; an update that would leave the group without an active admin is rejected (trigger, D36) |
-| manual_skill_override | int null | group admin's fallback ELO if FACEIT data is missing |
+| manual_skill_override | int null | group admin's fallback ELO (600–2500) if FACEIT data is missing |
 | added_by | uuid fk players null | |
 | joined_at | timestamptz | |
 | left_at | timestamptz null | set instead of deleting, so past mixes still resolve; only `left_at is null` members can join mixes |

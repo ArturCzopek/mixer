@@ -128,8 +128,8 @@ export async function updateRosterElo(
     value !== null &&
     (!/^\d+$/.test(raw.trim()) ||
       !Number.isInteger(value) ||
-      value < 100 ||
-      value > 5000)
+      value < 600 ||
+      value > 2500)
   )
     return { error: "elo" };
   const { data, error } = await adminDb()

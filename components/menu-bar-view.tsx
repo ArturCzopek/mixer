@@ -42,6 +42,14 @@ export function MenuBarView({
       <Link href="/" className="text-gold font-bold tracking-wide no-underline">
         mixer
       </Link>
+      {!me && (
+        <Link
+          href="/g"
+          className="text-text ml-2 shrink-0 no-underline hover:underline"
+        >
+          {t.groups.switcher}
+        </Link>
+      )}
       {me && (
         <>
           <ChevronRight className="text-dim size-3 shrink-0" aria-hidden />
@@ -65,9 +73,16 @@ export function MenuBarView({
                 </Link>
               ))}
               <Link
+                href="/g"
+                onClick={close}
+                className="border-lo hover:bg-hover text-text mt-1 border-t px-2 py-1 no-underline"
+              >
+                {t.groups.browse}
+              </Link>
+              <Link
                 href="/g/new"
                 onClick={close}
-                className="border-lo hover:bg-hover text-gold mt-1 border-t px-2 py-1 no-underline"
+                className="hover:bg-hover text-gold px-2 py-1 no-underline"
               >
                 + {t.groups.newGroup}
               </Link>

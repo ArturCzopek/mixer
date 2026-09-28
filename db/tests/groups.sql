@@ -41,5 +41,21 @@ begin
   exception when check_violation then failed := true;
   end;
   if not failed then raise exception 'ASSERT: last remaining admin was demoted'; end if;
+
+  -- A per-group manual ELO accepts the owner-approved inclusive range only.
+  update public.group_members set manual_skill_override = 600 where group_id = grp and player_id = b;
+  update public.group_members set manual_skill_override = 2500 where group_id = grp and player_id = b;
+  failed := false;
+  begin
+    update public.group_members set manual_skill_override = 599 where group_id = grp and player_id = b;
+  exception when check_violation then failed := true;
+  end;
+  if not failed then raise exception 'ASSERT: manual ELO below 600 was accepted'; end if;
+  failed := false;
+  begin
+    update public.group_members set manual_skill_override = 2501 where group_id = grp and player_id = b;
+  exception when check_violation then failed := true;
+  end;
+  if not failed then raise exception 'ASSERT: manual ELO above 2500 was accepted'; end if;
 end;
 $$;

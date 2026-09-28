@@ -87,8 +87,8 @@ export function RosterElo({
           <input
             name="elo"
             type="number"
-            min={100}
-            max={5000}
+            min={600}
+            max={2500}
             step={1}
             value={elo}
             onChange={(e) => setElo(e.target.value)}

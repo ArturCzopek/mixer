@@ -98,6 +98,11 @@ export default async function GroupPage({ params }: PageProps<"/g/[slug]">) {
               {t.groups.members(group.members.length)}
             </span>
           </ListHead>
+          {group.members.length === 0 && (
+            <p className="text-dim px-1.5 py-2 text-[11px]">
+              {t.groups.noMembers}
+            </p>
+          )}
           {group.members.map((m) => {
             const name = m.displayName ?? m.steamId;
             return (

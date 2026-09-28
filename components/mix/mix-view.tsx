@@ -5,6 +5,7 @@
 
 import * as React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ExternalLink, Lock } from "lucide-react";
 import {
@@ -136,9 +137,11 @@ function useMix(): Mix {
 export function MixView({
   state,
   data,
+  groupSlug,
 }: {
   state: MixState;
   data: MixViewData;
+  groupSlug?: string;
 }) {
   const mix = React.useMemo(() => resolve(data), [data]);
   const t = useT();
@@ -163,6 +166,13 @@ export function MixView({
     <MixContext.Provider value={mix}>
       <div className="mx-auto flex w-full max-w-[460px] flex-1 flex-col pb-[76px] md:max-w-[760px] lg:max-w-[1180px]">
         <div className="px-2">
+          {groupSlug && (
+            <p className="text-dim mb-2 text-xs">
+              <Link href={`/g/${groupSlug}`}>{data.mix.group}</Link>
+              <span aria-hidden="true"> › </span>
+              {t.groups.mix}
+            </p>
+          )}
           {data.showcase && <ShowcaseNote />}
           <Window
             title={t.mix.title(data.mix.number, when)}

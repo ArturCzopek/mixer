@@ -11,6 +11,17 @@ export interface GroupLink {
   name: string;
 }
 
+/** Public directory; membership is not required to browse a group. */
+export async function publicGroups(): Promise<GroupLink[]> {
+  const { data, error } = await adminDb()
+    .from("groups")
+    .select("id, slug, name")
+    .order("name", { ascending: true })
+    .returns<GroupLink[]>();
+  if (error) throw new Error(`publicGroups: ${error.message}`);
+  return data;
+}
+
 export interface GroupMember {
   playerId: string;
   steamId: string;
