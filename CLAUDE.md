@@ -32,12 +32,6 @@ Read `docs/` before making design changes. The decision log (`docs/08-decisions.
 
 Before any change, tell Artur what it is: a short description in plain words (what exists today, what changes, why), then the plan (files to touch, tests, what stays out of scope). Only then implement.
 
-## Delegating to Codex
+## Working with Codex
 
-- Delegate only work that [AGENTS.md](AGENTS.md) lets Codex own. Never claim a delegation that did not run.
-- Write the handoff to a scratchpad file: repository path and branch (Codex checks `git rev-parse --show-toplevel` and `git status --short --branch` before editing, stops on a mismatch and preserves uncommitted changes), context, scope and allowed files, out of scope, validation commands, report format. No commit, push or deploy.
-- Run it in the background; model and effort per AGENTS.md "Codex model selection" (important: `gpt-6-sol` medium/high; less important: `gpt-6-luna` xhigh/high):
-  `~/.codex/.sandbox-bin/codex.exe exec -m <model> -c model_reasoning_effort="<effort>" -s workspace-write -C <repo> -o <scratchpad>/codex-result.md - < <scratchpad>/codex-brief.md`
-  If the model or effort cannot be set, tell Artur. If Codex reports "code-mode host executable is missing", copy `codex-code-mode-host.exe` from `(Get-AppxPackage OpenAI.Codex).InstallLocation\app\resources` to `~/.codex/.sandbox-bin` and rerun.
-- Fallback: if Codex still cannot do the task after at most three attempts (tool or sandbox failure, no file access, model unavailable), implement it yourself within the same scope and tell Artur plainly that it was not delegated and why.
-- Do not edit Codex's files while it runs. Afterwards review the diff, run the validation yourself, and report to Artur separately: the handoff, Codex's result, your review.
+Codex leads the project. Claude is an equal partner and may work independently when Artur asks. Whoever works with Artur in a session plans, implements, verifies, and pushes; the other may review on request. Follow [AGENTS.md](AGENTS.md) for shared rules.

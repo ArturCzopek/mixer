@@ -11,12 +11,12 @@ the MVP (M1-9) if it is ready; P0-6 (separate prod Supabase) comes right before 
 ## Owner (Artur)
 
 - [ ] **S5 FACEIT Club:** Club exists and is linked to the group (2026-09-27); still to do: the private
-      queue (D17) and, after the first mix, send Claude the match room link(s).
-- [ ] *(optional)* FACEIT developer terms: if you see a clause against storing match stats, tell Claude (D20).
+      queue (D17: private Club queue) and, after the first mix, send the match room link(s) to the partner working with you.
+- [ ] *(optional)* FACEIT developer terms: if you see a clause against storing match stats, tell the partner working with you (D20: FACEIT data policy).
 - [ ] *(optional, for M4-6)* S4 browser test of the demo parser once the spike page exists.
 - [ ] *(later, Phase 5)* Discord application + bot for D-1.
 
-## Next Claude session: start here
+## Next session (Codex or Claude): start here
 
 **Read first:** `CLAUDE.md`, this file, `docs/07-roadmap.md`, `docs/08-decisions.md`,
 `docs/04-team-balancing.md`, `DESIGN.md`. Owner talks Polish; code/docs English; UI strings go
@@ -42,21 +42,22 @@ product). 2026-09-27: **A2** is decision D36.
   fetch gives F = 0 with "form unavailable". Recorded in D40 and docs/04. If the whole roster has no
   sourced ELO, the generation fallback is neutral 1500, shown as its own source. No formula/default
   changes.
-- **Q5** open until P0-6: which Supabase project the `DB migrate` workflow targets.
+- **Q5 (migration target)** is settled for now: Artur approved the current Supabase project as the target until P0-6 (separate Production Supabase).
 
-**Open, in order** (C = Claude decides/reviews, X = bounded Codex task):
+**Verified on the current Supabase project, 2026-09-27 evening:**
 
-1. **A3 code done 2026-09-27** (Q1): RLS migration, `db/tests` assertions and publishable-key
-   check in `scripts/db-migrate.mjs`; Supabase `--verify` remains pending until Q5 selects the
-   target project.
-2. **M1-5 code done 2026-09-27:** sign-up race check and two-browser live check remain pending.
-3. **A4 + M1-6 code done 2026-09-27:** FACEIT → group manual ELO → mix mean fallback, neutral
-   1500 for a wholly unsourced lineup, and unavailable form as F = 0 are implemented under D40.
-   Generation, approval/re-roll guards, read-only variant presentation, swaps and focused tests are
-   complete. The complete SQL test suite passed in local PGlite. Claude must apply/verify the
-   migration on the intended Supabase project, run `scripts/db-race-check.mjs` (which now includes
-   approve-vs-re-roll), and check generation/approval with the real roster. Those live checks have
-   not been run here.
+- All migrations through `20260927150000` are applied. `db-migrate.mjs --verify` passed: five SQL
+  test files and publishable-key checks.
+- `db-race-check.mjs` passed: join cap, closing sign-ups waiting for the tenth join, and concurrent
+  approval versus re-roll.
+- Production returned HTTP 200 for `/`, `/demo`, `/g/skarpeciarze`, and
+  `/g/skarpeciarze/m/<mix>`. The new homepage (open sign-ups, my active mixes, my groups) and
+  Leetify rating colors are on Production.
+
+**Still to verify live:** generating variants with ten real FACEIT players; the admin re-roll,
+approval, and swap flow in a browser; and live updates in two browsers. Artur must confirm two
+M1-6 (variant generation) decisions: neutral ELO 1500 when no player has sourced ELO, and a mix
+mean calculated only from players with sourced ELO.
 
 **A5 done 2026-09-27:** `faceitForm()` skips invalid `finishedAt` values instead of counting them
 in the baseline; regression tests cover unchanged valid inputs and the thin-baseline threshold.
@@ -79,10 +80,9 @@ already shows a thin baseline) and logout CSRF (harmless).
 - **Groups (M1-G, 2026-09-27):** our group is `/g/skarpeciarze` (FACEIT Club linked, 12 roster players
   seeded with `scripts/seed-group.mjs`; names fill in on first login or with M1-3). One menu bar in
   the root layout on every page (mixer › group menu, backdrop, language, account).
-- **Next tasks, in order:** choose the migration target and complete A3 verification → run the M1-5
-  two-browser/race checks → apply and live-check M1-6 (migration, FACEIT generation, approval, and
-  approve-vs-re-roll race) → M1-7 voting (close rules in D33). M1-6 only displays published variants
-  during voting; vote controls remain M1-7.
+- **Next tasks, in order:** M1-7 (voting under D33: public votes and closing rules), then the
+  remaining live checks above. M1-6 (variant generation) displays only published variants during
+  voting; vote controls belong to M1-7.
 
 ## Where the keys are
 
