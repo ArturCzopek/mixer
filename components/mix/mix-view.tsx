@@ -1347,8 +1347,25 @@ function Locked() {
             <Lock className="size-3.5" aria-hidden /> {t.locked.howToPlay}
           </p>
           <ol className="text-dim list-decimal space-y-0.5 pl-5">
-            {t.locked.steps.map((step) => (
-              <li key={step}>{step}</li>
+            {t.locked.steps.map((step, index) => (
+              <li key={step}>
+                {index === 0 && !data.showcase ? (
+                  data.faceitClubUrl ? (
+                    <a
+                      href={data.faceitClubUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {t.locked.openClub}{" "}
+                      <ExternalLink className="inline size-3" aria-hidden />
+                    </a>
+                  ) : (
+                    t.locked.noClub
+                  )
+                ) : (
+                  step
+                )}
+              </li>
             ))}
           </ol>
         </Well>

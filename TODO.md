@@ -69,6 +69,10 @@ guest-safe empty states; logged-out mobile pages were checked at 375 px. Artur n
 per-group manual fallback ELO to 600–2500; migration `20260928120000` enforces the same range as
 the form and server action. Neutral all-unsourced ELO remains 1400.
 
+**2026-09-29:** M2-5 (how to play on a locked mix) links the group's FACEIT Club directly beside
+the chosen lineup, and explains when no Club is linked. The post-match instruction asks players
+to send room links or scores to an admin; it does not claim result entry is already implemented.
+
 **A5 done 2026-09-27:** `faceitForm()` skips invalid `finishedAt` values instead of counting them
 in the baseline; regression tests cover unchanged valid inputs and the thin-baseline threshold.
 

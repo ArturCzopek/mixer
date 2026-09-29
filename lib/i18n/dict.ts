@@ -207,10 +207,12 @@ const en = {
     and: " and ",
     ofVotes: (v: number) => `${v} of 10 votes`,
     howToPlay: "How to play",
+    openClub: "Open the group's FACEIT Club and join its queue",
+    noClub: "No FACEIT Club linked yet. Ask an admin where to play.",
     steps: [
       "Everyone joins the group's FACEIT Club queue.",
       "Captains pick exactly this lineup. No freelancing.",
-      "No FACEIT tonight? An admin types in the score afterwards.",
+      "After play, send the match room links or map scores to your group admin.",
     ],
     realTitle: "What you really played on 16.12.2024",
     realText: (odds: string, rank: number) =>
@@ -571,10 +573,12 @@ const pl: Dict = {
     and: " i ",
     ofVotes: (v) => `${v} z 10 głosów`,
     howToPlay: "Jak gramy",
+    openClub: "Otwórz klub grupy na FACEIT i dołącz do kolejki",
+    noClub: "Grupa nie ma jeszcze klubu FACEIT. Zapytaj admina, gdzie gramy.",
     steps: [
       "Wszyscy wchodzą do kolejki klubu grupy na FACEIT.",
       "Kapitanowie wybierają dokładnie ten skład. Bez samowolki.",
-      "Dziś bez FACEIT? Admin wpisze wynik po meczu.",
+      "Po grze wyślij adminowi grupy linki do pokoi meczowych albo wyniki map.",
     ],
     realTitle: "Co naprawdę zagraliście 16.12.2024",
     realText: (odds, rank) =>

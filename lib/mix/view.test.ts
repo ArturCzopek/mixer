@@ -98,4 +98,22 @@ describe("production voting view", () => {
     expect(html).toContain(DICTS.en.admin.reopen);
     expect(html).toContain(DICTS.en.admin.startMatch);
   });
+
+  it("links the real group's FACEIT Club beside the chosen lineup", () => {
+    const view: MixViewData = {
+      ...data,
+      showcase: undefined,
+      viewerIsAdmin: false,
+      faceitClubUrl: "https://www.faceit.com/en/club/test/parties",
+    };
+    const html = render(view, "locked");
+    expect(html).toContain(
+      'href="https://www.faceit.com/en/club/test/parties"',
+    );
+    expect(html).toContain("FACEIT Club and join its queue");
+    expect(html).not.toContain(DICTS.en.admin.reopen);
+    expect(render({ ...view, faceitClubUrl: null }, "locked")).toContain(
+      DICTS.en.locked.noClub,
+    );
+  });
 });

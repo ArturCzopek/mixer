@@ -47,6 +47,8 @@ export interface ViewMap {
 }
 
 export interface MixViewData {
+  /** Public FACEIT Club link for a real group's locked lineup. */
+  faceitClubUrl?: string | null;
   mix: {
     /** Mix id; also seeds the tie-break between equally voted variants (D33). */
     id: string;

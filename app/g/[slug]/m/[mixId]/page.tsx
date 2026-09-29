@@ -65,6 +65,7 @@ export default async function MixLobbyPage({
       viewerIsAdmin: canManage,
       groupMembers: group.members,
     });
+    data.faceitClubUrl = group.faceitClubUrl;
 
     return (
       <>
