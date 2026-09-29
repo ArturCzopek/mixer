@@ -240,6 +240,11 @@ Owner feedback on the design preview:
   summary shows maps won and per-map score chips.
 - **Match awards** in the spirit of Worms (M2-8): funny per-evening awards from FACEIT stats and, when
   a demo was parsed, from demo-only stats; each with a concrete stat and threshold.
+- **2026-09-29 owner refinement:** played-map screens must show the selected map's score and winning
+  team unmistakably. Historical mix list rows show results and, for a signed-in participant, own
+  K/D and Mixer Rating; archived lineups do not repeat the obvious 10/10 count. Stored Popflash
+  fields may power the same awards when present. Steam persona names are the displayed identity;
+  FACEIT nicknames remain linked profile metadata.
 
 ## D29. Live evening tracking: FACEIT webhooks first, polling only while someone watches, Accepted (2026-09-25)
 Owner: how does the site know that a mix map started on FACEIT; is there a live view?

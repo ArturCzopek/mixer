@@ -292,7 +292,7 @@ const en = {
       popflash: "Popflash archive",
     },
     archiveNote: (source: string) =>
-      `Historical ${source} lineup and results. The original players did not vote here.`,
+      `Historical ${source} lineup and results. The original players did not vote here. Names are current Steam personas.`,
     historicalStats:
       "Historical Popflash stats. Missing fields stay empty; older maps use assumed KAST for Mixer Rating.",
     mapArtwork: "Illustrative map sketch",
@@ -303,6 +303,12 @@ const en = {
       `${map} · ${a} : ${b} · draw`,
     scoreOnlySummary: (maps: number) => `Maps with saved scores: ${maps}`,
     mapsWon: "Maps won, Team A : Team B",
+    seriesResult: (maps: number) => `Evening result · ${maps} maps`,
+    mapStats: "Map player stats",
+    totalStats: "All maps · player stats",
+    teamWon: (team: string) => `Team ${team} won`,
+    draw: "Draw",
+    mapRounds: (rounds: number) => `${rounds} rounds`,
     scoreboardFor: "Scoreboard for",
     allMaps: "All maps",
     realNote:
@@ -317,6 +323,20 @@ const en = {
     allLine: (maps: number, rounds: number) =>
       `All ${maps} maps · ${rounds} rounds · ADR and MR weighted by rounds`,
     mr: "Mixer Rating",
+    awardsTitle: "Evening awards",
+    awardsNote: "Calculated from available recorded stats only.",
+    awardLabels: {
+      cannonFodder: ["Cannon Fodder", "deaths / round"],
+      pacifist: ["Pacifist", "ADR"],
+      assistKing: ["Assist King", "assists / round"],
+      tourist: ["Tourist", "kills / round"],
+      doorOpener: ["Door Opener", "first kills"],
+      clutchMinister: ["Clutch Minister", "clutches won"],
+      grenadier: ["Grenadier", "utility damage"],
+      sunglasses: ["Sunglasses Salesman", "enemies flashed"],
+      exterminator: ["Exterminator", "aces"],
+      soClose: ["So Close", "4K rounds"],
+    },
   },
   quips: {
     lobby: "Last one in brings the energy drinks.",
@@ -366,6 +386,27 @@ const en = {
     noClub: "No FACEIT Club linked yet.",
     members: (n: number) => `Members · ${n}`,
     archiveMixes: (n: number) => `Historical mixes · ${n}`,
+    statsTitle: "Group stats · all time",
+    statsMixes: "played mixes",
+    statsMaps: "maps",
+    statsPlayers: "players with stats",
+    statsSources: (
+      popflash: number,
+      faceit: number,
+      manual: number,
+      demo: number,
+    ) =>
+      `Sources: Popflash ${popflash} · FACEIT ${faceit} · manual ${manual} · demo ${demo}`,
+    statsLeaders: "Mixer Rating leaders",
+    statsMinimum:
+      "At least 5 rated maps. W–L covers maps with player stats. Older Popflash ratings use assumed KAST.",
+    noCurrentMixes: "No active mixes right now.",
+    statsEmpty: "No rated maps yet.",
+    mixResult: (a: number, b: number, draws: number) =>
+      `Maps: A ${a} : ${b} B${draws ? ` · ${draws} drawn` : ""}`,
+    ownResult: (kills: number, deaths: number, rating: string) =>
+      `Yours: K/D ${kills}/${deaths} · MR ${rating}`,
+    cancelledMix: "Mix cancelled before play.",
     admin: "admin",
     makeAdmin: "Make Admin",
     removeAdmin: "Remove Admin",
@@ -728,7 +769,7 @@ const pl: Dict = {
       popflash: "archiwum Popflash",
     },
     archiveNote: (source) =>
-      `Archiwalny skład i wyniki z ${source}. Gracze nie głosowali tu nad składem.`,
+      `Archiwalny skład i wyniki z ${source}. Gracze nie głosowali tu nad składem. Nicki pochodzą z aktualnych profili Steam.`,
     historicalStats:
       "Historyczne statystyki Popflash. Brakujące pola pozostają puste; na starszych mapach Mixer Rating używa założonego KAST.",
     mapArtwork: "Ilustracyjny szkic mapy",
@@ -739,6 +780,13 @@ const pl: Dict = {
     drawLine: (map, a, b) => `${map} · ${a} : ${b} · remis`,
     scoreOnlySummary: (maps) => `Mapy z zapisanym wynikiem: ${maps}`,
     mapsWon: "Wygrane mapy, drużyna A : drużyna B",
+    seriesResult: (maps) =>
+      `Wynik wieczoru · ${maps} ${plural(maps, "mapa", "mapy", "map")}`,
+    mapStats: "Statystyki graczy na mapie",
+    totalStats: "Statystyki graczy · wszystkie mapy",
+    teamWon: (team) => `Wygrała drużyna ${team}`,
+    draw: "Remis",
+    mapRounds: (rounds) => `${rounds} rund`,
     scoreboardFor: "Tabela dla",
     allMaps: "Wszystkie mapy",
     realNote: "Prawdziwy skład i wynik z 16.12.2024, nie wariant z głosowania.",
@@ -747,6 +795,20 @@ const pl: Dict = {
     allLine: (maps, rounds) =>
       `Wszystkie ${maps} ${plural(maps, "mapa", "mapy", "map")} · ${rounds} rund · ADR i MR ważone rundami`,
     mr: "Mixer Rating",
+    awardsTitle: "Nagrody wieczoru",
+    awardsNote: "Liczone wyłącznie z dostępnych zapisanych statystyk.",
+    awardLabels: {
+      cannonFodder: ["Mięso armatnie", "zgony / rundę"],
+      pacifist: ["Pacyfista", "ADR"],
+      assistKing: ["Król asyst", "asysty / rundę"],
+      tourist: ["Turysta", "zabójstwa / rundę"],
+      doorOpener: ["Otwieracz", "pierwsze zabójstwa"],
+      clutchMinister: ["Minister clutchy", "wygrane clutche"],
+      grenadier: ["Grenadier", "obrażenia granatami"],
+      sunglasses: ["Sprzedawca okularów", "oślepieni wrogowie"],
+      exterminator: ["Eksterminator", "asy"],
+      soClose: ["Tak blisko", "rundy 4K"],
+    },
   },
   quips: {
     lobby: "Ostatni zapisany stawia energetyki.",
@@ -796,6 +858,22 @@ const pl: Dict = {
     noClub: "Brak podpiętego klubu FACEIT.",
     members: (n) => `Członkowie · ${n}`,
     archiveMixes: (n) => `Archiwalne miksy · ${n}`,
+    statsTitle: "Statystyki grupy · cała historia",
+    statsMixes: "rozegrane miksy",
+    statsMaps: "mapy",
+    statsPlayers: "gracze ze statystykami",
+    statsSources: (popflash, faceit, manual, demo) =>
+      `Źródła: Popflash ${popflash} · FACEIT ${faceit} · ręczne ${manual} · demo ${demo}`,
+    statsLeaders: "Najwyższy Mixer Rating",
+    statsMinimum:
+      "Co najmniej 5 ocenionych map. W–L dotyczy map ze statystykami graczy. Starsze oceny Popflash używają założonego KAST.",
+    noCurrentMixes: "Brak aktywnych miksów.",
+    statsEmpty: "Nie ma jeszcze ocenionych map.",
+    mixResult: (a, b, draws) =>
+      `Mapy: A ${a} : ${b} B${draws ? ` · remisy ${draws}` : ""}`,
+    ownResult: (kills, deaths, rating) =>
+      `Twoje: K/D ${kills}/${deaths} · MR ${rating}`,
+    cancelledMix: "Miks anulowano przed grą.",
     admin: "admin",
     makeAdmin: "Daj admina",
     removeAdmin: "Zabierz admina",

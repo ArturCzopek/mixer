@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { z } from "zod";
+import { matchAwards, type AwardStat } from "@/lib/awards";
 import { adminDb } from "@/lib/db/admin";
 import { LobbyRealtime } from "@/components/mix/lobby-realtime";
 import { MixLobbyView } from "@/components/mix/lobby-view";
@@ -82,7 +83,7 @@ export default async function MixLobbyPage({
         ? await adminDb()
             .from("match_player_stats")
             .select(
-              "match_id, player_id, team, kills, deaths, assists, adr, rounds, rating",
+              "match_id, player_id, team, kills, deaths, assists, adr, rounds, rating, first_kills, clutch_wins, utility_damage, enemies_flashed, multi_4k, multi_5k",
             )
             .in("match_id", matchIds)
         : { data: [], error: null };
@@ -137,6 +138,30 @@ export default async function MixLobbyPage({
             : maps?.every((map) => map.source === "faceit")
               ? "faceit"
               : "mixed",
+        awards: matchAwards(
+          (storedStats ?? []).flatMap((stat): AwardStat[] => {
+            const steamId = steamIds.get(stat.player_id);
+            return steamId
+              ? [
+                  {
+                    steamId,
+                    rounds: stat.rounds,
+                    kills: stat.kills,
+                    deaths: stat.deaths,
+                    assists: stat.assists,
+                    adr: stat.adr === null ? null : Number(stat.adr),
+                    firstKills: stat.first_kills,
+                    clutchWins: stat.clutch_wins,
+                    utilityDamage: stat.utility_damage,
+                    enemiesFlashed: stat.enemies_flashed,
+                    multi4: stat.multi_4k,
+                    multi5: stat.multi_5k,
+                  },
+                ]
+              : [];
+          }),
+          page.participants.map((player) => player.steamId),
+        ),
       };
     }
 

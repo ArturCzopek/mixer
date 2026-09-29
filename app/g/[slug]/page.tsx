@@ -11,6 +11,7 @@ import { hasGroupRole } from "@/lib/auth/roles";
 import { getSession } from "@/lib/auth/server";
 import { updateGroup } from "@/lib/groups/actions";
 import { groupBySlug } from "@/lib/groups/queries";
+import { groupStats } from "@/lib/groups/stats";
 import { groupMixes } from "@/lib/mix/queries";
 import { getDict } from "@/lib/i18n/server";
 
@@ -29,30 +30,76 @@ export default async function GroupPage({ params }: PageProps<"/g/[slug]">) {
     getDict(),
   ]);
   if (!group) notFound();
-  const mixes = await groupMixes(group.id);
-  const currentMixes = mixes.filter((mix) => !mix.archiveSource);
-  const archivedMixes = mixes.filter((mix) => !!mix.archiveSource);
+  const [mixes, stats] = await Promise.all([
+    groupMixes(group.id),
+    groupStats(group.id, session?.playerId ?? null),
+  ]);
+  const archivedMixes = mixes.filter(
+    (mix) =>
+      mix.archiveSource ||
+      mix.status === "played" ||
+      mix.status === "cancelled",
+  );
+  const currentMixes = mixes.filter((mix) => !archivedMixes.includes(mix));
+  const leaders = stats.leaderboard
+    .filter((row) => row.ratedMaps >= 5)
+    .slice(0, 5);
   const me = group.members.find((m) => m.playerId === session?.playerId);
   const canManage = hasGroupRole(
     me ? { role: me.role, leftAt: null } : null,
     "admin",
     session?.isSiteAdmin ?? false,
   );
-  const mixRow = (mix: (typeof mixes)[number]) => (
-    <Link
-      key={mix.id}
-      href={`/g/${group.slug}/m/${mix.id}`}
-      className="border-row text-text hover:bg-hover flex items-center gap-2 border-b px-1.5 py-2 last:border-b-0"
-    >
-      <span className="min-w-0 flex-1 truncate font-bold">{mix.title}</span>
-      <span className="text-gold shrink-0 text-[11px] font-bold">
-        {t.lobby.playersOf10(mix.participantCount)}
-      </span>
-      <span className="text-dim w-20 shrink-0 text-right text-[11px]">
-        {t.lobby.status[mix.status]}
-      </span>
-    </Link>
-  );
+  const mixRow = (mix: (typeof mixes)[number]) => {
+    const historical = archivedMixes.includes(mix);
+    const result = stats.mixResults[mix.id];
+    return (
+      <Link
+        key={mix.id}
+        href={`/g/${group.slug}/m/${mix.id}`}
+        className="border-row text-text hover:bg-hover block border-b px-1.5 py-2 last:border-b-0"
+      >
+        <span className="flex items-center gap-2">
+          <span className="min-w-0 flex-1 truncate font-bold">{mix.title}</span>
+          {!historical && (
+            <span className="text-gold shrink-0 text-[11px] font-bold">
+              {t.lobby.playersOf10(mix.participantCount)}
+            </span>
+          )}
+          <span className="text-dim shrink-0 text-right text-[11px]">
+            {t.lobby.status[mix.status]}
+          </span>
+        </span>
+        {historical && (
+          <span className="text-dim mt-1 flex flex-wrap gap-x-2 text-[11px]">
+            {result ? (
+              <>
+                <b className="text-gold">
+                  {t.groups.mixResult(result.wonA, result.wonB, result.draws)}
+                </b>
+                <span>
+                  {result.maps
+                    .map((map) => `${map.name} ${map.a}:${map.b}`)
+                    .join(" · ")}
+                </span>
+                {result.own && (
+                  <span className="text-text">
+                    {t.groups.ownResult(
+                      result.own.kills,
+                      result.own.deaths,
+                      result.own.rating?.toFixed(2) ?? "—",
+                    )}
+                  </span>
+                )}
+              </>
+            ) : (
+              t.groups.cancelledMix
+            )}
+          </span>
+        )}
+      </Link>
+    );
+  };
   return (
     <main className="mx-auto w-full max-w-[460px] px-2 py-6">
       <Window title={group.name}>
@@ -78,11 +125,69 @@ export default async function GroupPage({ params }: PageProps<"/g/[slug]">) {
           </ListHead>
           {currentMixes.length === 0 ? (
             <p className="text-dim px-1.5 py-2 text-[11px]">
-              {t.lobby.noMixes}
+              {t.groups.noCurrentMixes}
             </p>
           ) : (
             currentMixes.map(mixRow)
           )}
+        </Well>
+        <Well className="mb-2">
+          <ListHead>{t.groups.statsTitle}</ListHead>
+          <div className="grid grid-cols-3 gap-1 px-1.5 py-2 text-center">
+            {(
+              [
+                [stats.mixes, t.groups.statsMixes],
+                [stats.maps, t.groups.statsMaps],
+                [stats.players, t.groups.statsPlayers],
+              ] as const
+            ).map(([value, label]) => (
+              <div key={label}>
+                <b className="text-gold block text-[24px] leading-none">
+                  {value}
+                </b>
+                <span className="text-dim text-[10px]">{label}</span>
+              </div>
+            ))}
+          </div>
+          <p className="text-dim border-row border-t px-1.5 py-1 text-[11px]">
+            {t.groups.statsSources(
+              stats.sources.popflash,
+              stats.sources.faceit,
+              stats.sources.manual,
+              stats.sources.demo,
+            )}
+          </p>
+          <ListHead>{t.groups.statsLeaders}</ListHead>
+          {leaders.length === 0 ? (
+            <p className="text-dim px-1.5 py-2 text-[11px]">
+              {t.groups.statsEmpty}
+            </p>
+          ) : (
+            leaders.map((row, index) => (
+              <Link
+                key={row.steamId}
+                href={`/g/${group.slug}/p/${row.steamId}`}
+                className="border-row hover:bg-hover flex items-center gap-2 border-b px-1.5 py-1.5 last:border-b-0"
+              >
+                <span className="text-dim w-4 shrink-0 text-[11px]">
+                  {index + 1}.
+                </span>
+                <span className="min-w-0 flex-1">
+                  <b className="text-text block truncate">{row.name}</b>
+                  <span className="text-dim text-[10px]">
+                    {row.maps} {t.groups.statsMaps} · {row.wins}–{row.losses}{" "}
+                    W–L · K/D{" "}
+                    {row.deaths ? (row.kills / row.deaths).toFixed(2) : "—"} ·
+                    ADR {row.adr?.toFixed(0) ?? "—"}
+                  </span>
+                </span>
+                <b className="text-gold shrink-0">{row.rating!.toFixed(2)}</b>
+              </Link>
+            ))
+          )}
+          <p className="text-dim border-row border-t px-1.5 py-1 text-[10px]">
+            {t.groups.statsMinimum}
+          </p>
         </Well>
         {archivedMixes.length > 0 && (
           <details className="mb-2">

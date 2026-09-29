@@ -105,6 +105,14 @@ results) now has map tabs, summary, per-map and total scoreboards, original illu
 sketches, and a score-only lineup. A real five-map result and accurate licensed/own map previews
 remain open.
 
+**2026-09-29 later:** The group page now has a first all-time result summary and a five-map-minimum
+Mixer Rating top five. Cancelled mixes are in history; history rows show evening and map scores and,
+for the signed-in participant, own K/D and Mixer Rating. Ten awards using actually stored fields
+appear on played mixes, with threshold tests; M2-8 remains partial because source fields and the
+larger quip pool are pending. The result screen emphasizes the selected map's score and winner.
+All 27 Skarpeciarze identities were refreshed from Steam; 25 available FACEIT links were attached
+without replacing the Steam display names. Repeat with `scripts/refresh-group-identities.ts`.
+
 **A5 done 2026-09-27:** `faceitForm()` skips invalid `finishedAt` values instead of counting them
 in the baseline; regression tests cover unchanged valid inputs and the thin-baseline threshold.
 

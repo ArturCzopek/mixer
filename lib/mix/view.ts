@@ -2,6 +2,7 @@
 // the showcase from lib/showcase/, later the database (M1-5..M1-7).
 
 import type { BalanceConfig, SkillBreakdown, Variant } from "@/lib/balance";
+import type { MatchAward } from "@/lib/awards";
 import type { LeetifyMatch } from "@/lib/external/leetify";
 import type { GroupMember } from "@/lib/groups/queries";
 import type { SkillSnapshotInput } from "./generation";
@@ -102,6 +103,7 @@ export interface MixViewData {
   result: {
     maps: ViewMap[];
     source: "manual" | "faceit" | "demo" | "mixed" | "popflash";
+    awards?: MatchAward[];
   };
   /**
    * Live Leetify preview per player (FACEIT matches in `window`, never stored); a player's entry is

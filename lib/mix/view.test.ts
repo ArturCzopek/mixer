@@ -49,7 +49,7 @@ describe("multi-map results", () => {
     ).toEqual({ wonA: 2, wonB: 2, draws: 1, rounds: 121 });
   });
 
-  it("renders five map tabs, illustrative previews, and archive provenance", () => {
+  it("renders five map tabs, scores, winner, and archive provenance", () => {
     const maps = [
       ...data.result.maps,
       { ...data.result.maps[0], map: "4. Mirage" },
@@ -69,7 +69,8 @@ describe("multi-map results", () => {
       }),
     );
     expect(html.match(/role="tab"/g)).toHaveLength(6);
-    expect(html.match(/Illustrative map sketch/g)).toHaveLength(5);
+    expect(html).toContain("Team B won");
+    expect(html).toContain("16:12");
     expect(html).toContain(DICTS.en.played.archiveNote("popflash"));
   });
 });

@@ -62,7 +62,7 @@ demos are an optional extra (any group member can upload one, parsed in the brow
 | [x] **M2-5** | Mix page "how to play": the group's FACEIT Club link (`groups.faceit_club_url`) + the voted lineup; captains pick exactly that lineup | M1-7 | **Done 2026-09-29:** locked mixes link to their group's FACEIT Club beside the chosen lineup; an unlinked group gets an honest fallback. Guest rendering and mobile layout checked. |
 | [ ] **M2-6** | Mix form term **M** in balancing (last 10 mix maps, shrinkage to group avg) | M2-3 | Engine tests updated; snapshot includes M |
 | [ ] **M2-9** | **Live evening tracker** (D29): `matches.status` `ongoing`/`finished`; FACEIT webhook endpoint `/api/webhooks/faceit` (secret header) when S6 confirms club events, else a 60 s poll from open mix pages through a shared 60 s server cache; evening timeline on the locked mix page (live map, room link, finished maps with scores), each finished map imported with the M2-2 filter; admin "Map started" / "Close evening" buttons; Realtime to all viewers | M2-2, S6 | During a real evening two browsers see map 2 go live and map 1's score appear without reloading; no FACEIT calls when nobody has the page open |
-| [ ] **M2-8** | **Match awards** (Worms-style, D28) + a **pool of situational quips** (who carried from low on paper, who was only strong on paper, comebacks, stomps, overtime; the page picks the line that fits): pure `lib/awards` computes per-evening awards from stored per-map stats; FACEIT-only awards now, demo-only awards once M4-6 parses a demo; at most 2 awards per player per evening, max 6 shown, ties → the more extreme value relative to the threshold, then join order; list below | M2-3 | Unit tests: each award fires at its threshold and not below; awards render on a played mix |
+| [~] **M2-8** | **Match awards** (Worms-style, D28) + a **pool of situational quips** (who carried from low on paper, who was only strong on paper, comebacks, stomps, overtime; the page picks the line that fits): pure `lib/awards` computes per-evening awards from stored per-map stats; available FACEIT/Popflash fields now, demo-only awards once M4-6 parses a demo; at most 2 awards per player per evening, max 6 shown, ties → the more extreme value relative to the threshold, then join order; list below | M2-3 | **Partial 2026-09-29:** ten awards based on available stored fields, also shown on Popflash history; exact threshold tests, max two/player and six/evening. Awards needing missing FACEIT/demo fields and the expanded quip pool remain. |
 
 ### M2-8 award list
 
@@ -70,7 +70,7 @@ Evaluated over the whole evening (all maps summed, rates per round over the roun
 played). An award goes to the single best player on its stat, **only if** that player also clears
 the threshold. Names are UI copy (English), tone per PRODUCT.md.
 
-**From FACEIT stats alone** (`/matches/{id}/stats`, stored in `match_player_stats`):
+**From stored FACEIT stats, or historical Popflash fields where present** (`match_player_stats`):
 
 | Award | Stat | Threshold |
 |---|---|---|
@@ -119,7 +119,7 @@ the threshold. Names are UI copy (English), tone per PRODUCT.md.
 | [x] **M3-1** | Player profile: header (FACEIT level/ELO live), mix aggregates, Mixer Rating trend chart, per-map stats, best teammates | M2-5 | **Done 2026-09-29:** empty and four-map profiles rendered locally against the approved Supabase project; score-only maps contribute to wins, not rating. Test data removed afterwards. |
 | [ ] **M3-2** | Leetify client + FACEIT / Premier tabs (live, never stored, metrics shown as-is, "Data Provided by Leetify" logo) + **Leetify preview card** as a curiosity: tap a player in the lobby / variant or open a profile → server route fetches `/v3/profile/matches` live (5–10 min HTTP cache) and shows **only FACEIT matches of the last 30 days**, each with a W / L letter, date, map, score, K/A/D and its **Leetify Rating** as Leetify shows them (no averages), plus the logo; private profiles say so. Look: a VGUI "Leetify" window in the CS 1.6 style (design at `/design/mix`, voting state, tap a player) Never stored, never used in balancing | M3-1, P0-2 | Filter Mix / FACEIT / Premier works; preview card renders for a real player and for a private one; no Leetify data in DB (checked in review) |
 | [ ] **M3-3** | Head-to-head compare page | M3-1 | Two players side by side for a chosen source |
-| [ ] **M3-4** | Leaderboards with minimum-maps threshold | M3-1 | Sortable by rating, ADR, K/D, win rate, clutches |
+| [~] **M3-4** | Leaderboards with minimum-maps threshold | M3-1 | **Partial 2026-09-29:** the group page shows an all-time Mixer Rating top five (at least five rated maps), maps, W–L, K/D and ADR, with clear Popflash/FACEIT/manual/demo source counts. Sorting by other metrics and a full leaderboard remain. |
 
 ## Phase 4: optional
 

@@ -197,10 +197,12 @@ export function MixView({
                 : t.mix.title(data.mix.number, when)
             }
             right={
-              <span aria-label={t.mix.playersOf10(count)}>
-                {count}
-                <span className="text-dim">/10</span>
-              </span>
+              data.archiveSource ? undefined : (
+                <span aria-label={t.mix.playersOf10(count)}>
+                  {count}
+                  <span className="text-dim">/10</span>
+                </span>
+              )
             }
           >
             <StatusLine state={state} />
@@ -1902,6 +1904,12 @@ function Played() {
   const [pick, setPick] = React.useState(0);
   const { wonA, wonB, rounds } = mapResultSummary(data.result.maps);
   const map = result.maps[pick - 1] ?? null;
+  const scoreA = map?.a ?? wonA;
+  const scoreB = map?.b ?? wonB;
+  const winnerText =
+    scoreA === scoreB
+      ? t.played.draw
+      : t.played.teamWon(scoreA > scoreB ? "A" : "B");
   return (
     <div className="mt-2.5">
       <div className="overflow-x-auto pb-0.5">
@@ -1920,120 +1928,177 @@ function Played() {
           />
         </div>
       </div>
-      <div className="mt-1.5 lg:grid lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start lg:gap-3">
-        <Well className="px-2 py-3 text-center lg:py-6">
-          <div className="text-dim text-[11px]">{t.played.mapsWon}</div>
-          <div className="text-gold text-[64px] leading-[1.05] font-bold tracking-[-0.04em]">
-            {wonA}
-            <span className="text-dim"> : </span>
-            <span className="text-text">{wonB}</span>
+      <div className="mt-1.5">
+        <Well className="mb-2 px-2 py-3 text-center">
+          <div className="text-dim text-[11px]">
+            {map ? map.map : t.played.seriesResult(result.maps.length)}
           </div>
-        </Well>
-        <div>
-          {(data.showcase || data.archiveSource) && (
-            <p className="text-gold mt-2.5 mb-1 px-0.5 text-[11px] font-bold lg:mt-0">
-              {data.archiveSource
-                ? t.played.archiveNote(data.archiveSource)
-                : t.played.realNote}
-            </p>
-          )}
-          {!map && (
-            <div className="mb-2 grid gap-1.5 sm:grid-cols-2">
-              {result.maps.map((item, index) => (
-                <button
-                  key={index}
-                  onClick={() => setPick(index + 1)}
-                  className="bevel bg-window hover:bg-hover flex min-w-0 items-center gap-2 p-1.5 text-left"
-                >
-                  <MapArtwork name={item.map} />
-                  <span className="min-w-0 flex-1">
-                    <b className="block truncate">{item.map}</b>
-                    <span className="text-dim text-[11px]">
-                      {t.played.mapArtwork} · {item.a}:{item.b}
-                    </span>
-                  </span>
-                </button>
-              ))}
+          <div className="flex items-end justify-center gap-3 leading-none">
+            <div className="min-w-16 text-center">
+              <div className="text-dim text-[11px]">{t.lists.team("A")}</div>
+              <b
+                className={cn(
+                  "text-[52px]",
+                  scoreA > scoreB ? "text-gold" : "text-text",
+                )}
+              >
+                {scoreA}
+              </b>
             </div>
-          )}
-          {map && (
-            <div className="bevel bg-window mb-2 flex items-center gap-2 p-1.5">
-              <MapArtwork name={map.map} />
-              <span className="min-w-0">
-                <b className="block truncate">{map.map}</b>
-                <span className="text-dim text-[11px]">
-                  {t.played.mapArtwork}
-                </span>
-              </span>
+            <span className="text-dim pb-1 text-[32px]">:</span>
+            <div className="min-w-16 text-center">
+              <div className="text-dim text-[11px]">{t.lists.team("B")}</div>
+              <b
+                className={cn(
+                  "text-[52px]",
+                  scoreB > scoreA ? "text-gold" : "text-text",
+                )}
+              >
+                {scoreB}
+              </b>
             </div>
-          )}
-          <p className="text-dim mt-2.5 mb-1 px-0.5 text-[11px] lg:mt-0">
+          </div>
+          <b className="text-gold mt-1 block text-[13px]">{winnerText}</b>
+          <p className="text-dim mt-0.5 text-[11px]">
             {map
-              ? map.a === map.b
-                ? t.played.drawLine(map.map, map.a, map.b)
-                : t.played.mapLine(
-                    map.map,
-                    map.a,
-                    map.b,
-                    map.a > map.b ? "A" : "B",
-                    map.a + map.b,
-                  )
-              : result.all.length === 0
-                ? t.played.scoreOnlySummary(result.maps.length)
-                : t.played.allLine(result.maps.length, rounds)}
+              ? t.played.mapRounds(map.a + map.b)
+              : t.played.mapRounds(rounds)}
           </p>
-          {map && (map.roomUrl || map.demoUrl) && (
-            <div className="mb-2 flex gap-3 px-0.5 text-[11px]">
-              {map.roomUrl && (
-                <a
-                  href={map.roomUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gold underline"
-                >
-                  {t.played.faceitRoom}
-                </a>
-              )}
-              {map.demoUrl && (
-                <a
-                  href={map.demoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gold underline"
-                >
-                  {t.played.downloadDemo}
-                </a>
-              )}
-            </div>
-          )}
-          {map?.statsOrigin === "popflash" && (
-            <p className="text-dim mb-2 px-0.5 text-[11px]">
-              {t.played.historicalStats}
-            </p>
-          )}
-          {(map ? map.lines : result.all).length > 0 ? (
-            <Scoreboard lines={map ? map.lines : result.all} />
-          ) : (
-            <Well className="p-3 text-[11px]">
-              <p className="text-dim mb-2">{t.played.noStats}</p>
-              {winner && (
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {(["A", "B"] as const).map((team) => (
-                    <div key={team}>
-                      <b className="text-gold">{t.lists.team(team)}</b>
-                      <p className="text-text">
-                        {(team === "A" ? winner.teamA : winner.teamB)
-                          .map((player) => player.name)
-                          .join(", ")}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Well>
-          )}
-        </div>
+        </Well>
+        {(data.showcase || data.archiveSource) && (
+          <p className="text-dim mt-2.5 mb-1 px-0.5 text-[11px] lg:mt-0">
+            {data.archiveSource
+              ? t.played.archiveNote(data.archiveSource)
+              : t.played.realNote}
+          </p>
+        )}
+        {!map && (
+          <div className="mb-2 grid gap-1.5 sm:grid-cols-2">
+            {result.maps.map((item, index) => (
+              <button
+                key={index}
+                onClick={() => setPick(index + 1)}
+                className="bevel bg-window hover:bg-hover flex min-w-0 items-center gap-2 p-1.5 text-left"
+              >
+                <MapArtwork name={item.map} />
+                <span className="min-w-0 flex-1">
+                  <b className="block truncate">{item.map}</b>
+                  <span className="text-dim text-[11px]">
+                    {item.a === item.b
+                      ? t.played.draw
+                      : t.played.teamWon(item.a > item.b ? "A" : "B")}
+                  </span>
+                </span>
+                <b className="text-gold shrink-0 text-[13px]">
+                  {item.a}:{item.b}
+                </b>
+              </button>
+            ))}
+          </div>
+        )}
+        {map && (
+          <div className="bevel bg-window mb-2 flex items-center gap-2 p-1.5">
+            <MapArtwork name={map.map} />
+            <span className="min-w-0">
+              <b className="block truncate">{map.map}</b>
+              <span className="text-dim text-[11px]">
+                {t.played.mapArtwork}
+              </span>
+            </span>
+          </div>
+        )}
+        <p className="text-dim mt-2.5 mb-1 px-0.5 text-[11px]">
+          {map ? t.played.mapStats : t.played.totalStats}
+        </p>
+        {map && (map.roomUrl || map.demoUrl) && (
+          <div className="mb-2 flex gap-3 px-0.5 text-[11px]">
+            {map.roomUrl && (
+              <a
+                href={map.roomUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gold underline"
+              >
+                {t.played.faceitRoom}
+              </a>
+            )}
+            {map.demoUrl && (
+              <a
+                href={map.demoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gold underline"
+              >
+                {t.played.downloadDemo}
+              </a>
+            )}
+          </div>
+        )}
+        {map?.statsOrigin === "popflash" && (
+          <p className="text-dim mb-2 px-0.5 text-[11px]">
+            {t.played.historicalStats}
+          </p>
+        )}
+        {(map ? map.lines : result.all).length > 0 ? (
+          <Scoreboard lines={map ? map.lines : result.all} />
+        ) : (
+          <Well className="p-3 text-[11px]">
+            <p className="text-dim mb-2">{t.played.noStats}</p>
+            {winner && (
+              <div className="grid gap-2 sm:grid-cols-2">
+                {(["A", "B"] as const).map((team) => (
+                  <div key={team}>
+                    <b className="text-gold">{t.lists.team(team)}</b>
+                    <p className="text-text">
+                      {(team === "A" ? winner.teamA : winner.teamB)
+                        .map((player) => player.name)
+                        .join(", ")}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Well>
+        )}
       </div>
+      {!!data.result.awards?.length && (
+        <Well className="mt-2">
+          <ListHead>{t.played.awardsTitle}</ListHead>
+          <div className="grid sm:grid-cols-2">
+            {data.result.awards.map((award) => {
+              const [title, unit] = t.played.awardLabels[award.key];
+              const name =
+                data.players.find((player) => player.steamId === award.steamId)
+                  ?.name ?? award.steamId;
+              const rate = [
+                "cannonFodder",
+                "pacifist",
+                "assistKing",
+                "tourist",
+              ].includes(award.key);
+              return (
+                <div
+                  key={award.key}
+                  className="border-row border-b px-2 py-1.5"
+                >
+                  <b className="text-gold block">{title}</b>
+                  <span className="text-text">{name}</span>
+                  <span className="text-dim">
+                    {" "}
+                    · {rate
+                      ? award.value.toFixed(2)
+                      : award.value.toFixed(0)}{" "}
+                    {unit}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          <p className="text-dim px-2 py-1 text-[10px]">
+            {t.played.awardsNote}
+          </p>
+        </Well>
+      )}
     </div>
   );
 }

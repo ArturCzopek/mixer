@@ -36,7 +36,8 @@ ELO, recent FACEIT form, form in our own mixes) so the split is trusted, not arg
   results (FACEIT is optional, D21). Voice comms on the group's Discord (bot moves players later, D19).
 - Rhythm: a mix evening every week or two; sign-ups and voting happen during the day on phones,
   results and stat-browsing after the match.
-- History: the group's older matches on popflash.site (Oct–Dec 2024) are used as backtest data.
+- History: 71 older Popflash maps from 2024 are imported as a labeled group archive and also used
+  as file-based balancing backtest data.
 
 ## Capabilities and Constraints
 
