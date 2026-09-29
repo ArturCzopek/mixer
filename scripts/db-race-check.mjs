@@ -45,7 +45,7 @@ async function sql(query) {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const groupId = randomUUID();
-const mixIds = [randomUUID(), randomUUID(), randomUUID(), randomUUID()];
+const mixIds = Array.from({ length: 5 }, () => randomUUID());
 const playerIds = Array.from({ length: 11 }, () => randomUUID());
 const steamStart = BigInt(`7${Date.now()}${Math.floor(Math.random() * 1000)}`);
 const players = playerIds.map((id, i) => ({
@@ -358,6 +358,33 @@ try {
   assert.equal(votingState[0]?.chosen_variant_id, null);
   assert.equal(votingState[0]?.variant_id, voteVariants[1].id);
 
+  await sql(`
+    update public.mixes set status = 'balancing' where id = ${q(mixIds[4])};
+    select public.create_mix_variant_set(
+      ${q(mixIds[4])}, '{}'::jsonb, ${q(JSON.stringify(snapshots))}::jsonb, ${initialSet}::jsonb
+    );
+    select public.approve_mix_variant_set(${q(mixIds[4])}, 1);
+    select public.close_mix_votes(${q(mixIds[4])});
+  `);
+  const manualResult = (scoreA) =>
+    sql(`select public.record_manual_mix_results(
+      ${q(mixIds[4])}, ${q(playerIds[0])},
+      ${q(JSON.stringify([{ scoreA, scoreB: 7 }]))}::jsonb
+    );`).then(
+      () => ({ ok: true }),
+      (error) => ({ ok: false, error }),
+    );
+  const resultRace = await Promise.all([manualResult(13), manualResult(10)]);
+  assert.equal(resultRace.filter((result) => result.ok).length, 1);
+  assert.equal(resultRace.find((result) => !result.ok)?.error.code, "55000");
+  const savedResult = await sql(`
+    select m.status, count(r.id)::int as maps
+    from public.mixes m left join public.matches r on r.mix_id = m.id
+    where m.id = ${q(mixIds[4])} group by m.id
+  `);
+  assert.equal(savedResult[0]?.status, "played");
+  assert.equal(savedResult[0]?.maps, 1);
+
   console.log("ok concurrent join cap (23514, exactly 10 participants)");
   console.log(
     "ok status update waits for tenth join (balancing, exactly 10 participants)",
@@ -366,6 +393,7 @@ try {
   console.log(
     "ok concurrent vote move vs due auto-close (vote resets deadline)",
   );
+  console.log("ok concurrent manual results (one result wins, one map stored)");
 } finally {
   try {
     await sql(`

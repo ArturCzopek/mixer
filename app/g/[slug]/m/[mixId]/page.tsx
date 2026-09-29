@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { z } from "zod";
+import { adminDb } from "@/lib/db/admin";
 import { LobbyRealtime } from "@/components/mix/lobby-realtime";
 import { MixLobbyView } from "@/components/mix/lobby-view";
 import { MixView } from "@/components/mix/mix-view";
@@ -50,7 +51,8 @@ export default async function MixLobbyPage({
   if (
     mix.status === "balancing" ||
     mix.status === "voting" ||
-    mix.status === "locked"
+    mix.status === "locked" ||
+    mix.status === "played"
   ) {
     const page = await mixVariantPage(mix.id, canManage);
     if (!page) notFound();
@@ -66,6 +68,27 @@ export default async function MixLobbyPage({
       groupMembers: group.members,
     });
     data.faceitClubUrl = group.faceitClubUrl;
+    if (mix.status === "played") {
+      const { data: maps, error } = await adminDb()
+        .from("matches")
+        .select("map_number, map_name, score_a, score_b, source")
+        .eq("mix_id", mix.id)
+        .order("map_number", { ascending: true });
+      if (error) throw new Error(`Mix results: ${error.message}`);
+      data.result = {
+        maps: (maps ?? []).map((map) => ({
+          map: map.map_name
+            ? `${map.map_number}. ${map.map_name}`
+            : `#${map.map_number}`,
+          a: map.score_a,
+          b: map.score_b,
+          lines: [],
+        })),
+        source: maps?.every((map) => map.source === "manual")
+          ? "manual"
+          : "mixed",
+      };
+    }
 
     return (
       <>

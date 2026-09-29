@@ -440,6 +440,7 @@ export async function mixVariantPage(
   const showVariants =
     mix.status === "voting" ||
     mix.status === "locked" ||
+    mix.status === "played" ||
     (mix.status === "balancing" && viewerIsAdmin);
   const showSnapshots = showVariants;
   const [participantResult, variantResult, voteResult] = await Promise.all([

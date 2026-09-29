@@ -178,6 +178,8 @@ begin
   perform public.close_mix_votes(full_mix);
   perform public.reopen_mix_votes(full_mix);
   perform public.close_mix_votes(full_mix);
+  insert into public.matches (mix_id, score_a, score_b, source)
+    values (full_mix, 13, 7, 'manual');
   update public.mixes set status = 'played' where id = full_mix;
   failed := false;
   begin

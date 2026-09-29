@@ -37,6 +37,7 @@ import {
   closeMixVoting,
   generateMixVariants,
   reopenMixVoting,
+  recordManualResults,
   rerollMixVariants,
   setMixStatus,
   startMixMatch,
@@ -1442,6 +1443,10 @@ function VotingAdminPanel({ state }: { state: "voting" | "locked" }) {
   const [pending, setPending] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [showProxy, setShowProxy] = React.useState(false);
+  const [showResults, setShowResults] = React.useState(false);
+  const [maps, setMaps] = React.useState([
+    { mapName: "", scoreA: "", scoreB: "" },
+  ]);
   const run = async (action: () => Promise<MixActionState>) => {
     setPending(true);
     setError(null);
@@ -1502,7 +1507,113 @@ function VotingAdminPanel({ state }: { state: "voting" | "locked" }) {
             </VButton>
           </>
         ) : null}
+        {state === "locked" && (
+          <VButton
+            disabled={pending}
+            onClick={() => setShowResults(!showResults)}
+          >
+            {t.admin.result}
+          </VButton>
+        )}
       </div>
+      {showResults && state === "locked" && (
+        <form
+          className="mt-2 space-y-2"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const parsed = maps.map((map) => ({
+              mapName: map.mapName,
+              scoreA: Number(map.scoreA),
+              scoreB: Number(map.scoreB),
+            }));
+            if (maps.some((map) => map.scoreA === "" || map.scoreB === "")) {
+              setError(t.lobby.errors.result);
+              return;
+            }
+            if (window.confirm(t.admin.resultConfirm))
+              void run(() => recordManualResults(data.mix.id, parsed));
+          }}
+        >
+          <p className="text-dim">{t.admin.resultHint}</p>
+          {maps.map((map, index) => (
+            <div key={index} className="flex flex-wrap items-end gap-1.5">
+              <label>
+                <span className="text-dim mb-0.5 block">
+                  {t.admin.mapName(index + 1)}
+                </span>
+                <input
+                  className="bevel bg-window w-32 px-2 py-1.5"
+                  maxLength={60}
+                  value={map.mapName}
+                  onChange={(event) =>
+                    setMaps((rows) =>
+                      rows.map((row, i) =>
+                        i === index
+                          ? { ...row, mapName: event.target.value }
+                          : row,
+                      ),
+                    )
+                  }
+                  disabled={pending}
+                />
+              </label>
+              {(["scoreA", "scoreB"] as const).map((team) => (
+                <label key={team}>
+                  <span className="text-dim mb-0.5 block">
+                    {team === "scoreA" ? t.admin.teamA : t.admin.teamB}
+                  </span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={32767}
+                    required
+                    className="bevel bg-window w-16 px-2 py-1.5"
+                    value={map[team]}
+                    onChange={(event) =>
+                      setMaps((rows) =>
+                        rows.map((row, i) =>
+                          i === index
+                            ? { ...row, [team]: event.target.value }
+                            : row,
+                        ),
+                      )
+                    }
+                    disabled={pending}
+                  />
+                </label>
+              ))}
+              {maps.length > 1 && (
+                <VButton
+                  type="button"
+                  disabled={pending}
+                  onClick={() =>
+                    setMaps((rows) => rows.filter((_, i) => i !== index))
+                  }
+                >
+                  {t.admin.removeMap}
+                </VButton>
+              )}
+            </div>
+          ))}
+          <div className="flex gap-1.5">
+            <VButton
+              type="button"
+              disabled={pending}
+              onClick={() =>
+                setMaps((rows) => [
+                  ...rows,
+                  { mapName: "", scoreA: "", scoreB: "" },
+                ])
+              }
+            >
+              {t.admin.addMap}
+            </VButton>
+            <VButton primary type="submit" disabled={pending}>
+              {t.admin.saveResult}
+            </VButton>
+          </div>
+        </form>
+      )}
       {showProxy && state === "voting" && (
         <div className="mt-2 flex flex-wrap items-end gap-1.5">
           <label>
@@ -1617,7 +1728,7 @@ function Played() {
   const t = useT();
   const [pick, setPick] = React.useState<string | null>(null);
   const wonA = result.maps.filter((m) => m.a > m.b).length;
-  const wonB = result.maps.length - wonA;
+  const wonB = result.maps.filter((m) => m.b > m.a).length;
   const map = result.maps.find((m) => m.map === pick);
   const rounds = result.maps.reduce((s, m) => s + m.a + m.b, 0);
   return (
@@ -1654,16 +1765,24 @@ function Played() {
         )}
         <p className="text-dim mt-2.5 mb-1 px-0.5 text-[11px] lg:mt-0">
           {map
-            ? t.played.mapLine(
-                map.map,
-                map.a,
-                map.b,
-                map.a > map.b ? "A" : "B",
-                map.a + map.b,
-              )
-            : t.played.allLine(result.maps.length, rounds)}
+            ? map.a === map.b
+              ? t.played.drawLine(map.map, map.a, map.b)
+              : t.played.mapLine(
+                  map.map,
+                  map.a,
+                  map.b,
+                  map.a > map.b ? "A" : "B",
+                  map.a + map.b,
+                )
+            : result.all.length === 0
+              ? t.played.scoreOnlySummary(result.maps.length)
+              : t.played.allLine(result.maps.length, rounds)}
         </p>
-        <Scoreboard lines={map ? map.lines : result.all} />
+        {(map ? map.lines : result.all).length > 0 ? (
+          <Scoreboard lines={map ? map.lines : result.all} />
+        ) : (
+          <Well className="text-dim p-3 text-[11px]">{t.played.noStats}</Well>
+        )}
       </div>
     </div>
   );
@@ -1783,6 +1902,7 @@ function Quip({ state }: { state: MixState }) {
     locked: t.quips.locked,
     played: playedQuip(result.all, skill, t),
   }[state];
+  if (!text) return null;
   return (
     <p className="text-dim mt-2 px-2 text-center text-[11px] italic">{text}</p>
   );

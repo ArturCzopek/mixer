@@ -136,16 +136,22 @@ and demos are optional sources (D21), so every stats table below is optional per
 |---|---|---|
 | id | uuid pk | |
 | mix_id | uuid fk null | null = standalone upload |
+| map_number | int | 1-based order within a mix; unique with `mix_id` and with `faceit_match_id` |
 | map_name | text null | e.g. `de_mirage`; may be unknown for a manual result |
 | played_at | timestamptz | from FACEIT / demo header / manual |
 | score_a / score_b | smallint | Team A / B as in the locked variant |
-| winner | char(1) null | `A` / `B` / null for a draw |
+| winner | char(1) null | generated from scores: `A` / `B` / null for a draw |
 | source | text | `faceit` · `manual` · `demo` (how the result got in; stats may be added later from another source) |
 | faceit_match_id | text null | FACEIT room/match id when imported (unique with the map number) |
 | demo_hash | text unique null | dedupe |
 | demo_recorder_id | uuid fk players null | whose POV demo |
-| parser_version | text | so stats can be recomputed after formula changes |
-| uploaded_by | uuid fk players | |
+| parser_version | text null | so stats can be recomputed after formula changes |
+| uploaded_by | uuid fk players null | null for automated imports |
+
+Browser roles can select results, stats, and payloads but cannot write them. Manual entry uses
+`record_manual_mix_results`: a group admin supplies one or more map scores for a locked mix; the
+database inserts all maps and marks the mix `played` in one transaction. A transition to `played`
+requires at least one stored match. Player stats and payloads can remain absent.
 
 ## match_player_stats
 | column | type | notes |

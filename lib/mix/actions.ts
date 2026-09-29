@@ -30,6 +30,7 @@ export type MixActionError =
   | "notFull"
   | "stale"
   | "noVariants"
+  | "result"
   | "unauthorized"
   | "forbidden"
   | "failed";
@@ -320,6 +321,13 @@ async function variantRpc(
   if (!result.ok) return result.state;
   if (result.value.error) {
     if (result.value.error.code === PG_STATE) return { error: "stale" };
+    if (
+      action === "recordManualResults" &&
+      result.value.error.code === PG_CHECK
+    )
+      return { error: "result" };
+    if (action === "recordManualResults" && result.value.error.code === "42501")
+      return { error: "forbidden" };
     if (action === "castMixVote" && result.value.error.code === PG_FOREIGN_KEY)
       return { error: "notParticipant" };
     if (result.value.error.code === PG_CHECK) return { error: "noVariants" };
@@ -496,5 +504,31 @@ export async function startMixMatch(mixId: string): Promise<MixActionState> {
   if ("error" in auth) return auth;
   return variantRpc("startMixMatch", "start_mix_match", {
     p_mix_id: mixId,
+  });
+}
+
+/** Save every map score atomically; the database also checks the admin and locked mix. */
+export async function recordManualResults(
+  mixId: string,
+  maps: { mapName: string; scoreA: number; scoreB: number }[],
+): Promise<MixActionState> {
+  if (!uuid.safeParse(mixId).success) return { error: "forbidden" };
+  const parsed = z
+    .array(
+      z.object({
+        mapName: z.string().trim().max(60),
+        scoreA: z.number().int().min(0).max(32767),
+        scoreB: z.number().int().min(0).max(32767),
+      }),
+    )
+    .min(1)
+    .safeParse(maps);
+  if (!parsed.success) return { error: "result" };
+  const auth = await authorizedMix("recordManualResults", mixId, "admin");
+  if ("error" in auth) return auth;
+  return variantRpc("recordManualResults", "record_manual_mix_results", {
+    p_mix_id: mixId,
+    p_actor_id: auth.session.playerId,
+    p_maps: parsed.data,
   });
 }
