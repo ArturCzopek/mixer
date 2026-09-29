@@ -72,7 +72,7 @@ export default async function MixLobbyPage({
       const { data: maps, error } = await adminDb()
         .from("matches")
         .select(
-          "id, map_number, map_name, score_a, score_b, source, faceit_match_id, faceit_demo_url",
+          "id, map_number, map_name, score_a, score_b, source, stats_origin, faceit_match_id, faceit_demo_url",
         )
         .eq("mix_id", mix.id)
         .order("map_number", { ascending: true });
@@ -101,6 +101,7 @@ export default async function MixLobbyPage({
             ? `https://www.faceit.com/en/cs2/room/${encodeURIComponent(map.faceit_match_id)}`
             : null,
           demoUrl: map.faceit_demo_url,
+          statsOrigin: map.stats_origin,
           lines: (storedStats ?? []).flatMap((stat) => {
             const steamId = steamIds.get(stat.player_id);
             if (
@@ -129,9 +130,13 @@ export default async function MixLobbyPage({
             ];
           }),
         })),
-        source: maps?.every((map) => map.source === "manual")
-          ? "manual"
-          : "mixed",
+        source: maps?.every((map) => map.stats_origin === "popflash")
+          ? "popflash"
+          : maps?.every((map) => map.source === "manual")
+            ? "manual"
+            : maps?.every((map) => map.source === "faceit")
+              ? "faceit"
+              : "mixed",
       };
     }
 

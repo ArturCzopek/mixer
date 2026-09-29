@@ -284,6 +284,18 @@ const en = {
       `Lineup changed by a swap: ${from} → ${to} (by ${by}).`,
   },
   played: {
+    sources: {
+      manual: "manual scores",
+      faceit: "FACEIT",
+      demo: "demo",
+      mixed: "mixed sources",
+      popflash: "Popflash archive",
+    },
+    archiveNote: (source: string) =>
+      `Historical ${source} lineup and results. The original players did not vote here.`,
+    historicalStats:
+      "Historical Popflash stats. Missing fields stay empty; older maps use assumed KAST for Mixer Rating.",
+    mapArtwork: "Illustrative map sketch",
     faceitRoom: "FACEIT room",
     downloadDemo: "Download demo",
     noStats: "Map scores are saved. Player stats are not available yet.",
@@ -353,6 +365,7 @@ const en = {
     club: "FACEIT Club",
     noClub: "No FACEIT Club linked yet.",
     members: (n: number) => `Members · ${n}`,
+    archiveMixes: (n: number) => `Historical mixes · ${n}`,
     admin: "admin",
     makeAdmin: "Make Admin",
     removeAdmin: "Remove Admin",
@@ -707,6 +720,18 @@ const pl: Dict = {
       `Skład zmieniono przez wymianę: ${from} → ${to} (admin: ${by}).`,
   },
   played: {
+    sources: {
+      manual: "wyników ręcznych",
+      faceit: "FACEIT",
+      demo: "dema",
+      mixed: "różnych źródeł",
+      popflash: "archiwum Popflash",
+    },
+    archiveNote: (source) =>
+      `Archiwalny skład i wyniki z ${source}. Gracze nie głosowali tu nad składem.`,
+    historicalStats:
+      "Historyczne statystyki Popflash. Brakujące pola pozostają puste; na starszych mapach Mixer Rating używa założonego KAST.",
+    mapArtwork: "Ilustracyjny szkic mapy",
     faceitRoom: "Pokój FACEIT",
     downloadDemo: "Pobierz demo",
     noStats:
@@ -770,6 +795,7 @@ const pl: Dict = {
     club: "Klub FACEIT",
     noClub: "Brak podpiętego klubu FACEIT.",
     members: (n) => `Członkowie · ${n}`,
+    archiveMixes: (n) => `Archiwalne miksy · ${n}`,
     admin: "admin",
     makeAdmin: "Daj admina",
     removeAdmin: "Zabierz admina",

@@ -30,11 +30,28 @@ export default async function GroupPage({ params }: PageProps<"/g/[slug]">) {
   ]);
   if (!group) notFound();
   const mixes = await groupMixes(group.id);
+  const currentMixes = mixes.filter((mix) => !mix.archiveSource);
+  const archivedMixes = mixes.filter((mix) => !!mix.archiveSource);
   const me = group.members.find((m) => m.playerId === session?.playerId);
   const canManage = hasGroupRole(
     me ? { role: me.role, leftAt: null } : null,
     "admin",
     session?.isSiteAdmin ?? false,
+  );
+  const mixRow = (mix: (typeof mixes)[number]) => (
+    <Link
+      key={mix.id}
+      href={`/g/${group.slug}/m/${mix.id}`}
+      className="border-row text-text hover:bg-hover flex items-center gap-2 border-b px-1.5 py-2 last:border-b-0"
+    >
+      <span className="min-w-0 flex-1 truncate font-bold">{mix.title}</span>
+      <span className="text-gold shrink-0 text-[11px] font-bold">
+        {t.lobby.playersOf10(mix.participantCount)}
+      </span>
+      <span className="text-dim w-20 shrink-0 text-right text-[11px]">
+        {t.lobby.status[mix.status]}
+      </span>
+    </Link>
   );
   return (
     <main className="mx-auto w-full max-w-[460px] px-2 py-6">
@@ -59,30 +76,22 @@ export default async function GroupPage({ params }: PageProps<"/g/[slug]">) {
             <span className="flex-1">{t.lobby.mixList}</span>
             <span>{t.lobby.playersColumn}</span>
           </ListHead>
-          {mixes.length === 0 ? (
+          {currentMixes.length === 0 ? (
             <p className="text-dim px-1.5 py-2 text-[11px]">
               {t.lobby.noMixes}
             </p>
           ) : (
-            mixes.map((mix) => (
-              <Link
-                key={mix.id}
-                href={`/g/${group.slug}/m/${mix.id}`}
-                className="border-row text-text hover:bg-hover flex items-center gap-2 border-b px-1.5 py-2 last:border-b-0"
-              >
-                <span className="min-w-0 flex-1 truncate font-bold">
-                  {mix.title}
-                </span>
-                <span className="text-gold shrink-0 text-[11px] font-bold">
-                  {t.lobby.playersOf10(mix.participantCount)}
-                </span>
-                <span className="text-dim w-20 shrink-0 text-right text-[11px]">
-                  {t.lobby.status[mix.status]}
-                </span>
-              </Link>
-            ))
+            currentMixes.map(mixRow)
           )}
         </Well>
+        {archivedMixes.length > 0 && (
+          <details className="mb-2">
+            <summary className="bevel bg-window hover:bg-hover text-gold px-2 py-1.5 font-bold">
+              {t.groups.archiveMixes(archivedMixes.length)}
+            </summary>
+            <Well>{archivedMixes.map(mixRow)}</Well>
+          </details>
+        )}
         {canManage && (
           <section className="mb-3">
             <h2 className="text-text mb-1 text-[13px] font-bold">

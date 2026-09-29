@@ -20,6 +20,7 @@ import {
 } from "@/components/vgui";
 import type { SkillBreakdown } from "@/lib/balance";
 import {
+  mapResultSummary,
   totals,
   type MixViewData,
   type ViewLine,
@@ -62,6 +63,7 @@ type MapResult = {
   lines: Line[];
   roomUrl?: string | null;
   demoUrl?: string | null;
+  statsOrigin?: string | null;
 };
 type Variant = Omit<ViewVariant, "teamA" | "teamB"> & {
   teamA: Player[];
@@ -189,7 +191,11 @@ export function MixView({
           )}
           {data.showcase && <ShowcaseNote />}
           <Window
-            title={t.mix.title(data.mix.number, when)}
+            title={
+              data.archiveSource && data.mix.title
+                ? data.mix.title
+                : t.mix.title(data.mix.number, when)
+            }
             right={
               <span aria-label={t.mix.playersOf10(count)}>
                 {count}
@@ -309,7 +315,11 @@ function StatusLine({ state }: { state: MixState }) {
         {t.status.lockedAfter}
       </>
     ),
-    played: <>{t.status.played(result.maps.length, result.source)}</>,
+    played: (
+      <>
+        {t.status.played(result.maps.length, t.played.sources[result.source])}
+      </>
+    ),
   }[state];
   return (
     <Well className="text-dim flex items-center gap-1.5 px-2 py-1.5 text-[11px]">
@@ -1887,130 +1897,179 @@ function VoteBar({
 }
 
 function Played() {
-  const { result, data } = useMix();
+  const { result, data, winner } = useMix();
   const t = useT();
-  const [pick, setPick] = React.useState<string | null>(null);
-  const wonA = result.maps.filter((m) => m.a > m.b).length;
-  const wonB = result.maps.filter((m) => m.b > m.a).length;
-  const map = result.maps.find((m) => m.map === pick);
-  const rounds = result.maps.reduce((s, m) => s + m.a + m.b, 0);
+  const [pick, setPick] = React.useState(0);
+  const { wonA, wonB, rounds } = mapResultSummary(data.result.maps);
+  const map = result.maps[pick - 1] ?? null;
   return (
-    <div className="mt-2.5 lg:grid lg:grid-cols-[360px_minmax(0,1fr)] lg:items-start lg:gap-3">
-      <Well className="px-2 pt-2 pb-3 text-center lg:py-6">
-        <div className="text-dim text-[11px]">{t.played.mapsWon}</div>
-        <div className="text-gold text-[64px] leading-[1.05] font-bold tracking-[-0.04em]">
-          {wonA}
-          <span className="text-dim"> : </span>
-          <span className="text-text">{wonB}</span>
+    <div className="mt-2.5">
+      <div className="overflow-x-auto pb-0.5">
+        <div style={{ minWidth: `${(result.maps.length + 1) * 112}px` }}>
+          <Tabs
+            label={t.played.scoreboardFor}
+            value={pick}
+            onChange={setPick}
+            items={[
+              { value: 0, label: t.played.allMaps },
+              ...result.maps.map((m, index) => ({
+                value: index + 1,
+                label: `${m.map} · ${m.a}:${m.b}`,
+              })),
+            ]}
+          />
         </div>
-        <div
-          role="group"
-          aria-label={t.played.scoreboardFor}
-          className="mt-1 flex flex-wrap justify-center gap-1.5"
-        >
-          <MapChip on={!map} onClick={() => setPick(null)}>
-            {t.played.allMaps}
-          </MapChip>
-          {result.maps.map((m) => (
-            <MapChip key={m.map} on={m === map} onClick={() => setPick(m.map)}>
-              {m.map} <Figure win={m.a > m.b}>{m.a}</Figure>
-              <span className="text-dim">:</span>
-              <Figure win={m.b > m.a}>{m.b}</Figure>
-            </MapChip>
-          ))}
-        </div>
-      </Well>
-      <div>
-        {data.showcase && (
-          <p className="text-gold mt-2.5 mb-1 px-0.5 text-[11px] font-bold lg:mt-0">
-            {t.played.realNote}
-          </p>
-        )}
-        <p className="text-dim mt-2.5 mb-1 px-0.5 text-[11px] lg:mt-0">
-          {map
-            ? map.a === map.b
-              ? t.played.drawLine(map.map, map.a, map.b)
-              : t.played.mapLine(
-                  map.map,
-                  map.a,
-                  map.b,
-                  map.a > map.b ? "A" : "B",
-                  map.a + map.b,
-                )
-            : result.all.length === 0
-              ? t.played.scoreOnlySummary(result.maps.length)
-              : t.played.allLine(result.maps.length, rounds)}
-        </p>
-        {map && (map.roomUrl || map.demoUrl) && (
-          <div className="mb-2 flex gap-3 px-0.5 text-[11px]">
-            {map.roomUrl && (
-              <a
-                href={map.roomUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gold underline"
-              >
-                {t.played.faceitRoom}
-              </a>
-            )}
-            {map.demoUrl && (
-              <a
-                href={map.demoUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gold underline"
-              >
-                {t.played.downloadDemo}
-              </a>
-            )}
+      </div>
+      <div className="mt-1.5 lg:grid lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start lg:gap-3">
+        <Well className="px-2 py-3 text-center lg:py-6">
+          <div className="text-dim text-[11px]">{t.played.mapsWon}</div>
+          <div className="text-gold text-[64px] leading-[1.05] font-bold tracking-[-0.04em]">
+            {wonA}
+            <span className="text-dim"> : </span>
+            <span className="text-text">{wonB}</span>
           </div>
-        )}
-        {(map ? map.lines : result.all).length > 0 ? (
-          <Scoreboard lines={map ? map.lines : result.all} />
-        ) : (
-          <Well className="text-dim p-3 text-[11px]">{t.played.noStats}</Well>
-        )}
+        </Well>
+        <div>
+          {(data.showcase || data.archiveSource) && (
+            <p className="text-gold mt-2.5 mb-1 px-0.5 text-[11px] font-bold lg:mt-0">
+              {data.archiveSource
+                ? t.played.archiveNote(data.archiveSource)
+                : t.played.realNote}
+            </p>
+          )}
+          {!map && (
+            <div className="mb-2 grid gap-1.5 sm:grid-cols-2">
+              {result.maps.map((item, index) => (
+                <button
+                  key={index}
+                  onClick={() => setPick(index + 1)}
+                  className="bevel bg-window hover:bg-hover flex min-w-0 items-center gap-2 p-1.5 text-left"
+                >
+                  <MapArtwork name={item.map} />
+                  <span className="min-w-0 flex-1">
+                    <b className="block truncate">{item.map}</b>
+                    <span className="text-dim text-[11px]">
+                      {t.played.mapArtwork} · {item.a}:{item.b}
+                    </span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+          {map && (
+            <div className="bevel bg-window mb-2 flex items-center gap-2 p-1.5">
+              <MapArtwork name={map.map} />
+              <span className="min-w-0">
+                <b className="block truncate">{map.map}</b>
+                <span className="text-dim text-[11px]">
+                  {t.played.mapArtwork}
+                </span>
+              </span>
+            </div>
+          )}
+          <p className="text-dim mt-2.5 mb-1 px-0.5 text-[11px] lg:mt-0">
+            {map
+              ? map.a === map.b
+                ? t.played.drawLine(map.map, map.a, map.b)
+                : t.played.mapLine(
+                    map.map,
+                    map.a,
+                    map.b,
+                    map.a > map.b ? "A" : "B",
+                    map.a + map.b,
+                  )
+              : result.all.length === 0
+                ? t.played.scoreOnlySummary(result.maps.length)
+                : t.played.allLine(result.maps.length, rounds)}
+          </p>
+          {map && (map.roomUrl || map.demoUrl) && (
+            <div className="mb-2 flex gap-3 px-0.5 text-[11px]">
+              {map.roomUrl && (
+                <a
+                  href={map.roomUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gold underline"
+                >
+                  {t.played.faceitRoom}
+                </a>
+              )}
+              {map.demoUrl && (
+                <a
+                  href={map.demoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gold underline"
+                >
+                  {t.played.downloadDemo}
+                </a>
+              )}
+            </div>
+          )}
+          {map?.statsOrigin === "popflash" && (
+            <p className="text-dim mb-2 px-0.5 text-[11px]">
+              {t.played.historicalStats}
+            </p>
+          )}
+          {(map ? map.lines : result.all).length > 0 ? (
+            <Scoreboard lines={map ? map.lines : result.all} />
+          ) : (
+            <Well className="p-3 text-[11px]">
+              <p className="text-dim mb-2">{t.played.noStats}</p>
+              {winner && (
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {(["A", "B"] as const).map((team) => (
+                    <div key={team}>
+                      <b className="text-gold">{t.lists.team(team)}</b>
+                      <p className="text-text">
+                        {(team === "A" ? winner.teamA : winner.teamB)
+                          .map((player) => player.name)
+                          .join(", ")}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Well>
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
-/** Map score chip that doubles as the scoreboard picker; pressed = shown below. */
-function MapChip({
-  on,
-  onClick,
-  children,
-}: {
-  on: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
+/** Original schematic card, deliberately not a claimed game map overview. */
+function MapArtwork({ name }: { name: string }) {
+  const shift =
+    [...name].reduce((sum, letter) => sum + letter.charCodeAt(0), 0) % 3;
   return (
-    <button
-      aria-pressed={on}
-      onClick={onClick}
-      className={cn(
-        "group/chip bevel px-2 py-1 text-[11px]",
-        on
-          ? "border-t-lo border-r-hi border-b-hi border-l-lo bg-gold-deep text-white"
-          : "bg-window hover:bg-hover",
-      )}
+    <svg
+      viewBox="0 0 96 56"
+      role="img"
+      aria-label={name}
+      className="border-lo bg-well h-14 w-24 shrink-0 border"
     >
-      {children}
-    </button>
-  );
-}
-
-function Figure({ win, children }: { win: boolean; children: number }) {
-  return (
-    <b
-      className={cn(
-        "group-aria-pressed/chip:text-white",
-        win ? "text-gold" : "text-text",
-      )}
-    >
-      {children}
-    </b>
+      <path
+        d={
+          [
+            "M5 14h34v11h16V7h35v27H66v16H8V37h23V27H5z",
+            "M8 6h28v16h16V8h34v18H66v13h20v11H42V36H8z",
+            "M6 8h23v15h19V7h40v13H67v16h21v13H7V35h28V26H6z",
+          ][shift]
+        }
+        fill="var(--vg-row)"
+        stroke="var(--vg-hi)"
+        strokeWidth="1"
+      />
+      <path
+        d="M19 15L49 29L76 18M49 29L71 43"
+        fill="none"
+        stroke="var(--vg-dim)"
+        strokeDasharray="3 3"
+      />
+      <circle cx="19" cy="15" r="3" fill="var(--vg-gold)" />
+      <circle cx="71" cy="43" r="3" fill="var(--vg-gold)" />
+    </svg>
   );
 }
 
@@ -2087,7 +2146,7 @@ function Quip({ state }: { state: MixState }) {
       ? t.quips.voting(waitingFor.name)
       : t.quips.votingOpen,
     locked: t.quips.locked,
-    played: playedQuip(result.all, skill, t),
+    played: data.archiveSource ? "" : playedQuip(result.all, skill, t),
   }[state];
   if (!text) return null;
   return (

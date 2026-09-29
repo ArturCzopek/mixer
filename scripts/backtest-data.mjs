@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Data for the balancing backtest (T-1, T-2). TEST FIXTURES ONLY (D25): never imported into a database.
+// Data for the balancing backtest (T-1, T-2). The Popflash fixture also feeds the separately labeled group archive (D25 amendment).
 //
 //   node scripts/backtest-data.mjs probe     # raw popflash pages → lib/balance/__fixtures__/popflash/probe/
 //   node scripts/backtest-data.mjs popflash  # all club matches   → lib/balance/__fixtures__/popflash/matches.json
@@ -124,7 +124,7 @@ async function popflash() {
   );
   write(`${FIX}/popflash/matches.json`, {
     $comment:
-      "Popflash club skarpeciarze-i-pantofle, exported by scripts/backtest-data.mjs. TEST DATA ONLY (D25).",
+      "Popflash club skarpeciarze-i-pantofle, exported by scripts/backtest-data.mjs. Source for backtests and the labeled group archive (D25 amendment).",
     exportedAt: new Date().toISOString(),
     matches,
   });

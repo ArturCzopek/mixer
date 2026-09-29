@@ -83,6 +83,7 @@ One Steam identity across the whole app (can be in several groups).
 | chosen_variant_id | uuid fk variants null | set when locked |
 | balance_config | jsonb | resolved config used for generation (for reproducibility) |
 | swap_log | jsonb array | from/to/admin names and IDs plus timestamp; public lineup-change history |
+| archive_source / archive_key | text null | both set for an archived evening; unique key within a group. An archive records one real lineup and no votes. |
 
 ## mix_participants
 | column | type | notes |
@@ -98,7 +99,7 @@ One Steam identity across the whole app (can be in several groups).
 |---|---|---|
 | id | uuid pk | |
 | mix_id | uuid fk | |
-| number | smallint | starts at 1..3; increments by three for every re-roll (4..6, 7..9 …) |
+| number | smallint | ordinary mixes start at 1..3 and increment by three per re-roll; archives have one real lineup |
 | generation | integer | current/rejected set sequence, starts at 1 |
 | is_published | bool | |
 | rejected_at | timestamptz null | marks an unpublished set rejected by re-roll |
@@ -142,6 +143,8 @@ and demos are optional sources (D21), so every stats table below is optional per
 | score_a / score_b | smallint | Team A / B as in the locked variant |
 | winner | char(1) null | generated from scores: `A` / `B` / null for a draw |
 | source | text | `faceit` · `manual` · `demo` (how the result got in; stats may be added later from another source) |
+| stats_origin | text null | `popflash` for historical player lines attached to a manual result; never mislabel a Popflash map as a demo or FACEIT import |
+| source_reference | text null | original source map id, unique within a mix |
 | faceit_match_id | text null | FACEIT room/match id when imported (unique with the map number) |
 | demo_hash | text unique null | dedupe |
 | demo_recorder_id | uuid fk players null | whose POV demo |

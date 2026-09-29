@@ -285,7 +285,7 @@ weight of M).
 
 ## Backtest scenario (test data, later)
 
-Source for our group: the popflash history (T-2), **test fixtures only** (D25), never imported into the app database.
+Source for our group: the Popflash history (T-2). Artur later authorized its separate archival import into group results (D25 amendment); the backtest still reads fixtures.
 
 
 Take past mixes where we know the real lineups and results, plus the FACEIT profiles of the players:

@@ -46,14 +46,18 @@ export interface ViewMap {
   lines: ViewLine[];
   roomUrl?: string | null;
   demoUrl?: string | null;
+  statsOrigin?: string | null;
 }
 
 export interface MixViewData {
+  /** True only for a clearly labeled historical import, never for a voted mix. */
+  archiveSource?: string | null;
   /** Public FACEIT Club link for a real group's locked lineup. */
   faceitClubUrl?: string | null;
   mix: {
     /** Mix id; also seeds the tie-break between equally voted variants (D33). */
     id: string;
+    title?: string;
     number: number;
     group: string;
     meId: string;
@@ -95,7 +99,10 @@ export interface MixViewData {
   swapLeavers?: { playerId: string; name: string }[];
   /** Server-recorded lineup changes. */
   swapLog?: { fromName: string; toName: string; byName: string; at: string }[];
-  result: { maps: ViewMap[]; source: string };
+  result: {
+    maps: ViewMap[];
+    source: "manual" | "faceit" | "demo" | "mixed" | "popflash";
+  };
   /**
    * Live Leetify preview per player (FACEIT matches in `window`, never stored); a player's entry is
    * null when Leetify could not be reached or does not know them. Null hides the card.
@@ -292,8 +299,10 @@ export function mixVariantViewData(
   const config = page.balanceConfig as BalanceConfig;
 
   return {
+    archiveSource: page.archiveSource,
     mix: {
       id: page.mix.id,
+      title: page.mix.title,
       number: options.number,
       group: page.groupName,
       meId,
@@ -348,6 +357,16 @@ export function mixVariantViewData(
     swapLog,
     result: { maps: [], source: "faceit" },
     leetify: null,
+  };
+}
+
+/** Summary remains meaningful when maps have scores but no player stats. */
+export function mapResultSummary(maps: ViewMap[]) {
+  return {
+    wonA: maps.filter((map) => map.a > map.b).length,
+    wonB: maps.filter((map) => map.b > map.a).length,
+    draws: maps.filter((map) => map.a === map.b).length,
+    rounds: maps.reduce((sum, map) => sum + map.a + map.b, 0),
   };
 }
 

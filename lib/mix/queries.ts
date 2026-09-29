@@ -114,6 +114,7 @@ export interface GroupMix {
   status: MixStatus;
   createdAt: string;
   participantCount: number;
+  archiveSource: string | null;
 }
 
 export interface LobbyParticipant {
@@ -139,6 +140,7 @@ interface GroupMixRow {
   title: string;
   status: MixStatus;
   created_at: string;
+  archive_source: string | null;
   mix_participants: { player_id: string }[];
 }
 
@@ -165,7 +167,7 @@ export async function groupMixes(groupId: string): Promise<GroupMix[]> {
   const { data, error } = await adminDb()
     .from("mixes")
     .select(
-      "id, title, status, created_at, mix_participants!mix_participants_mix_id_fkey(player_id)",
+      "id, title, status, created_at, archive_source, mix_participants!mix_participants_mix_id_fkey(player_id)",
     )
     .eq("group_id", groupId)
     .order("created_at", { ascending: false })
@@ -177,6 +179,7 @@ export async function groupMixes(groupId: string): Promise<GroupMix[]> {
     status: mix.status,
     createdAt: mix.created_at,
     participantCount: mix.mix_participants.length,
+    archiveSource: mix.archive_source,
   }));
 }
 
@@ -352,6 +355,7 @@ export async function mixGenerationData(
 
 export interface MixVariantPage {
   mix: MixLobby;
+  archiveSource: string | null;
   chosenVariantId: string | null;
   voteResult: { tied?: number[]; winnerVotes?: number } | null;
   matchStartedAt: string | null;
@@ -388,6 +392,7 @@ interface VariantPageMixRow {
   chosen_variant_id: string | null;
   vote_result: { tied?: number[]; winnerVotes?: number } | null;
   match_started_at: string | null;
+  archive_source: string | null;
   balance_config: unknown;
   swap_log: unknown;
   group: { name: string };
@@ -430,7 +435,7 @@ export async function mixVariantPage(
   const { data: mix, error: mixError } = await adminDb()
     .from("mixes")
     .select(
-      "id, group_id, title, status, created_at, scheduled_at, chosen_variant_id, vote_result, match_started_at, balance_config, swap_log, group:groups!mixes_group_id_fkey(name)",
+      "id, group_id, title, status, created_at, scheduled_at, chosen_variant_id, vote_result, match_started_at, archive_source, balance_config, swap_log, group:groups!mixes_group_id_fkey(name)",
     )
     .eq("id", mixId)
     .maybeSingle<VariantPageMixRow>();
@@ -501,6 +506,7 @@ export async function mixVariantPage(
       })),
     },
     groupName: mix.group.name,
+    archiveSource: mix.archive_source,
     chosenVariantId: mix.chosen_variant_id,
     voteResult: mix.vote_result,
     matchStartedAt: mix.match_started_at,

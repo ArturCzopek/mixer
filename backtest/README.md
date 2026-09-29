@@ -1,8 +1,8 @@
 # Balancing backtest (T-1)
 
 A side module that replays the balancing engine (`lib/balance`) on the group's real past maps and
-checks how well the skill score S predicts who wins. It is **not** part of the app: nothing here is
-imported by `app/` or `lib/`, and the data are test fixtures only (D25).
+checks how well the skill score S predicts who wins. The backtest remains file based. Its Popflash
+fixture is also the source for the separately labeled group archive (D25 amendment).
 
 ```
 npm run backtest        # → backtest/REPORT.md (full numbers, regenerated every run)

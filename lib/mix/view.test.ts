@@ -5,7 +5,7 @@ import { I18nProvider } from "@/components/i18n";
 import { MixView } from "@/components/mix/mix-view";
 import { showcaseViewData } from "@/lib/showcase/evening";
 import { DICTS, type Lang } from "@/lib/i18n/dict";
-import type { MixViewData } from "./view";
+import { mapResultSummary, type MixViewData } from "./view";
 
 vi.mock("@/lib/external/leetify", () => ({
   getFaceitMatches: vi.fn().mockResolvedValue(null),
@@ -27,6 +27,51 @@ vi.mock("@/lib/mix/actions", () => ({
 let data: MixViewData;
 beforeAll(async () => {
   data = await showcaseViewData();
+});
+
+describe("multi-map results", () => {
+  it("summarizes one and five score-only maps including a draw", () => {
+    const one = [{ map: "Mirage", a: 13, b: 9, lines: [] }];
+    expect(mapResultSummary(one)).toEqual({
+      wonA: 1,
+      wonB: 0,
+      draws: 0,
+      rounds: 22,
+    });
+    expect(
+      mapResultSummary([
+        ...one,
+        { map: "Nuke", a: 10, b: 13, lines: [] },
+        { map: "Anubis", a: 13, b: 13, lines: [] },
+        { map: "Mirage", a: 16, b: 14, lines: [] },
+        { map: "Ancient", a: 7, b: 13, lines: [] },
+      ]),
+    ).toEqual({ wonA: 2, wonB: 2, draws: 1, rounds: 121 });
+  });
+
+  it("renders five map tabs, illustrative previews, and archive provenance", () => {
+    const maps = [
+      ...data.result.maps,
+      { ...data.result.maps[0], map: "4. Mirage" },
+      { ...data.result.maps[1], map: "5. Anubis" },
+    ];
+    const view: MixViewData = {
+      ...data,
+      showcase: undefined,
+      archiveSource: "popflash",
+      chosenVariantNumber: 1,
+      result: { maps, source: "popflash" },
+    };
+    const html = renderToStaticMarkup(
+      I18nProvider({
+        lang: "en",
+        children: createElement(MixView, { state: "played", data: view }),
+      }),
+    );
+    expect(html.match(/role="tab"/g)).toHaveLength(6);
+    expect(html.match(/Illustrative map sketch/g)).toHaveLength(5);
+    expect(html).toContain(DICTS.en.played.archiveNote("popflash"));
+  });
 });
 
 describe("approved variants (D37)", () => {

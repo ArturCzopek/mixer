@@ -1,7 +1,7 @@
 // Showcase mix (`/demo`): the real popflash evening of 16.12.2024 run through the real engine.
 // Real: players, their engine inputs as of that evening, the lineup played, every map and line.
 // Made up (and said so on the page): join times, votes, who was late. The Leetify card is live
-// (last 30 days before today, never stored). Server only.
+// (last 30 days before today, never stored). The real maps also appear in the group archive.
 
 import {
   DEFAULT_BALANCE_CONFIG,

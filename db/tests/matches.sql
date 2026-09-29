@@ -7,6 +7,8 @@ declare
   group_id uuid := '00000000-0000-4000-8000-000000000303';
   fixture_mix_id uuid := '00000000-0000-4000-8000-000000000304';
   faceit_mix_id uuid := '00000000-0000-4000-8000-000000000305';
+  archive_mix_id uuid := '00000000-0000-4000-8000-000000000306';
+  archive_variant_id uuid := '00000000-0000-4000-8000-000000000307';
   participant_id uuid;
   participants uuid[] := '{}'::uuid[];
   i integer;
@@ -46,6 +48,20 @@ begin
   exception when check_violation then failed := true;
   end;
   if not failed then raise exception 'ASSERT: unknown source accepted'; end if;
+  failed := false;
+  begin
+    insert into public.matches (score_a, score_b, source, stats_origin)
+      values (13, 7, 'faceit', 'popflash');
+  exception when check_violation then failed := true;
+  end;
+  if not failed then raise exception 'ASSERT: historical stats were mislabeled FACEIT'; end if;
+  insert into public.matches (score_a, score_b, source, stats_origin, source_reference)
+    values (13, 7, 'manual', 'popflash', 'popflash:fixture')
+    returning id into v_match_id;
+  if (select stats_origin from public.matches where id = v_match_id) <> 'popflash' then
+    raise exception 'ASSERT: historical provenance was lost';
+  end if;
+  delete from public.matches where id = v_match_id;
   if not has_table_privilege('anon', 'public.matches', 'SELECT')
      or has_table_privilege('anon', 'public.matches', 'INSERT')
      or has_table_privilege('authenticated', 'public.match_player_stats', 'INSERT')
@@ -164,5 +180,31 @@ begin
   exception when object_not_in_prerequisite_state then failed := true;
   end;
   if not failed then raise exception 'ASSERT: played evening accepted another room'; end if;
+
+  insert into public.mixes (id, group_id, title, created_by, archive_source, archive_key)
+    values (archive_mix_id, group_id, 'Archive test', player_id, 'popflash', 'popflash:test:1');
+  for i in 1..10 loop
+    insert into public.mix_participants (mix_id, player_id, added_by)
+      values (archive_mix_id, participants[i], player_id);
+  end loop;
+  update public.mixes set status = 'balancing' where id = archive_mix_id;
+  insert into public.variants (id, mix_id, number, team_a_score, team_b_score, win_prob_a)
+    values (archive_variant_id, archive_mix_id, 1, 1400, 1400, 0.5);
+  for i in 1..10 loop
+    insert into public.variant_players (variant_id, player_id, team)
+      values (archive_variant_id, participants[i], case when i <= 5 then 'A' else 'B' end);
+  end loop;
+  update public.variants set is_published = true where id = archive_variant_id;
+  update public.mixes set status = 'voting' where id = archive_mix_id;
+  update public.mixes set status = 'locked', chosen_variant_id = archive_variant_id
+    where id = archive_mix_id;
+  insert into public.matches (mix_id, score_a, score_b, source, stats_origin, source_reference)
+    values (archive_mix_id, 13, 9, 'manual', 'popflash', 'popflash:test-map');
+  update public.mixes set status = 'played' where id = archive_mix_id;
+  if (select status from public.mixes where id = archive_mix_id) <> 'played'
+     or exists (select 1 from public.votes where mix_id = archive_mix_id)
+     or (select count(*) from public.variants where mix_id = archive_mix_id) <> 1 then
+    raise exception 'ASSERT: one-lineup archive required invented variants or votes';
+  end if;
 end;
 $$;

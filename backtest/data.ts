@@ -1,5 +1,5 @@
-// Loads the backtest fixtures (TEST DATA ONLY, D25): popflash club maps and the players' FACEIT
-// history recorded by scripts/backtest-data.mjs. The only file of the module that touches the disk.
+// Loads the Popflash and FACEIT fixtures for backtesting. Artur later authorized importing the
+// Popflash archive into the group's results (D25 amendment); the backtest stays file based.
 
 import { readdirSync, readFileSync } from "node:fs";
 import { existsSync } from "node:fs";

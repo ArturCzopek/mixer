@@ -96,6 +96,15 @@ admin browser import, and the manual-result admin browser flow. Local played-pag
 of synthetic data hit a transient Supabase "JWT issued at future" response; this needs rechecking
 with a real mix.
 
+**2026-09-29:** Artur amended D25 (Popflash archive): all 71 old maps and 710 available player
+stat lines were imported as 29 clearly marked archived mixes in `/g/skarpeciarze`. Two dates had a
+lineup change and were split. Results remain `manual`, with `stats_origin = popflash` on maps that
+carry historical lines. The importer is `scripts/import-popflash-archive.ts` and verifies counts;
+it is safe to rerun. The 16 Dec 2024 showcase is a real three-map archived mix. M2-4 (multi-map
+results) now has map tabs, summary, per-map and total scoreboards, original illustrative map
+sketches, and a score-only lineup. A real five-map result and accurate licensed/own map previews
+remain open.
+
 **A5 done 2026-09-27:** `faceitForm()` skips invalid `finishedAt` values instead of counting them
 in the baseline; regression tests cover unchanged valid inputs and the thin-baseline threshold.
 
