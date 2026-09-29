@@ -236,6 +236,26 @@ const en = {
     addMap: "Add map",
     removeMap: "Remove",
     saveResult: "Save results",
+    faceitTitle: "FACEIT results",
+    faceitHint:
+      "Find finished rooms played by this lineup, then confirm the maps to import.",
+    faceitRoomLink: "Add a room link (optional)",
+    faceitFind: "Find matches",
+    faceitFinding: "Finding…",
+    faceitEmpty:
+      "No eligible finished rooms found. You can enter scores manually.",
+    faceitUnknownMap: "Unknown map",
+    faceitMismatch: (count: number) =>
+      `${count} lineup differences · check before importing`,
+    faceitLineupOk: "Lineup matches",
+    faceitAmbiguous:
+      "Teams cannot be mapped safely; enter this score manually.",
+    faceitOpenRoom: "Open FACEIT room",
+    faceitRoomRejected:
+      "The added room does not meet this mix's time, lineup or Club rules.",
+    faceitImport: (count: number) => `Import ${count} maps`,
+    faceitImportConfirm: (count: number) =>
+      `Import ${count} FACEIT maps and mark this mix as played?`,
     proxyPlayer: "Player",
     proxyVariant: "Variant",
     startMatch: "Mark Match Started",
@@ -264,6 +284,8 @@ const en = {
       `Lineup changed by a swap: ${from} → ${to} (by ${by}).`,
   },
   played: {
+    faceitRoom: "FACEIT room",
+    downloadDemo: "Download demo",
     noStats: "Map scores are saved. Player stats are not available yet.",
     drawLine: (map: string, a: number, b: number) =>
       `${map} · ${a} : ${b} · draw`,
@@ -421,6 +443,28 @@ const en = {
       forbidden: "You cannot do that for this group.",
       failed: "Could not update this mix. Try again.",
     },
+  },
+  profile: {
+    title: "Player profile",
+    faceitLevel: "FACEIT level",
+    faceitProfile: "Open FACEIT profile",
+    faceitUnavailable: "FACEIT ELO is unavailable for this player.",
+    maps: "Maps",
+    winRate: "Win rate",
+    record: "Wins / losses / draws",
+    rating: "Mixer Rating",
+    ratedMaps: "Maps with player stats",
+    ratingTrend: "Mixer Rating across maps",
+    noRatings:
+      "No rated mix maps yet. Score-only maps still count toward the record.",
+    mapHistory: "Map history",
+    map: "Map",
+    score: "Score A:B",
+    result: "Result",
+    bestTeammates: "Best teammates",
+    empty:
+      "No played mix maps yet. Results will appear after the first evening.",
+    outcome: { win: "Win", loss: "Loss", draw: "Draw" },
   },
   showcase: {
     title: "Showcase: our popflash evening of 16 Dec 2024",
@@ -615,6 +659,25 @@ const pl: Dict = {
     addMap: "Dodaj mapę",
     removeMap: "Usuń",
     saveResult: "Zapisz wyniki",
+    faceitTitle: "Wyniki FACEIT",
+    faceitHint:
+      "Znajdź zakończone pokoje tego składu i potwierdź mapy do importu.",
+    faceitRoomLink: "Dodaj link do pokoju (opcjonalnie)",
+    faceitFind: "Znajdź mecze",
+    faceitFinding: "Szukanie…",
+    faceitEmpty:
+      "Brak pasujących zakończonych pokoi. Możesz wpisać wyniki ręcznie.",
+    faceitUnknownMap: "Nieznana mapa",
+    faceitMismatch: (count) =>
+      `${count} różnic w składzie · sprawdź przed importem`,
+    faceitLineupOk: "Skład pasuje",
+    faceitAmbiguous: "Nie da się pewnie przypisać drużyn; wpisz wynik ręcznie.",
+    faceitOpenRoom: "Otwórz pokój FACEIT",
+    faceitRoomRejected:
+      "Dodany pokój nie pasuje do czasu, składu albo klubu tego miksu.",
+    faceitImport: (count) => `Importuj ${count} map`,
+    faceitImportConfirm: (count) =>
+      `Zaimportować ${count} map FACEIT i oznaczyć miks jako rozegrany?`,
     proxyPlayer: "Gracz",
     proxyVariant: "Wariant",
     startMatch: "Oznacz start meczu",
@@ -644,6 +707,8 @@ const pl: Dict = {
       `Skład zmieniono przez wymianę: ${from} → ${to} (admin: ${by}).`,
   },
   played: {
+    faceitRoom: "Pokój FACEIT",
+    downloadDemo: "Pobierz demo",
     noStats:
       "Wyniki map są zapisane. Statystyki graczy nie są jeszcze dostępne.",
     drawLine: (map, a, b) => `${map} · ${a} : ${b} · remis`,
@@ -796,6 +861,28 @@ const pl: Dict = {
       forbidden: "Nie możesz wykonać tej czynności w tej grupie.",
       failed: "Nie udało się zmienić miksu. Spróbuj ponownie.",
     },
+  },
+  profile: {
+    title: "Profil gracza",
+    faceitLevel: "Poziom FACEIT",
+    faceitProfile: "Otwórz profil FACEIT",
+    faceitUnavailable: "ELO FACEIT tego gracza jest niedostępne.",
+    maps: "Mapy",
+    winRate: "Odsetek zwycięstw",
+    record: "Wygrane / porażki / remisy",
+    rating: "Mixer Rating",
+    ratedMaps: "Mapy ze statystykami gracza",
+    ratingTrend: "Mixer Rating na kolejnych mapach",
+    noRatings:
+      "Brak map z ratingiem. Mapy z samym wynikiem nadal liczą się do bilansu.",
+    mapHistory: "Historia map",
+    map: "Mapa",
+    score: "Wynik A:B",
+    result: "Rezultat",
+    bestTeammates: "Najlepsi współgracze",
+    empty:
+      "Nie ma jeszcze rozegranych map. Wyniki pojawią się po pierwszym wieczorze.",
+    outcome: { win: "Wygrana", loss: "Porażka", draw: "Remis" },
   },
   showcase: {
     title: "Pokaz: nasz wieczór na popflashu, 16.12.2024",

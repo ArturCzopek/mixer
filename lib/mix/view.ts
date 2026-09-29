@@ -44,6 +44,8 @@ export interface ViewMap {
   a: number;
   b: number;
   lines: ViewLine[];
+  roomUrl?: string | null;
+  demoUrl?: string | null;
 }
 
 export interface MixViewData {

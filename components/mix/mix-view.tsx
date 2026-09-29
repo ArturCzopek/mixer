@@ -29,13 +29,19 @@ import {
 import { votingOutcome } from "@/lib/mix/voting";
 import { useLang, useT } from "@/components/i18n";
 import type { Dict } from "@/lib/i18n/dict";
+import {
+  faceitRoomId,
+  type FaceitCandidate,
+} from "@/lib/mix/faceit-candidates";
 import { cn } from "@/lib/utils";
 import {
   approveMixVariants,
   castMixVote,
   castProxyMixVote,
   closeMixVoting,
+  findFaceitMatches,
   generateMixVariants,
+  importFaceitMatches,
   reopenMixVoting,
   recordManualResults,
   rerollMixVariants,
@@ -49,7 +55,14 @@ export type MixState = "lobby" | "balancing" | "voting" | "locked" | "played";
 
 type Player = ViewPlayer;
 type Line = Omit<ViewLine, "steamId"> & { player: Player };
-type MapResult = { map: string; a: number; b: number; lines: Line[] };
+type MapResult = {
+  map: string;
+  a: number;
+  b: number;
+  lines: Line[];
+  roomUrl?: string | null;
+  demoUrl?: string | null;
+};
 type Variant = Omit<ViewVariant, "teamA" | "teamB"> & {
   teamA: Player[];
   teamB: Player[];
@@ -1614,6 +1627,7 @@ function VotingAdminPanel({ state }: { state: "voting" | "locked" }) {
           </div>
         </form>
       )}
+      {state === "locked" && <FaceitImportPanel mixId={data.mix.id} />}
       {showProxy && state === "voting" && (
         <div className="mt-2 flex flex-wrap items-end gap-1.5">
           <label>
@@ -1665,6 +1679,155 @@ function VotingAdminPanel({ state }: { state: "voting" | "locked" }) {
         </p>
       )}
     </Well>
+  );
+}
+
+function FaceitImportPanel({ mixId }: { mixId: string }) {
+  const t = useT();
+  const router = useRouter();
+  const [roomLink, setRoomLink] = React.useState("");
+  const [candidates, setCandidates] = React.useState<FaceitCandidate[] | null>(
+    null,
+  );
+  const [selected, setSelected] = React.useState<string[]>([]);
+  const [pending, setPending] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const find = async () => {
+    setPending(true);
+    setError(null);
+    try {
+      const result = await findFaceitMatches(mixId, roomLink);
+      if ("error" in result) setError(t.lobby.errors[result.error]);
+      else {
+        setCandidates(result.candidates);
+        setSelected(
+          result.candidates
+            .filter((candidate) => candidate.teamAIsFaction1 !== null)
+            .map((candidate) => candidate.id),
+        );
+        if (
+          roomLink &&
+          !result.candidates.some(
+            (candidate) => candidate.id === faceitRoomId(roomLink),
+          )
+        )
+          setError(t.admin.faceitRoomRejected);
+      }
+    } catch {
+      setError(t.lobby.errors.failed);
+    } finally {
+      setPending(false);
+    }
+  };
+  const importSelected = async () => {
+    if (
+      !selected.length ||
+      !window.confirm(t.admin.faceitImportConfirm(selected.length))
+    )
+      return;
+    setPending(true);
+    setError(null);
+    try {
+      const result = await importFaceitMatches(mixId, selected, roomLink);
+      if (result && "error" in result) setError(t.lobby.errors[result.error]);
+      else router.refresh();
+    } catch {
+      setError(t.lobby.errors.failed);
+    } finally {
+      setPending(false);
+    }
+  };
+  return (
+    <div className="border-hi mt-3 border-t pt-2">
+      <p className="text-gold mb-1 font-bold">{t.admin.faceitTitle}</p>
+      <p className="text-dim mb-2">{t.admin.faceitHint}</p>
+      <div className="flex flex-wrap items-end gap-1.5">
+        <label className="min-w-0 flex-1">
+          <span className="text-dim mb-0.5 block">
+            {t.admin.faceitRoomLink}
+          </span>
+          <input
+            type="text"
+            className="bevel bg-window w-full min-w-40 px-2 py-1.5"
+            value={roomLink}
+            placeholder="https://www.faceit.com/en/cs2/room/…"
+            onChange={(event) => setRoomLink(event.target.value)}
+            disabled={pending}
+          />
+        </label>
+        <VButton disabled={pending} onClick={() => void find()}>
+          {pending ? t.admin.faceitFinding : t.admin.faceitFind}
+        </VButton>
+      </div>
+      {candidates && (
+        <div className="mt-2 space-y-1.5">
+          {candidates.length === 0 && (
+            <p className="text-dim">{t.admin.faceitEmpty}</p>
+          )}
+          {candidates.map((candidate) => (
+            <div
+              key={candidate.id}
+              className="bg-row flex items-start gap-2 px-2 py-1.5"
+            >
+              <label className="flex min-w-0 flex-1 items-start gap-2">
+                <input
+                  type="checkbox"
+                  checked={selected.includes(candidate.id)}
+                  disabled={pending || candidate.teamAIsFaction1 === null}
+                  onChange={(event) =>
+                    setSelected((current) =>
+                      event.target.checked
+                        ? [...current, candidate.id]
+                        : current.filter((id) => id !== candidate.id),
+                    )
+                  }
+                />
+                <span className="min-w-0 flex-1">
+                  <span className="block font-bold">
+                    {candidate.map ?? t.admin.faceitUnknownMap} ·{" "}
+                    {candidate.score1 ?? "?"}:{candidate.score2 ?? "?"} ·{" "}
+                    {candidate.coverage}/10
+                  </span>
+                  <span className="text-dim block">
+                    {new Date(candidate.startedAt).toLocaleString()} ·{" "}
+                    {candidate.lineupMismatch.length
+                      ? t.admin.faceitMismatch(candidate.lineupMismatch.length)
+                      : t.admin.faceitLineupOk}
+                  </span>
+                  {candidate.teamAIsFaction1 === null && (
+                    <span className="text-loss block">
+                      {t.admin.faceitAmbiguous}
+                    </span>
+                  )}
+                </span>
+              </label>
+              <a
+                href={candidate.roomUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gold underline"
+              >
+                {t.admin.faceitOpenRoom}
+              </a>
+            </div>
+          ))}
+          {candidates.length > 0 && (
+            <VButton
+              primary
+              disabled={pending || selected.length === 0}
+              onClick={() => void importSelected()}
+            >
+              {t.admin.faceitImport(selected.length)}
+            </VButton>
+          )}
+        </div>
+      )}
+      {error && (
+        <p role="alert" className="text-loss mt-2">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -1778,6 +1941,30 @@ function Played() {
               ? t.played.scoreOnlySummary(result.maps.length)
               : t.played.allLine(result.maps.length, rounds)}
         </p>
+        {map && (map.roomUrl || map.demoUrl) && (
+          <div className="mb-2 flex gap-3 px-0.5 text-[11px]">
+            {map.roomUrl && (
+              <a
+                href={map.roomUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gold underline"
+              >
+                {t.played.faceitRoom}
+              </a>
+            )}
+            {map.demoUrl && (
+              <a
+                href={map.demoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gold underline"
+              >
+                {t.played.downloadDemo}
+              </a>
+            )}
+          </div>
+        )}
         {(map ? map.lines : result.all).length > 0 ? (
           <Scoreboard lines={map ? map.lines : result.all} />
         ) : (

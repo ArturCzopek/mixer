@@ -123,17 +123,22 @@ export default async function GroupPage({ params }: PageProps<"/g/[slug]">) {
                   ) : (
                     <span className="border-lo bg-row size-[18px] border" />
                   )}
+                  <Link
+                    href={`/g/${group.slug}/p/${m.steamId}`}
+                    className="text-text min-w-0 flex-1 truncate no-underline"
+                  >
+                    {name}
+                  </Link>
+                  {m.role === "admin" && <Badge>{t.groups.admin}</Badge>}
+                </div>
+                <div className="text-dim mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px]">
                   <a
                     href={`https://steamcommunity.com/profiles/${m.steamId}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-text min-w-0 flex-1 truncate no-underline"
                   >
-                    {name}
+                    Steam
                   </a>
-                  {m.role === "admin" && <Badge>{t.groups.admin}</Badge>}
-                </div>
-                <div className="text-dim mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px]">
                   {m.faceitNickname ? (
                     <a
                       href={`https://www.faceit.com/en/players/${encodeURIComponent(m.faceitNickname)}`}

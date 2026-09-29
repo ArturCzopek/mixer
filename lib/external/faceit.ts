@@ -208,3 +208,161 @@ export function toFormSamples(
       }),
     }));
 }
+
+// --- mix evening rooms -------------------------------------------------------------------------
+
+const matchIdPageSchema = z.object({
+  items: z.array(
+    z.object({
+      match_id: z.string(),
+      started_at: z.number().nullable().optional(),
+    }),
+  ),
+});
+
+const roomRosterSchema = z.object({
+  player_id: z.string(),
+  game_player_id: z.string().optional(),
+});
+const roomFactionSchema = z.object({
+  faction_id: z.string(),
+  roster: z.array(roomRosterSchema),
+});
+const roomSchema = z.object({
+  match_id: z.string(),
+  started_at: z.number(),
+  status: z.string(),
+  competition_id: z.string().nullable().optional(),
+  best_of: z.number(),
+  faceit_url: z.string().optional(),
+  demo_url: z.array(z.string()).optional(),
+  results: z
+    .object({
+      score: z
+        .object({ faction1: z.number(), faction2: z.number() })
+        .optional(),
+    })
+    .optional(),
+  teams: z.object({ faction1: roomFactionSchema, faction2: roomFactionSchema }),
+});
+
+const mapStatsSchema = z.object({
+  rounds: z.array(
+    z.object({
+      round_stats: z.record(z.string(), z.unknown()),
+      teams: z.array(
+        z.object({
+          team_id: z.string(),
+          team_stats: z.record(z.string(), z.unknown()),
+          players: z.array(
+            z.object({
+              player_id: z.string(),
+              player_stats: z.record(z.string(), z.unknown()),
+            }),
+          ),
+        }),
+      ),
+    }),
+  ),
+});
+
+export type FaceitRoomDetail = z.infer<typeof roomSchema>;
+export type FaceitMapStats = z.infer<typeof mapStatsSchema>;
+
+/** Unix seconds in /history (unlike milliseconds in /games/cs2/stats). */
+export async function getHistoryMatchIds(
+  playerId: string,
+  from: Date,
+  to: Date,
+  opts: FaceitClientOptions = {},
+): Promise<string[]> {
+  const ids: string[] = [];
+  for (let offset = 0; offset <= 1000; offset += 100) {
+    const params = new URLSearchParams({
+      game: "cs2",
+      from: String(Math.floor(from.getTime() / 1000)),
+      to: String(Math.floor(to.getTime() / 1000)),
+      offset: String(offset),
+      limit: "100",
+    });
+    const page = await getJson(
+      `${API}/players/${encodeURIComponent(playerId)}/history?${params}`,
+      matchIdPageSchema,
+      {
+        service: "faceit",
+        headers: auth(opts),
+        revalidate: REVALIDATE_S,
+        fetch: opts.fetch,
+      },
+    );
+    ids.push(...page.items.map((match) => match.match_id));
+    if (page.items.length < 100) break;
+  }
+  return ids;
+}
+
+export async function getHubMatchIds(
+  hubId: string,
+  from: Date,
+  to: Date,
+  opts: FaceitClientOptions = {},
+): Promise<string[]> {
+  const ids: string[] = [];
+  for (let offset = 0; offset <= 1000; offset += 100) {
+    const params = new URLSearchParams({
+      type: "past",
+      offset: String(offset),
+      limit: "100",
+    });
+    const page = await getJson(
+      `${API}/hubs/${encodeURIComponent(hubId)}/matches?${params}`,
+      matchIdPageSchema,
+      {
+        service: "faceit",
+        headers: auth(opts),
+        revalidate: REVALIDATE_S,
+        fetch: opts.fetch,
+      },
+    );
+    ids.push(
+      ...page.items
+        .filter(
+          (match) =>
+            !match.started_at ||
+            (match.started_at * 1000 >= from.getTime() &&
+              match.started_at * 1000 < to.getTime()),
+        )
+        .map((match) => match.match_id),
+    );
+    if (page.items.length < 100) break;
+  }
+  return ids;
+}
+
+export async function getFaceitRoom(
+  matchId: string,
+  opts: FaceitClientOptions = {},
+): Promise<FaceitRoomDetail> {
+  return getJson(`${API}/matches/${encodeURIComponent(matchId)}`, roomSchema, {
+    service: "faceit",
+    headers: auth(opts),
+    revalidate: REVALIDATE_S,
+    fetch: opts.fetch,
+  });
+}
+
+export async function getFaceitRoomStats(
+  matchId: string,
+  opts: FaceitClientOptions = {},
+): Promise<FaceitMapStats> {
+  return getJson(
+    `${API}/matches/${encodeURIComponent(matchId)}/stats`,
+    mapStatsSchema,
+    {
+      service: "faceit",
+      headers: auth(opts),
+      revalidate: REVALIDATE_S,
+      fetch: opts.fetch,
+    },
+  );
+}

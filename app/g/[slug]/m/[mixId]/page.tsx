@@ -71,10 +71,25 @@ export default async function MixLobbyPage({
     if (mix.status === "played") {
       const { data: maps, error } = await adminDb()
         .from("matches")
-        .select("map_number, map_name, score_a, score_b, source")
+        .select(
+          "id, map_number, map_name, score_a, score_b, source, faceit_match_id, faceit_demo_url",
+        )
         .eq("mix_id", mix.id)
         .order("map_number", { ascending: true });
       if (error) throw new Error(`Mix results: ${error.message}`);
+      const matchIds = (maps ?? []).map((map) => map.id);
+      const { data: storedStats, error: statsError } = matchIds.length
+        ? await adminDb()
+            .from("match_player_stats")
+            .select(
+              "match_id, player_id, team, kills, deaths, assists, adr, rounds, rating",
+            )
+            .in("match_id", matchIds)
+        : { data: [], error: null };
+      if (statsError) throw new Error(`Mix stats: ${statsError.message}`);
+      const steamIds = new Map(
+        page.participants.map((player) => [player.playerId, player.steamId]),
+      );
       data.result = {
         maps: (maps ?? []).map((map) => ({
           map: map.map_name
@@ -82,7 +97,37 @@ export default async function MixLobbyPage({
             : `#${map.map_number}`,
           a: map.score_a,
           b: map.score_b,
-          lines: [],
+          roomUrl: map.faceit_match_id
+            ? `https://www.faceit.com/en/cs2/room/${encodeURIComponent(map.faceit_match_id)}`
+            : null,
+          demoUrl: map.faceit_demo_url,
+          lines: (storedStats ?? []).flatMap((stat) => {
+            const steamId = steamIds.get(stat.player_id);
+            if (
+              stat.match_id !== map.id ||
+              !steamId ||
+              !["A", "B"].includes(stat.team) ||
+              stat.kills === null ||
+              stat.deaths === null ||
+              stat.assists === null ||
+              stat.adr === null ||
+              stat.rounds === null ||
+              stat.rating === null
+            )
+              return [];
+            return [
+              {
+                steamId,
+                team: stat.team as "A" | "B",
+                k: stat.kills,
+                d: stat.deaths,
+                a: stat.assists,
+                adr: Number(stat.adr),
+                rounds: stat.rounds,
+                rating: Number(stat.rating),
+              },
+            ];
+          }),
         })),
         source: maps?.every((map) => map.source === "manual")
           ? "manual"

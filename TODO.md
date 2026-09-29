@@ -78,10 +78,23 @@ are implemented. Migrations through `20260929110000` are applied to the approved
 `db-migrate.mjs --verify` passed seven SQL test files and publishable-key checks. Group admins can
 enter any number of map scores for a locked mix in one transaction, with optional map names; the
 played page shows public scores and explicitly says when player stats are absent. M2-7 remains
-partial until a real admin browser flow is checked and M3-1 player profiles include score-only maps
+partial until a real admin browser flow is checked. M3-1 player profiles now include score-only maps
 in win rates while leaving rating-based stats empty. `db-race-check.mjs` passed concurrent manual
 result submissions: one wins and one map is stored. No locked or played mix currently exists in the
 approved database, so the real browser flow cannot yet be checked against an actual evening.
+
+**2026-09-29:** M2-2 (FACEIT evening import) is implemented for locked mixes: Club listing or player
+history, ≥8/10 coverage, six-hour window, admin confirmation, per-map results and stats in one
+transaction, and idempotent re-import. M2-3 (FACEIT-based Mixer Rating) stores a rating for each
+imported player/map; manual score-only maps have no rating. M3-1 (player profile) shows live FACEIT
+level/ELO, mix record, rated-map trend, map stats, and best teammates. Migrations through
+`20260929130000` are applied; `db-migrate.mjs --verify` passed seven SQL files and publishable-key
+checks. A public profile with four test maps (two manual, two FACEIT) rendered locally; test rows
+were removed. A public historical FACEIT room and stats endpoint both returned HTTP 200. The
+group's Club match listing currently has no matches. **Still needed:** a real 3+ map Club evening,
+admin browser import, and the manual-result admin browser flow. Local played-page browser testing
+of synthetic data hit a transient Supabase "JWT issued at future" response; this needs rechecking
+with a real mix.
 
 **A5 done 2026-09-27:** `faceitForm()` skips invalid `finishedAt` values instead of counting them
 in the baseline; regression tests cover unchanged valid inputs and the thin-baseline threshold.

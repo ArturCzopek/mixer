@@ -93,6 +93,9 @@ begin
      or (select vote_result ->> 'winnerVotes' from public.mixes where id = fixture_mix_id) <> '5' then
     raise exception 'ASSERT: due tie was not locked with the seeded winner';
   end if;
+  if (select locked_at from public.mixes where id = fixture_mix_id) is null then
+    raise exception 'ASSERT: lock time missing';
+  end if;
   failed := false;
   begin
     perform public.cast_mix_vote(fixture_mix_id, p[1], v2, p[1]);
@@ -100,6 +103,9 @@ begin
   end;
   if not failed then raise exception 'ASSERT: vote changed after closure'; end if;
   perform public.reopen_mix_votes(fixture_mix_id);
+  if (select locked_at from public.mixes where id = fixture_mix_id) is not null then
+    raise exception 'ASSERT: old lock time survived reopening';
+  end if;
   if (select chosen_variant_id from public.mixes where id = fixture_mix_id) is not null
      or (select count(*) from public.votes where mix_id = fixture_mix_id) <> 10
      or (select count(*) from public.variants where mix_id = fixture_mix_id and is_published) <> 3 then

@@ -2,6 +2,10 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
+  getFaceitRoom,
+  getFaceitRoomStats,
+  getHubMatchIds,
+  getHistoryMatchIds,
   getMatchStats,
   getPlayerBySteamId,
   parseMatchStatsPage,
@@ -28,6 +32,7 @@ const json = (body: unknown, status = 200) =>
 
 const OWNER = "76561197993187687";
 const OWNER_FACEIT_ID = "e881bc29-4d6a-43de-af4d-4a6994130c2d";
+const ROOM_ID = "1-1cb5b18b-6856-42a9-bf3c-561c0737b52f";
 
 /** Fake fetch that records requested URLs and answers from a handler. */
 function fakeFetch(handler: (url: URL) => Response) {
@@ -39,6 +44,51 @@ function fakeFetch(handler: (url: URL) => Response) {
   };
   return { fn, urls };
 }
+
+describe("FACEIT mix room API", () => {
+  it("parses the recorded room and per-map stats", async () => {
+    const { fn } = fakeFetch((url) =>
+      json(
+        fixture(
+          `faceit/matches/${ROOM_ID}${url.pathname.endsWith("/stats") ? ".stats" : ""}.json`,
+        ),
+      ),
+    );
+    const room = await getFaceitRoom(ROOM_ID, { apiKey: "k", fetch: fn });
+    const stats = await getFaceitRoomStats(ROOM_ID, { apiKey: "k", fetch: fn });
+    expect(room.teams.faction1.roster).toHaveLength(5);
+    expect(room.results?.score?.faction2).toBe(13);
+    expect(stats.rounds[0].round_stats.Map).toBe("de_nuke");
+  });
+
+  it("uses seconds for paginated player history", async () => {
+    const { fn, urls } = fakeFetch(() =>
+      json({ items: [{ match_id: ROOM_ID }] }),
+    );
+    const ids = await getHistoryMatchIds(
+      OWNER_FACEIT_ID,
+      new Date("2026-09-28T00:00:00Z"),
+      new Date("2026-09-29T00:00:00Z"),
+      { apiKey: "k", fetch: fn },
+    );
+    expect(ids).toEqual([ROOM_ID]);
+    expect(urls[0].searchParams.get("from")).toBe("1790553600");
+  });
+
+  it("lists completed hub rooms", async () => {
+    const { fn, urls } = fakeFetch(() =>
+      json({ items: [{ match_id: ROOM_ID }] }),
+    );
+    expect(
+      await getHubMatchIds("club", new Date(0), new Date(), {
+        apiKey: "k",
+        fetch: fn,
+      }),
+    ).toEqual([ROOM_ID]);
+    expect(urls[0].pathname).toBe("/data/v4/hubs/club/matches");
+    expect(urls[0].searchParams.get("type")).toBe("past");
+  });
+});
 
 describe("parseSteamInput", () => {
   it.each([

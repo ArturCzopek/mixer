@@ -6,6 +6,14 @@ import { AuthError } from "@/lib/auth/roles";
 import { requireGroupRole, requireSession } from "@/lib/auth/server";
 import { adminDb } from "@/lib/db/admin";
 import {
+  faceitRoomId,
+  type FaceitCandidate,
+} from "@/lib/mix/faceit-candidates";
+import {
+  faceitImportPlan,
+  findMixFaceitCandidates,
+} from "@/lib/mix/faceit-service";
+import {
   initialVariantPlan,
   rerollVariantPlan,
   StaleVariantSetError,
@@ -531,4 +539,77 @@ export async function recordManualResults(
     p_actor_id: auth.session.playerId,
     p_maps: parsed.data,
   });
+}
+
+export async function findFaceitMatches(
+  mixId: string,
+  extraRoomLink = "",
+): Promise<{ candidates: FaceitCandidate[] } | { error: MixActionError }> {
+  if (!uuid.safeParse(mixId).success) return { error: "forbidden" };
+  const extraId = extraRoomLink.trim() ? faceitRoomId(extraRoomLink) : null;
+  if (extraRoomLink.trim() && !extraId) return { error: "result" };
+  const auth = await authorizedMix("findFaceitMatches", mixId, "admin");
+  if ("error" in auth) return auth;
+  try {
+    return {
+      candidates: await findMixFaceitCandidates(
+        mixId,
+        extraId ? [extraId] : [],
+      ),
+    };
+  } catch (error) {
+    return logFailure("findFaceitMatches", error);
+  }
+}
+
+export async function importFaceitMatches(
+  mixId: string,
+  matchIds: string[],
+  extraRoomLink = "",
+): Promise<MixActionState> {
+  if (
+    !uuid.safeParse(mixId).success ||
+    !matchIds.length ||
+    matchIds.length > 30 ||
+    matchIds.some((id) => !faceitRoomId(id))
+  )
+    return { error: "result" };
+  const extraId = extraRoomLink.trim() ? faceitRoomId(extraRoomLink) : null;
+  if (extraRoomLink.trim() && !extraId) return { error: "result" };
+  const auth = await authorizedMix("importFaceitMatches", mixId, "admin");
+  if ("error" in auth) return auth;
+  try {
+    const { data: mix, error: mixError } = await adminDb()
+      .from("mixes")
+      .select("locked_at, status")
+      .eq("id", mixId)
+      .single();
+    if (mixError || !mix?.locked_at) return { error: "stale" };
+    if (mix.status === "played") {
+      const { data: stored, error: storedError } = await adminDb()
+        .from("matches")
+        .select("faceit_match_id")
+        .eq("mix_id", mixId);
+      if (storedError)
+        return logFailure("importFaceitMatches lookup", storedError);
+      return stored?.length === matchIds.length &&
+        matchIds.every((id) => stored.some((row) => row.faceit_match_id === id))
+        ? { ok: true }
+        : { error: "stale" };
+    }
+    if (mix.status !== "locked") return { error: "stale" };
+    const maps = await faceitImportPlan(
+      mixId,
+      matchIds,
+      extraId ? [extraId] : [],
+    );
+    return variantRpc("importFaceitMatches", "record_faceit_mix_results", {
+      p_mix_id: mixId,
+      p_actor_id: auth.session.playerId,
+      p_locked_at: mix.locked_at,
+      p_maps: maps,
+    });
+  } catch (error) {
+    return logFailure("importFaceitMatches", error);
+  }
 }
