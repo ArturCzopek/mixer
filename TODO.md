@@ -113,6 +113,14 @@ larger quip pool are pending. The result screen emphasizes the selected map's sc
 All 27 Skarpeciarze identities were refreshed from Steam; 25 available FACEIT links were attached
 without replacing the Steam display names. Repeat with `scripts/refresh-group-identities.ts`.
 
+**2026-09-30:** A played mix with manually entered scores can now gain FACEIT player stats later.
+The admin reuses the existing FACEIT import panel; the database requires the same map count and
+scores in chronological order, preserving `source = manual` and marking `stats_origin = faceit`.
+Mismatches roll back the whole import; archived mixes cannot be enriched. Migration
+`20260930100000` is applied to the approved Supabase project. `db-migrate.mjs --verify` passed
+seven SQL files and publishable-key checks; `db-race-check.mjs` passed manual-vs-FACEIT concurrent
+result submission. A real admin browser enrichment still needs a played mix with matching rooms.
+
 **A5 done 2026-09-27:** `faceitForm()` skips invalid `finishedAt` values instead of counting them
 in the baseline; regression tests cover unchanged valid inputs and the thin-baseline threshold.
 

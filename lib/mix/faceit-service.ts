@@ -23,12 +23,19 @@ export async function findMixFaceitCandidates(
 ): Promise<FaceitCandidate[]> {
   const { data: mix, error: mixError } = await adminDb()
     .from("mixes")
-    .select("id, group_id, status, locked_at, chosen_variant_id")
+    .select(
+      "id, group_id, status, locked_at, chosen_variant_id, archive_source",
+    )
     .eq("id", mixId)
     .single();
   if (mixError) throw mixError;
-  if (mix.status !== "locked" || !mix.locked_at || !mix.chosen_variant_id)
-    throw new Error("Mix is not locked");
+  if (
+    (mix.status !== "locked" &&
+      !(mix.status === "played" && !mix.archive_source)) ||
+    !mix.locked_at ||
+    !mix.chosen_variant_id
+  )
+    throw new Error("Mix cannot import FACEIT results");
   const page = await mixVariantPage(mixId, false);
   const chosen = page?.variants.find(
     (variant) => variant.id === mix.chosen_variant_id,

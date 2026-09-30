@@ -239,6 +239,8 @@ const en = {
     faceitTitle: "FACEIT results",
     faceitHint:
       "Find finished rooms played by this lineup, then confirm the maps to import.",
+    faceitEnrichHint:
+      "Add FACEIT stats to the manual result. Select the same maps in order; every score must match.",
     faceitRoomLink: "Add a room link (optional)",
     faceitFind: "Find matches",
     faceitFinding: "Finding…",
@@ -256,6 +258,8 @@ const en = {
     faceitImport: (count: number) => `Import ${count} maps`,
     faceitImportConfirm: (count: number) =>
       `Import ${count} FACEIT maps and mark this mix as played?`,
+    faceitEnrichConfirm: (count: number) =>
+      `Add FACEIT stats from ${count} maps? Manual scores will stay unchanged.`,
     proxyPlayer: "Player",
     proxyVariant: "Variant",
     startMatch: "Mark Match Started",
@@ -716,6 +720,8 @@ const pl: Dict = {
     faceitTitle: "Wyniki FACEIT",
     faceitHint:
       "Znajdź zakończone pokoje tego składu i potwierdź mapy do importu.",
+    faceitEnrichHint:
+      "Dodaj statystyki FACEIT do ręcznego wyniku. Wybierz te same mapy po kolei; każdy wynik musi się zgadzać.",
     faceitRoomLink: "Dodaj link do pokoju (opcjonalnie)",
     faceitFind: "Znajdź mecze",
     faceitFinding: "Szukanie…",
@@ -732,6 +738,8 @@ const pl: Dict = {
     faceitImport: (count) => `Importuj ${count} map`,
     faceitImportConfirm: (count) =>
       `Zaimportować ${count} map FACEIT i oznaczyć miks jako rozegrany?`,
+    faceitEnrichConfirm: (count) =>
+      `Dodać statystyki FACEIT z ${count} map? Ręczne wyniki pozostaną bez zmian.`,
     proxyPlayer: "Gracz",
     proxyVariant: "Wariant",
     startMatch: "Oznacz start meczu",

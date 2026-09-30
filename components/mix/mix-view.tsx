@@ -1694,7 +1694,13 @@ function VotingAdminPanel({ state }: { state: "voting" | "locked" }) {
   );
 }
 
-function FaceitImportPanel({ mixId }: { mixId: string }) {
+function FaceitImportPanel({
+  mixId,
+  enrich = false,
+}: {
+  mixId: string;
+  enrich?: boolean;
+}) {
   const t = useT();
   const router = useRouter();
   const [roomLink, setRoomLink] = React.useState("");
@@ -1734,7 +1740,11 @@ function FaceitImportPanel({ mixId }: { mixId: string }) {
   const importSelected = async () => {
     if (
       !selected.length ||
-      !window.confirm(t.admin.faceitImportConfirm(selected.length))
+      !window.confirm(
+        enrich
+          ? t.admin.faceitEnrichConfirm(selected.length)
+          : t.admin.faceitImportConfirm(selected.length),
+      )
     )
       return;
     setPending(true);
@@ -1752,7 +1762,9 @@ function FaceitImportPanel({ mixId }: { mixId: string }) {
   return (
     <div className="border-hi mt-3 border-t pt-2">
       <p className="text-gold mb-1 font-bold">{t.admin.faceitTitle}</p>
-      <p className="text-dim mb-2">{t.admin.faceitHint}</p>
+      <p className="text-dim mb-2">
+        {enrich ? t.admin.faceitEnrichHint : t.admin.faceitHint}
+      </p>
       <div className="flex flex-wrap items-end gap-1.5">
         <label className="min-w-0 flex-1">
           <span className="text-dim mb-0.5 block">
@@ -2099,6 +2111,16 @@ function Played() {
           </p>
         </Well>
       )}
+      {data.viewerIsAdmin &&
+        !data.showcase &&
+        !data.archiveSource &&
+        data.result.source === "manual" &&
+        data.result.maps.length > 0 &&
+        data.result.maps.every((item) => !item.statsOrigin) && (
+          <Well className="mt-2 p-2">
+            <FaceitImportPanel mixId={data.mix.id} enrich />
+          </Well>
+        )}
     </div>
   );
 }

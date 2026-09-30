@@ -73,6 +73,34 @@ describe("multi-map results", () => {
     expect(html).toContain("16:12");
     expect(html).toContain(DICTS.en.played.archiveNote("popflash"));
   });
+
+  it("offers FACEIT enrichment only to an admin of a non-archived manual result", () => {
+    const view: MixViewData = {
+      ...data,
+      showcase: undefined,
+      archiveSource: null,
+      viewerIsAdmin: true,
+      chosenVariantNumber: 1,
+      result: {
+        maps: [{ map: "1. Mirage", a: 13, b: 7, lines: [] }],
+        source: "manual",
+      },
+    };
+    const render = (current: MixViewData) =>
+      renderToStaticMarkup(
+        I18nProvider({
+          lang: "en",
+          children: createElement(MixView, { state: "played", data: current }),
+        }),
+      );
+    expect(render(view)).toContain(DICTS.en.admin.faceitEnrichHint);
+    expect(render({ ...view, viewerIsAdmin: false })).not.toContain(
+      DICTS.en.admin.faceitEnrichHint,
+    );
+    expect(render({ ...view, archiveSource: "popflash" })).not.toContain(
+      DICTS.en.admin.faceitEnrichHint,
+    );
+  });
 });
 
 describe("approved variants (D37)", () => {

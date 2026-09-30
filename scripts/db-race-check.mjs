@@ -45,7 +45,7 @@ async function sql(query) {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const groupId = randomUUID();
-const mixIds = Array.from({ length: 5 }, () => randomUUID());
+const mixIds = Array.from({ length: 6 }, () => randomUUID());
 const playerIds = Array.from({ length: 11 }, () => randomUUID());
 const steamStart = BigInt(`7${Date.now()}${Math.floor(Math.random() * 1000)}`);
 const players = playerIds.map((id, i) => ({
@@ -385,6 +385,42 @@ try {
   assert.equal(savedResult[0]?.status, "played");
   assert.equal(savedResult[0]?.maps, 1);
 
+  await sql(`
+    update public.mixes set status = 'balancing' where id = ${q(mixIds[5])};
+    select public.create_mix_variant_set(
+      ${q(mixIds[5])}, '{}'::jsonb, ${q(JSON.stringify(snapshots))}::jsonb, ${initialSet}::jsonb
+    );
+    select public.approve_mix_variant_set(${q(mixIds[5])}, 1);
+    select public.close_mix_votes(${q(mixIds[5])});
+  `);
+  const resultMethods = await Promise.all([
+    sql(`select public.record_manual_mix_results(
+      ${q(mixIds[5])}, ${q(playerIds[0])}, '[{"scoreA":13,"scoreB":7}]'::jsonb
+    );`).then(
+      () => ({ ok: true }),
+      (error) => ({ ok: false, error }),
+    ),
+    sql(`select public.record_faceit_mix_results(
+      ${q(mixIds[5])}, ${q(playerIds[0])},
+      (select locked_at from public.mixes where id = ${q(mixIds[5])}),
+      '[{"faceitId":"race-room","scoreA":13,"scoreB":7,"stats":[]}]'::jsonb
+    );`).then(
+      () => ({ ok: true }),
+      (error) => ({ ok: false, error }),
+    ),
+  ]);
+  assert.equal(resultMethods.filter((result) => result.ok).length, 1);
+  assert.equal(resultMethods.find((result) => !result.ok)?.error.code, "55000");
+  const methodState = await sql(`
+    select m.status, count(r.id)::int as maps,
+      min(r.source) as source, max(r.source) as last_source
+    from public.mixes m left join public.matches r on r.mix_id = m.id
+    where m.id = ${q(mixIds[5])} group by m.id
+  `);
+  assert.equal(methodState[0]?.status, "played");
+  assert.equal(methodState[0]?.maps, 1);
+  assert.equal(methodState[0]?.source, methodState[0]?.last_source);
+
   console.log("ok concurrent join cap (23514, exactly 10 participants)");
   console.log(
     "ok status update waits for tenth join (balancing, exactly 10 participants)",
@@ -394,6 +430,7 @@ try {
     "ok concurrent vote move vs due auto-close (vote resets deadline)",
   );
   console.log("ok concurrent manual results (one result wins, one map stored)");
+  console.log("ok concurrent manual vs FACEIT results (one source wins)");
 } finally {
   try {
     await sql(`

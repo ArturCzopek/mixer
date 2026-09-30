@@ -9,6 +9,10 @@ const variantService = vi.hoisted(() => ({
   initialVariantPlan: vi.fn(),
   rerollVariantPlan: vi.fn(),
 }));
+const faceitService = vi.hoisted(() => ({
+  faceitImportPlan: vi.fn(),
+  findMixFaceitCandidates: vi.fn(),
+}));
 const db = vi.hoisted(() => ({
   writes: [] as {
     table: string;
@@ -33,6 +37,7 @@ vi.mock("@/lib/mix/variant-service", () => ({
   ...variantService,
   StaleVariantSetError: class extends Error {},
 }));
+vi.mock("@/lib/mix/faceit-service", () => faceitService);
 vi.mock("next/navigation", () => ({
   redirect: (url: string) => {
     throw new Error(`redirect ${url}`);
@@ -110,6 +115,7 @@ const {
   rerollMixVariants,
   swapMixParticipant,
   startMixMatch,
+  importFaceitMatches,
 } = await import("./actions");
 
 const GROUP = "6f1b3c2a-8d4e-4f5a-9b6c-7d8e9f0a1b2c";
@@ -142,6 +148,8 @@ beforeEach(() => {
     variants: [],
   });
   variantService.rerollVariantPlan.mockResolvedValue({ variants: [] });
+  faceitService.faceitImportPlan.mockReset();
+  faceitService.faceitImportPlan.mockResolvedValue([]);
 });
 
 const everyAction = {
@@ -410,6 +418,42 @@ describe("mix action validation and writes", () => {
         error: "notMember",
       },
     );
+  });
+
+  it("enriches played manual maps through the dedicated RPC", async () => {
+    const room = "1-00000000-0000-4000-8000-000000000001";
+    db.responses["mixes:select"] = {
+      data: {
+        group_id: GROUP,
+        status: "played",
+        locked_at: "2026-09-29T20:00:00Z",
+      },
+      error: null,
+    };
+    db.responses["matches:select"] = {
+      data: [{ faceit_match_id: null, source: "manual", stats_origin: null }],
+      error: null,
+    };
+    expect(await importFaceitMatches(MIX, [room])).toEqual({ ok: true });
+    expect(faceitService.faceitImportPlan).toHaveBeenCalledWith(
+      MIX,
+      [room],
+      [],
+    );
+    expect(db.rpcCalls[0]).toMatchObject({
+      name: "enrich_manual_mix_results",
+      args: { p_mix_id: MIX, p_actor_id: PLAYER },
+    });
+
+    db.rpcCalls.length = 0;
+    db.responses["matches:select"] = {
+      data: [
+        { faceit_match_id: room, source: "manual", stats_origin: "faceit" },
+      ],
+      error: null,
+    };
+    expect(await importFaceitMatches(MIX, [room])).toEqual({ ok: true });
+    expect(db.rpcCalls).toEqual([]);
   });
 
   it("uses the session identity for votes and the admin for proxy votes", async () => {

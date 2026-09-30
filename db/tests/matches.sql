@@ -65,7 +65,9 @@ begin
   if not has_table_privilege('anon', 'public.matches', 'SELECT')
      or has_table_privilege('anon', 'public.matches', 'INSERT')
      or has_table_privilege('authenticated', 'public.match_player_stats', 'INSERT')
-     or has_table_privilege('authenticated', 'public.match_payloads', 'INSERT') then
+     or has_table_privilege('authenticated', 'public.match_payloads', 'INSERT')
+     or has_function_privilege('anon', 'public.enrich_manual_mix_results(uuid,uuid,timestamptz,jsonb)', 'EXECUTE')
+     or has_function_privilege('authenticated', 'public.enrich_manual_mix_results(uuid,uuid,timestamptz,jsonb)', 'EXECUTE') then
     raise exception 'ASSERT: browser privileges are wrong';
   end if;
 
@@ -131,6 +133,60 @@ begin
   exception when object_not_in_prerequisite_state then failed := true;
   end;
   if not failed then raise exception 'ASSERT: result overwritten'; end if;
+
+  failed := false;
+  begin
+    perform public.enrich_manual_mix_results(fixture_mix_id, outsider_id,
+      (select locked_at from public.mixes where id = fixture_mix_id),
+      jsonb_build_array(
+        jsonb_build_object('faceitId', 'manual-room-1', 'startedAt', now(), 'scoreA', 13, 'scoreB', 7, 'stats', '[]'::jsonb),
+        jsonb_build_object('faceitId', 'manual-room-2', 'startedAt', now(), 'scoreA', 9, 'scoreB', 13, 'stats', '[]'::jsonb)
+      ));
+  exception when insufficient_privilege then failed := true;
+  end;
+  if not failed then raise exception 'ASSERT: non-admin enriched manual result'; end if;
+  failed := false;
+  begin
+    perform public.enrich_manual_mix_results(fixture_mix_id, player_id,
+      (select locked_at from public.mixes where id = fixture_mix_id),
+      jsonb_build_array(
+        jsonb_build_object('faceitId', 'manual-room-1', 'startedAt', now(), 'scoreA', 13, 'scoreB', 7,
+          'stats', jsonb_build_array(jsonb_build_object('playerId', participants[2], 'team', 'A', 'kills', 21))),
+        jsonb_build_object('faceitId', 'manual-room-2', 'startedAt', now(), 'scoreA', 13, 'scoreB', 9, 'stats', '[]'::jsonb)
+      ));
+  exception when check_violation then failed := true;
+  end;
+  if not failed or exists (
+    select 1 from public.matches where mix_id = fixture_mix_id and stats_origin is not null
+  ) or exists (
+    select 1 from public.match_player_stats s join public.matches m on m.id = s.match_id
+    where m.mix_id = fixture_mix_id
+  ) then
+    raise exception 'ASSERT: mismatched second map did not roll back enrichment';
+  end if;
+  perform public.enrich_manual_mix_results(fixture_mix_id, player_id,
+    (select locked_at from public.mixes where id = fixture_mix_id),
+    jsonb_build_array(
+      jsonb_build_object('faceitId', 'manual-room-1', 'mapName', 'Mirage', 'startedAt', now(), 'scoreA', 13, 'scoreB', 7,
+        'stats', jsonb_build_array(jsonb_build_object('playerId', participants[2], 'team', 'A', 'kills', 21, 'rating', 1.3))),
+      jsonb_build_object('faceitId', 'manual-room-2', 'mapName', 'Nuke', 'startedAt', now(), 'scoreA', 9, 'scoreB', 13, 'stats', '[]'::jsonb)
+    ));
+  if (select count(*) from public.matches where mix_id = fixture_mix_id and source = 'manual' and stats_origin = 'faceit') <> 2
+     or (select map_name from public.matches where mix_id = fixture_mix_id and map_number = 1) <> 'de_mirage'
+     or (select map_name from public.matches where mix_id = fixture_mix_id and map_number = 2) <> 'Nuke'
+     or (select score_a from public.matches where mix_id = fixture_mix_id and map_number = 2) <> 9
+     or (select s.rating from public.match_player_stats s join public.matches m on m.id = s.match_id
+         where m.mix_id = fixture_mix_id and s.player_id = participants[2]) <> 1.3 then
+    raise exception 'ASSERT: FACEIT stats did not preserve manual score provenance';
+  end if;
+  failed := false;
+  begin
+    perform public.enrich_manual_mix_results(fixture_mix_id, player_id,
+      (select locked_at from public.mixes where id = fixture_mix_id),
+      '[{"faceitId":"manual-room-1","scoreA":13,"scoreB":7,"stats":[]},{"faceitId":"manual-room-2","scoreA":9,"scoreB":13,"stats":[]}]'::jsonb);
+  exception when check_violation then failed := true;
+  end;
+  if not failed then raise exception 'ASSERT: manual result enriched twice'; end if;
 
   insert into public.mixes (id, group_id, title, created_by)
     values (faceit_mix_id, group_id, 'FACEIT result test', player_id);
@@ -206,5 +262,13 @@ begin
      or (select count(*) from public.variants where mix_id = archive_mix_id) <> 1 then
     raise exception 'ASSERT: one-lineup archive required invented variants or votes';
   end if;
+  failed := false;
+  begin
+    perform public.enrich_manual_mix_results(archive_mix_id, player_id,
+      (select locked_at from public.mixes where id = archive_mix_id),
+      '[{"faceitId":"archive-room","scoreA":13,"scoreB":9,"stats":[]}]'::jsonb);
+  exception when object_not_in_prerequisite_state then failed := true;
+  end;
+  if not failed then raise exception 'ASSERT: archived mix accepted FACEIT enrichment'; end if;
 end;
 $$;

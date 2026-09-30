@@ -571,6 +571,7 @@ export async function importFaceitMatches(
     !uuid.safeParse(mixId).success ||
     !matchIds.length ||
     matchIds.length > 30 ||
+    new Set(matchIds).size !== matchIds.length ||
     matchIds.some((id) => !faceitRoomId(id))
   )
     return { error: "result" };
@@ -588,27 +589,46 @@ export async function importFaceitMatches(
     if (mix.status === "played") {
       const { data: stored, error: storedError } = await adminDb()
         .from("matches")
-        .select("faceit_match_id")
+        .select("faceit_match_id, source, stats_origin")
         .eq("mix_id", mixId);
       if (storedError)
         return logFailure("importFaceitMatches lookup", storedError);
-      return stored?.length === matchIds.length &&
+      if (
+        stored?.length === matchIds.length &&
         matchIds.every((id) => stored.some((row) => row.faceit_match_id === id))
-        ? { ok: true }
-        : { error: "stale" };
+      )
+        return { ok: true };
+      if (
+        !stored?.length ||
+        stored.length !== matchIds.length ||
+        stored.some(
+          (row) =>
+            row.source !== "manual" ||
+            row.stats_origin !== null ||
+            row.faceit_match_id !== null,
+        )
+      )
+        return { error: "stale" };
     }
-    if (mix.status !== "locked") return { error: "stale" };
+    if (mix.status !== "locked" && mix.status !== "played")
+      return { error: "stale" };
     const maps = await faceitImportPlan(
       mixId,
       matchIds,
       extraId ? [extraId] : [],
     );
-    return variantRpc("importFaceitMatches", "record_faceit_mix_results", {
-      p_mix_id: mixId,
-      p_actor_id: auth.session.playerId,
-      p_locked_at: mix.locked_at,
-      p_maps: maps,
-    });
+    return variantRpc(
+      "importFaceitMatches",
+      mix.status === "played"
+        ? "enrich_manual_mix_results"
+        : "record_faceit_mix_results",
+      {
+        p_mix_id: mixId,
+        p_actor_id: auth.session.playerId,
+        p_locked_at: mix.locked_at,
+        p_maps: maps,
+      },
+    );
   } catch (error) {
     return logFailure("importFaceitMatches", error);
   }
