@@ -89,6 +89,22 @@ same player identity, preserving group membership. Guests see the roster without
 
 UI is built from the VGUI primitives in `components/vgui/` (Tailwind v4, rules in `DESIGN.md`).
 
+## Discord server connection
+
+Create one Discord application with a bot, then set `DISCORD_CLIENT_ID`,
+`DISCORD_CLIENT_SECRET`, and `DISCORD_BOT_TOKEN` in the server environment. In the Discord
+Developer Portal, add `https://YOUR_HOST/auth/discord/guild/callback` to OAuth2 redirect URIs
+(and `http://localhost:3000/auth/discord/guild/callback` for local testing). Each preview host
+needs its own registered redirect URI. Keep the client secret and bot token out of the browser.
+
+A group admin opens **Group settings → Discord server → Connect Server**. Discord asks them to
+select a server and approve the bot permissions (View Channels, Send Messages, Move Members).
+The callback confirms that the Discord account can manage that server and that the bot joined it.
+The admin then selects three distinct voice channels and one text channel and saves them. Reconnecting
+another server clears the old channel selection. This configures later voice moves and notifications;
+it does not send messages or move players yet. A live connection requires the owner to create the
+Discord application and add its credentials.
+
 ## Stack
 
 Next.js (TypeScript) on Vercel · Supabase (Postgres + Realtime) · Steam OpenID login ·

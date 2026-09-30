@@ -130,7 +130,7 @@ One site-wide bot. Env: `DISCORD_BOT_TOKEN`, `DISCORD_CLIENT_ID`, `DISCORD_CLIEN
 | Purpose | Endpoint |
 |---|---|
 | Link a player | OAuth2 `identify` → `GET https://discord.com/api/users/@me` → `players.discord_user_id` |
-| Add bot to a group's server | `https://discord.com/oauth2/authorize?client_id=…&scope=bot&permissions=…` (Move Members + Send Messages) |
+| Add bot to a group's server | OAuth2 code grant with `bot guilds`, state cookie, and bot permissions View Channel + Send Messages + Move Members; callback checks the user's Manage Server permission and bot membership before saving the guild id |
 | List voice channels | `GET /guilds/{guild_id}/channels` (type 2 = voice) |
 | Move a player | `PATCH /guilds/{guild_id}/members/{user_id}` `{ "channel_id": "…" }` (only if already in voice) |
 | Post a message | `POST /channels/{channel_id}/messages` |

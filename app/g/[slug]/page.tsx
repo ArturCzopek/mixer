@@ -3,12 +3,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { GroupForm } from "@/components/groups/group-form";
+import { DiscordSettings } from "@/components/groups/discord-settings";
 import { MemberActions } from "@/components/groups/member-actions";
 import { AddRosterPlayer, RosterElo } from "@/components/groups/roster-form";
 import { CreateMixForm } from "@/components/mix/lobby-view";
 import { Badge, ListHead, Well, Window } from "@/components/vgui";
 import { hasGroupRole } from "@/lib/auth/roles";
 import { getSession } from "@/lib/auth/server";
+import { saveDiscordChannels } from "@/lib/discord/actions";
+import { groupDiscordConfig } from "@/lib/discord/queries";
 import { updateGroup } from "@/lib/groups/actions";
 import { groupBySlug } from "@/lib/groups/queries";
 import { groupStats } from "@/lib/groups/stats";
@@ -23,7 +26,10 @@ export async function generateMetadata({
 }
 
 /** Public group page (D2); admin controls only render for admins and are re-checked on the server. */
-export default async function GroupPage({ params }: PageProps<"/g/[slug]">) {
+export default async function GroupPage({
+  params,
+  searchParams,
+}: PageProps<"/g/[slug]">) {
   const [group, session, t] = await Promise.all([
     groupBySlug((await params).slug),
     getSession(),
@@ -50,6 +56,14 @@ export default async function GroupPage({ params }: PageProps<"/g/[slug]">) {
     "admin",
     session?.isSiteAdmin ?? false,
   );
+  const discordConfigured = !!(
+    process.env.DISCORD_CLIENT_ID &&
+    process.env.DISCORD_CLIENT_SECRET &&
+    process.env.DISCORD_BOT_TOKEN
+  );
+  const discord =
+    canManage && discordConfigured ? await groupDiscordConfig(group.id) : null;
+  const discordResult = (await searchParams).discord;
   const mixRow = (mix: (typeof mixes)[number]) => {
     const historical = archivedMixes.includes(mix);
     const result = stats.mixResults[mix.id];
@@ -294,7 +308,7 @@ export default async function GroupPage({ params }: PageProps<"/g/[slug]">) {
         {canManage && <AddRosterPlayer groupId={group.id} />}
 
         {canManage && (
-          <details className="mb-2">
+          <details className="mb-2" open={typeof discordResult === "string"}>
             <summary className="text-gold mb-1 cursor-pointer font-bold">
               {t.groups.settings}
             </summary>
@@ -303,6 +317,18 @@ export default async function GroupPage({ params }: PageProps<"/g/[slug]">) {
               withSlug={false}
               defaults={{ name: group.name, faceitClub: group.faceitClubUrl }}
               submit={t.groups.save}
+            />
+            <DiscordSettings
+              groupId={group.id}
+              guild={discord?.guild ?? null}
+              channels={discord?.channels ?? []}
+              settings={discord?.settings ?? {}}
+              available={discord?.available ?? false}
+              configured={discordConfigured}
+              result={
+                typeof discordResult === "string" ? discordResult : undefined
+              }
+              action={saveDiscordChannels.bind(null, group.id)}
             />
           </details>
         )}

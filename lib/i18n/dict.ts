@@ -384,6 +384,39 @@ const en = {
     faceitClub: "FACEIT Club link (optional)",
     create: "Create Group",
     settings: "Group settings",
+    discord: {
+      title: "Discord server",
+      setup:
+        "Add the Discord app credentials and bot token to enable server connection.",
+      connect: "Connect Server",
+      reconnect: "Change Server",
+      connected: (name: string) => `Connected to ${name}.`,
+      choose: "Choose channels for voice moves and mix notifications.",
+      lobby: "Lobby voice",
+      teamA: "Team A voice",
+      teamB: "Team B voice",
+      notification: "Notifications text",
+      select: "Select channel",
+      save: "Save Channels",
+      saved: "Channels saved.",
+      unavailable:
+        "The bot cannot read this server. Check that it is still installed, then reconnect.",
+      missingChannels:
+        "Create three voice channels and one text channel on Discord first.",
+      result: {
+        failed: "Could not connect the server. Try again.",
+        forbidden: "Your Discord account must have Manage Server permission.",
+        taken: "This Discord server is already linked to another group.",
+      },
+      errors: {
+        forbidden: "Only group admins can save channels.",
+        channels:
+          "Choose three different voice channels and one text channel from this server.",
+        disconnected: "Connect a Discord server first.",
+        failed:
+          "Could not save channels. Check the bot connection and try again.",
+      },
+    },
     save: "Save",
     saved: "Saved.",
     club: "FACEIT Club",
@@ -860,6 +893,39 @@ const pl: Dict = {
     faceitClub: "Link do klubu FACEIT (opcjonalnie)",
     create: "Utwórz grupę",
     settings: "Ustawienia grupy",
+    discord: {
+      title: "Serwer Discord",
+      setup: "Dodaj dane aplikacji Discord i token bota, aby podłączyć serwer.",
+      connect: "Podłącz serwer",
+      reconnect: "Zmień serwer",
+      connected: (name) => `Połączono z ${name}.`,
+      choose: "Wybierz kanały do przenoszenia graczy i powiadomień o miksach.",
+      lobby: "Kanał głosowy lobby",
+      teamA: "Kanał głosowy drużyny A",
+      teamB: "Kanał głosowy drużyny B",
+      notification: "Kanał tekstowy powiadomień",
+      select: "Wybierz kanał",
+      save: "Zapisz kanały",
+      saved: "Zapisano kanały.",
+      unavailable:
+        "Bot nie może odczytać serwera. Sprawdź, czy nadal jest dodany, i połącz ponownie.",
+      missingChannels:
+        "Najpierw utwórz na Discordzie trzy kanały głosowe i jeden tekstowy.",
+      result: {
+        failed: "Nie udało się podłączyć serwera. Spróbuj ponownie.",
+        forbidden:
+          "Twoje konto Discord musi mieć uprawnienie Zarządzanie serwerem.",
+        taken: "Ten serwer Discord jest już przypisany do innej grupy.",
+      },
+      errors: {
+        forbidden: "Kanały mogą zapisywać tylko admini grupy.",
+        channels:
+          "Wybierz trzy różne kanały głosowe i jeden tekstowy z tego serwera.",
+        disconnected: "Najpierw podłącz serwer Discord.",
+        failed:
+          "Nie udało się zapisać kanałów. Sprawdź połączenie z botem i spróbuj ponownie.",
+      },
+    },
     save: "Zapisz",
     saved: "Zapisano.",
     club: "Klub FACEIT",
