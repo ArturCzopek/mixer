@@ -6,6 +6,7 @@ import { useActionState, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useT } from "@/components/i18n";
 import { ListHead, VButton, Well, Window } from "@/components/vgui";
+import { DiscordMissing } from "./discord-missing";
 import {
   addParticipant,
   createMix,
@@ -57,6 +58,7 @@ export function MixLobbyView({
   isMember,
   canManage,
   candidates,
+  unlinkedDiscordPlayers,
 }: {
   groupSlug: string;
   groupName: string;
@@ -65,6 +67,7 @@ export function MixLobbyView({
   isMember: boolean;
   canManage: boolean;
   candidates: { playerId: string; name: string }[];
+  unlinkedDiscordPlayers: string[];
 }) {
   const t = useT();
   const router = useRouter();
@@ -106,6 +109,8 @@ export function MixLobbyView({
           />
           {t.lobby.status[mix.status]}
         </Well>
+
+        <DiscordMissing names={unlinkedDiscordPlayers} groupSlug={groupSlug} />
 
         <Well className="mb-2 overflow-hidden">
           <ListHead>

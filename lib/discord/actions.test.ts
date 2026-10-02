@@ -9,7 +9,10 @@ const channels = [
   { id: "123456789012345673", name: "B", type: 2, position: 2 },
   { id: "123456789012345674", name: "News", type: 0, position: 3 },
 ];
-const auth = vi.hoisted(() => ({ requireGroupRole: vi.fn() }));
+const auth = vi.hoisted(() => ({
+  requireGroupRole: vi.fn(),
+  requireSession: vi.fn(),
+}));
 const api = vi.hoisted(() => ({ guildChannels: vi.fn() }));
 const db = vi.hoisted(() => ({
   writes: [] as unknown[],
@@ -19,6 +22,7 @@ vi.mock("server-only", () => ({}));
 vi.mock("@/lib/auth/server", () => auth);
 vi.mock("@/lib/discord/api", () => api);
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
 vi.mock("@/lib/db/admin", () => ({
   adminDb: () => ({
     from: () => ({
@@ -48,7 +52,8 @@ vi.mock("@/lib/db/admin", () => ({
   }),
 }));
 
-const { saveDiscordChannels } = await import("./actions");
+const { redirect } = await import("next/navigation");
+const { saveDiscordChannels, unlinkDiscordAccount } = await import("./actions");
 
 function form(teamB = channels[2].id) {
   const data = new FormData();
@@ -64,7 +69,17 @@ beforeEach(() => {
   db.writes.length = 0;
   db.filters.length = 0;
   auth.requireGroupRole.mockResolvedValue({ playerId: "player" });
+  auth.requireSession.mockResolvedValue({ playerId: "player" });
   api.guildChannels.mockResolvedValue(channels);
+});
+
+describe("Discord player unlink", () => {
+  it("clears only the signed-in player's link and uses a local return path", async () => {
+    await unlinkDiscordAccount("//other.test");
+    expect(db.writes).toEqual([{ discord_user_id: null }]);
+    expect(db.filters).toEqual([["id", "player"]]);
+    expect(redirect).toHaveBeenCalledWith("/?discordAccount=unlinked");
+  });
 });
 
 describe("Discord channel settings", () => {

@@ -417,6 +417,24 @@ const en = {
           "Could not save channels. Check the bot connection and try again.",
       },
     },
+    discordAccount: {
+      linked: "Discord linked",
+      unlinked: "Discord not linked",
+      connect: "Link Discord",
+      change: "Change Discord",
+      disconnect: "Unlink",
+      result: {
+        linked: "Your Discord account is linked.",
+        unlinked: "Your Discord account is unlinked.",
+        alreadyUsed: "That Discord account is linked to another player.",
+        failed: "Could not update your Discord link. Try again.",
+      },
+    },
+    discordMissing: {
+      title: (count: number) =>
+        `${count} ${count === 1 ? "player has" : "players have"} no Discord link`,
+      roster: "View links in the group roster",
+    },
     save: "Save",
     saved: "Saved.",
     club: "FACEIT Club",
@@ -925,6 +943,25 @@ const pl: Dict = {
         failed:
           "Nie udało się zapisać kanałów. Sprawdź połączenie z botem i spróbuj ponownie.",
       },
+    },
+    discordAccount: {
+      linked: "Połączono z Discordem",
+      unlinked: "Brak połączenia z Discordem",
+      connect: "Połącz Discord",
+      change: "Zmień konto Discord",
+      disconnect: "Odłącz",
+      result: {
+        linked: "Twoje konto Discord zostało połączone.",
+        unlinked: "Twoje konto Discord zostało odłączone.",
+        alreadyUsed: "To konto Discord jest już połączone z innym graczem.",
+        failed:
+          "Nie udało się zmienić połączenia z Discordem. Spróbuj ponownie.",
+      },
+    },
+    discordMissing: {
+      title: (count) =>
+        `${count} ${count === 1 ? "gracz nie ma" : "graczy nie ma"} połączenia z Discordem`,
+      roster: "Zobacz połączenia w składzie grupy",
     },
     save: "Zapisz",
     saved: "Zapisano.",

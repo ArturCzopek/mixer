@@ -122,6 +122,7 @@ export interface LobbyParticipant {
   displayName: string | null;
   steamId: string;
   avatarUrl: string | null;
+  discordLinked: boolean;
   createdAt: string;
 }
 
@@ -160,6 +161,7 @@ interface ParticipantRow {
     display_name: string | null;
     steam_id: string;
     avatar_url: string | null;
+    discord_user_id: string | null;
   };
 }
 
@@ -195,7 +197,7 @@ export async function mixLobby(mixId: string): Promise<MixLobby | null> {
   const { data: participants, error: participantsError } = await adminDb()
     .from("mix_participants")
     .select(
-      "player_id, created_at, player:players!mix_participants_player_id_fkey(display_name, steam_id, avatar_url)",
+      "player_id, created_at, player:players!mix_participants_player_id_fkey(display_name, steam_id, avatar_url, discord_user_id)",
     )
     .eq("mix_id", mixId)
     .order("created_at", { ascending: true })
@@ -216,6 +218,7 @@ export async function mixLobby(mixId: string): Promise<MixLobby | null> {
       displayName: participant.player.display_name,
       steamId: participant.player.steam_id,
       avatarUrl: participant.player.avatar_url,
+      discordLinked: !!participant.player.discord_user_id,
       createdAt: participant.created_at,
     })),
   };
@@ -406,6 +409,7 @@ interface VariantPageParticipantRow {
     steam_id: string;
     display_name: string | null;
     avatar_url: string | null;
+    discord_user_id: string | null;
     preferred_role: GenerationMember["preferredRole"];
   };
 }
@@ -452,7 +456,7 @@ export async function mixVariantPage(
     adminDb()
       .from("mix_participants")
       .select(
-        `player_id, created_at, ${showSnapshots ? "skill_snapshot," : ""} player:players!mix_participants_player_id_fkey(steam_id, display_name, avatar_url, preferred_role)`,
+        `player_id, created_at, ${showSnapshots ? "skill_snapshot," : ""} player:players!mix_participants_player_id_fkey(steam_id, display_name, avatar_url, discord_user_id, preferred_role)`,
       )
       .eq("mix_id", mixId)
       .order("created_at", { ascending: true })
@@ -502,6 +506,7 @@ export async function mixVariantPage(
         steamId: participant.player.steam_id,
         displayName: participant.player.display_name,
         avatarUrl: participant.player.avatar_url,
+        discordLinked: !!participant.player.discord_user_id,
         createdAt: participant.created_at,
       })),
     },
@@ -517,6 +522,7 @@ export async function mixVariantPage(
       steamId: participant.player.steam_id,
       displayName: participant.player.display_name,
       avatarUrl: participant.player.avatar_url,
+      discordLinked: !!participant.player.discord_user_id,
       createdAt: participant.created_at,
       preferredRole: participant.player.preferred_role,
       snapshot: participant.skill_snapshot,

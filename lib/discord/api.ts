@@ -52,6 +52,12 @@ export async function currentUserGuilds(token: string) {
     .parse(await discordJson("/users/@me/guilds", token));
 }
 
+export async function currentDiscordUser(token: string) {
+  return z
+    .object({ id: snowflake })
+    .parse(await discordJson("/users/@me", token));
+}
+
 export async function botGuild(guildId: string) {
   return guild.parse(
     await discordJson(

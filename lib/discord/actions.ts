@@ -1,8 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
-import { requireGroupRole } from "@/lib/auth/server";
+import { safeNext } from "@/lib/auth/openid";
+import { requireGroupRole, requireSession } from "@/lib/auth/server";
 import { adminDb } from "@/lib/db/admin";
 import { guildChannels } from "./api";
 import { parseDiscordSettings } from "./connection";
@@ -48,4 +50,18 @@ export async function saveDiscordChannels(
     console.error("Saving Discord channels failed", error);
     return { error: "failed" };
   }
+}
+
+/** A player may unlink only their own Discord account. */
+export async function unlinkDiscordAccount(nextPath: string) {
+  const player = await requireSession();
+  const next = safeNext(nextPath);
+  const { error } = await adminDb()
+    .from("players")
+    .update({ discord_user_id: null })
+    .eq("id", player.playerId);
+  const destination = new URL(next, "https://mixer.local");
+  destination.searchParams.set("discordAccount", error ? "failed" : "unlinked");
+  if (!error) revalidatePath(destination.pathname);
+  redirect(destination.pathname + destination.search + destination.hash);
 }

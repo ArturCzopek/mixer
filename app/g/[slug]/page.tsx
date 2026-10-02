@@ -10,7 +10,10 @@ import { CreateMixForm } from "@/components/mix/lobby-view";
 import { Badge, ListHead, Well, Window } from "@/components/vgui";
 import { hasGroupRole } from "@/lib/auth/roles";
 import { getSession } from "@/lib/auth/server";
-import { saveDiscordChannels } from "@/lib/discord/actions";
+import {
+  saveDiscordChannels,
+  unlinkDiscordAccount,
+} from "@/lib/discord/actions";
 import { groupDiscordConfig } from "@/lib/discord/queries";
 import { updateGroup } from "@/lib/groups/actions";
 import { groupBySlug } from "@/lib/groups/queries";
@@ -63,7 +66,12 @@ export default async function GroupPage({
   );
   const discord =
     canManage && discordConfigured ? await groupDiscordConfig(group.id) : null;
-  const discordResult = (await searchParams).discord;
+  const { discord: discordResult, discordAccount: discordAccountResult } =
+    await searchParams;
+  const discordPlayerConfigured = !!(
+    process.env.DISCORD_CLIENT_ID && process.env.DISCORD_CLIENT_SECRET
+  );
+  const accountNext = `/g/${group.slug}#members`;
   const mixRow = (mix: (typeof mixes)[number]) => {
     const historical = archivedMixes.includes(mix);
     const result = stats.mixResults[mix.id];
@@ -220,7 +228,22 @@ export default async function GroupPage({
           </section>
         )}
 
-        <Well className="mb-2">
+        {session &&
+          typeof discordAccountResult === "string" &&
+          discordAccountResult in t.groups.discordAccount.result && (
+            <Well
+              role="status"
+              className="text-dim mb-2 px-2 py-1.5 text-[11px]"
+            >
+              {
+                t.groups.discordAccount.result[
+                  discordAccountResult as keyof typeof t.groups.discordAccount.result
+                ]
+              }
+            </Well>
+          )}
+
+        <Well id="members" className="mb-2">
           <ListHead>
             <span className="flex-1">
               {t.groups.members(group.members.length)}
@@ -281,6 +304,28 @@ export default async function GroupPage({
                   <span>
                     {t.roster.fallbackElo}: {m.manualElo ?? "—"}
                   </span>
+                  <span>
+                    {m.discordUserId
+                      ? t.groups.discordAccount.linked
+                      : t.groups.discordAccount.unlinked}
+                  </span>
+                  {m.playerId === session?.playerId &&
+                    discordPlayerConfigured && (
+                      <a
+                        href={`/auth/discord/player?next=${encodeURIComponent(accountNext)}`}
+                      >
+                        {m.discordUserId
+                          ? t.groups.discordAccount.change
+                          : t.groups.discordAccount.connect}
+                      </a>
+                    )}
+                  {m.playerId === session?.playerId && m.discordUserId && (
+                    <form action={unlinkDiscordAccount.bind(null, accountNext)}>
+                      <button type="submit" className="text-gold underline">
+                        {t.groups.discordAccount.disconnect}
+                      </button>
+                    </form>
+                  )}
                 </div>
                 {canManage && (
                   <>

@@ -94,7 +94,8 @@ UI is built from the VGUI primitives in `components/vgui/` (Tailwind v4, rules i
 Create one Discord application with a bot, then set `DISCORD_CLIENT_ID`,
 `DISCORD_CLIENT_SECRET`, and `DISCORD_BOT_TOKEN` in the server environment. In the Discord
 Developer Portal, add `https://YOUR_HOST/auth/discord/guild/callback` to OAuth2 redirect URIs
-(and `http://localhost:3000/auth/discord/guild/callback` for local testing). Each preview host
+(and `https://YOUR_HOST/auth/discord/player/callback` for player accounts). For local testing,
+register both paths with `http://localhost:3000`. Each preview host
 needs its own registered redirect URI. Keep the client secret and bot token out of the browser.
 
 A group admin opens **Group settings → Discord server → Connect Server**. Discord asks them to
@@ -104,6 +105,11 @@ The admin then selects three distinct voice channels and one text channel and sa
 another server clears the old channel selection. This configures later voice moves and notifications;
 it does not send messages or move players yet. A live connection requires the owner to create the
 Discord application and add its credentials.
+
+Signed-in players can link or unlink their own Discord account from the group roster. Linking uses
+OAuth2 `identify`, stores only the verified Discord user ID, and requires the same Steam session on
+return. A Discord account can belong to only one player. Active mixes list participants who have
+not linked Discord yet when the group has a connected server.
 
 ## Stack
 

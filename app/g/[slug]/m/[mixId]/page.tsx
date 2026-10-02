@@ -39,6 +39,12 @@ export default async function MixLobbyPage({
     getSession(),
   ]);
   if (!group || !mix || mix.groupId !== group.id) notFound();
+  const unlinkedDiscordPlayers =
+    group.discordGuildId && mix.status !== "played"
+      ? mix.participants
+          .filter((participant) => !participant.discordLinked)
+          .map((participant) => participant.displayName ?? participant.steamId)
+      : [];
 
   const membership = group.members.find(
     (member) => member.playerId === session?.playerId,
@@ -69,6 +75,7 @@ export default async function MixLobbyPage({
       groupMembers: group.members,
     });
     data.faceitClubUrl = group.faceitClubUrl;
+    data.unlinkedDiscordPlayers = unlinkedDiscordPlayers;
     if (mix.status === "played") {
       const { data: maps, error } = await adminDb()
         .from("matches")
@@ -193,6 +200,7 @@ export default async function MixLobbyPage({
             playerId: member.playerId,
             name: member.displayName ?? member.steamId,
           }))}
+        unlinkedDiscordPlayers={unlinkedDiscordPlayers}
       />
     </>
   );

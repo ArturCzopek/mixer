@@ -6,6 +6,7 @@
 import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { DiscordMissing } from "./discord-missing";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ExternalLink, Lock } from "lucide-react";
 import {
@@ -206,6 +207,12 @@ export function MixView({
             }
           >
             <StatusLine state={state} />
+            {groupSlug && data.unlinkedDiscordPlayers && (
+              <DiscordMissing
+                names={data.unlinkedDiscordPlayers}
+                groupSlug={groupSlug}
+              />
+            )}
 
             {state === "lobby" && <Lobby />}
 

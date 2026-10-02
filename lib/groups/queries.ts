@@ -28,6 +28,7 @@ export interface GroupMember {
   displayName: string | null;
   avatarUrl: string | null;
   faceitNickname: string | null;
+  discordUserId: string | null;
   manualElo: number | null;
   role: GroupRole;
   joinedAt: string;
@@ -35,6 +36,7 @@ export interface GroupMember {
 
 export interface GroupPage extends GroupLink {
   faceitClubUrl: string | null;
+  discordGuildId: string | null;
   /** Active members only, admins first, then by join date. */
   members: GroupMember[];
 }
@@ -44,6 +46,7 @@ interface GroupRow {
   slug: string;
   name: string;
   faceit_club_url: string | null;
+  discord_guild_id: string | null;
   group_members: {
     role: GroupRole;
     joined_at: string;
@@ -55,6 +58,7 @@ interface GroupRow {
       display_name: string | null;
       avatar_url: string | null;
       faceit_nickname: string | null;
+      discord_user_id: string | null;
     };
   }[];
 }
@@ -75,7 +79,7 @@ export async function groupBySlug(slug: string): Promise<GroupPage | null> {
   const { data, error } = await adminDb()
     .from("groups")
     .select(
-      "id, slug, name, faceit_club_url, group_members(role, joined_at, left_at, manual_skill_override, player:players!group_members_player_id_fkey(id, steam_id, display_name, avatar_url, faceit_nickname))",
+      "id, slug, name, faceit_club_url, discord_guild_id, group_members(role, joined_at, left_at, manual_skill_override, player:players!group_members_player_id_fkey(id, steam_id, display_name, avatar_url, faceit_nickname, discord_user_id))",
     )
     .eq("slug", slug)
     .maybeSingle<GroupRow>();
@@ -86,6 +90,7 @@ export async function groupBySlug(slug: string): Promise<GroupPage | null> {
     slug: data.slug,
     name: data.name,
     faceitClubUrl: data.faceit_club_url,
+    discordGuildId: data.discord_guild_id,
     members: data.group_members
       .filter((m) => m.left_at === null)
       .map((m) => ({
@@ -94,6 +99,7 @@ export async function groupBySlug(slug: string): Promise<GroupPage | null> {
         displayName: m.player.display_name,
         avatarUrl: m.player.avatar_url,
         faceitNickname: m.player.faceit_nickname,
+        discordUserId: m.player.discord_user_id,
         manualElo: m.manual_skill_override,
         role: m.role,
         joinedAt: m.joined_at,

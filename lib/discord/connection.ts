@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const DISCORD_GUILD_COOKIE = "mixer_discord_guild";
+export const DISCORD_PLAYER_COOKIE = "mixer_discord_player";
 
 // View Channel, Send Messages, Move Members.
 export const BOT_PERMISSIONS = String((1 << 10) | (1 << 11) | (1 << 24));
@@ -25,6 +26,12 @@ const guildState = z.object({
   playerId: z.uuid(),
 });
 
+const playerState = z.object({
+  nonce: z.uuid(),
+  playerId: z.uuid(),
+  next: z.string().regex(/^\/(?!\/)[^\\]*$/),
+});
+
 export function readGuildState(
   cookie: string | undefined,
   state: string | null,
@@ -32,6 +39,19 @@ export function readGuildState(
   if (!cookie || !state) return null;
   try {
     const value = guildState.parse(JSON.parse(cookie));
+    return value.nonce === state ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+export function readPlayerState(
+  cookie: string | undefined,
+  state: string | null,
+) {
+  if (!cookie || !state) return null;
+  try {
+    const value = playerState.parse(JSON.parse(cookie));
     return value.nonce === state ? value : null;
   } catch {
     return null;
@@ -49,6 +69,22 @@ export function discordAuthorizeUrl(
     client_id: clientId,
     scope: "bot guilds",
     permissions: BOT_PERMISSIONS,
+    redirect_uri: callback,
+    state,
+  }).toString();
+  return url.toString();
+}
+
+export function discordPlayerAuthorizeUrl(
+  clientId: string,
+  callback: string,
+  state: string,
+): string {
+  const url = new URL("https://discord.com/oauth2/authorize");
+  url.search = new URLSearchParams({
+    response_type: "code",
+    client_id: clientId,
+    scope: "identify",
     redirect_uri: callback,
     state,
   }).toString();

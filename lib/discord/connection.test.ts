@@ -3,8 +3,10 @@ import {
   BOT_PERMISSIONS,
   canManageDiscordGuild,
   discordAuthorizeUrl,
+  discordPlayerAuthorizeUrl,
   parseDiscordSettings,
   readGuildState,
+  readPlayerState,
   type DiscordChannel,
 } from "./connection";
 
@@ -112,6 +114,37 @@ describe("Discord server connection", () => {
     ).toBeNull();
     expect(
       parseDiscordSettings(form({ notification: "999" }), channels),
+    ).toBeNull();
+  });
+});
+
+describe("Discord player connection", () => {
+  it("requests only identify and accepts a matching state with a local return path", () => {
+    const url = new URL(
+      discordPlayerAuthorizeUrl(
+        "123456789012345670",
+        "https://mixer.test/callback",
+        NONCE,
+      ),
+    );
+    expect(url.searchParams.get("scope")).toBe("identify");
+    expect(url.searchParams.get("state")).toBe(NONCE);
+    const state = JSON.stringify({
+      nonce: NONCE,
+      playerId: PLAYER,
+      next: "/g/crew#members",
+    });
+    expect(readPlayerState(state, NONCE)).toEqual({
+      nonce: NONCE,
+      playerId: PLAYER,
+      next: "/g/crew#members",
+    });
+    expect(readPlayerState(state, "different")).toBeNull();
+    expect(
+      readPlayerState(
+        JSON.stringify({ nonce: NONCE, playerId: PLAYER, next: "//evil.test" }),
+        NONCE,
+      ),
     ).toBeNull();
   });
 });
