@@ -248,14 +248,18 @@ Owner feedback on the design preview:
 
 ## D29. Live evening tracking: FACEIT webhooks first, polling only while someone watches, Accepted (2026-09-25)
 Owner: how does the site know that a mix map started on FACEIT; is there a live view?
-- **Signal:** FACEIT webhooks (App Studio subscription for the group's Club: `match_object_created` /
-  `match_status_ready` → map started, `match_status_finished` → map over, `match_demo_ready`) to
-  `/api/webhooks/faceit` (static secret header). Whether clubs can be subscribed like hubs is spike S6.
+- **Signal:** FACEIT App Studio webhooks (`match_object_created` / `match_status_ready` → room created
+  or server ready; `match_status_finished` → map over; `match_demo_ready` → demo available) to
+  `/api/webhooks/faceit` (static secret header), if a real Club test confirms delivery. The published
+  webhook list has no knife-round or `match_status_ongoing` event (S6 desk research, 2026-10-02);
+  `ready` must not trigger voice moves described as "after the knife round".
 - **Fallback without webhooks:** Vercel Hobby cron runs once a day, so no server polling. Instead,
   while a locked mix page is open during the evening, the page asks our server every 60 s; the server
   asks FACEIT for the Club's ongoing / recent matches through a 60 s shared cache (ten viewers = one
-  FACEIT call a minute). Nobody watching = no calls; the next visit catches up. An admin "Map started"
-  button always works.
+  FACEIT call a minute). S6 confirmed HTTP 200 for the linked Club ID on the hub endpoint with empty
+  lists; a real queue match must confirm that the lists actually populate.
+  Player history remains a finished-match fallback. Nobody watching = no calls; the next visit catches
+  up. An admin "Map started" button always works.
 - **What "live" shows:** the evening timeline (map 1 done 13:10, map 2 **live** on Anubis since
   21:42, room link), players in the room vs the voted lineup, and finished maps imported right away
   (score + stats, D27 rules). A live round score only if FACEIT exposes it during the match (S6); the

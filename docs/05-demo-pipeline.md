@@ -61,7 +61,7 @@ support pages via search; FACEIT docs were not directly readable from the sandbo
 | Map veto | Built in: captains pick/ban maps (and server) with configurable voting time; auto-vote available | High |
 | Who forms the teams? | The queue does: **captains pick players** (order 1-2-2-2-2-1); captains are chosen automatically (Premium first, then highest Elo). No confirmed option to load **our** lineup into a queue match | Medium, verify in S5 |
 | Demos | Every FACEIT match has a GOTV demo; players download it from the match room (what we did for the test demo). **Automatic** download needs the **Downloads API**: separate application form, ~30 days review, token with a Downloads scope; then a signed URL from the `demo_url` in match data (+ "Match Demo Ready" webhook) | High |
-| Stats without a demo | Data API has hub/club matches and `GET /matches/{id}/stats` (per player per map: K, D, A, ADR, HS%, multi-kills…), readable with our existing server key | High for the endpoint; verify club matches in S5 |
+| Stats without a demo | Data API documents hub match lists and `GET /matches/{id}/stats` (per player per map: K, D, A, ADR, HS%, multi-kills…), readable with our existing server key. The linked Club ID returned HTTP 200 from the hub match-list endpoint with zero items before any queue match | High for the match stats endpoint; verify actual Club match discovery and stats in S5/S6 |
 | Effect on main FACEIT ELO | Club queues have their own ranking; expected not to change the main FACEIT ELO | Low, verify in S5 |
 
 **What it would change for us**

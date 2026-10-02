@@ -123,6 +123,24 @@ Consequences for the design:
 - Profile "FACEIT" and "Premier" tabs render Leetify data as-is in a clearly labelled section.
 - Our own mix stats use our own metric names (Mixer Rating, ADR, KAST…) and never reuse Leetify metric names for different calculations.
 
+## FACEIT live match signals (S6 desk research, 2026-10-02)
+
+This is documentation research plus read-only API checks, not a live match verification. The owner has linked a Club to a Mixer group but has not played a match in its queue yet. Sources: [FACEIT webhook events](https://docs.faceit.com/docs/webhooks/), [Data API v4](https://docs.faceit.com/docs/data-api/data/), [match lifecycle](https://game-docs.faceit.com/match-lifecycle/match-lifecycle-events/), and [CS2 captain / knife round](https://support.faceit.com/hc/en-us/articles/10014497052444-What-to-do-as-a-team-captain-in-a-CS2-lobby).
+
+| Desired signal | Published capability | Decision for Mixer |
+|---|---|---|
+| Room created / server ready | App Studio exposes `match_object_created`, `match_status_configuring`, and `match_status_ready` webhooks for Organizer, User, and Game subscriptions. `ready` means the game server is ready, not that the knife round has ended. | Can announce a room or ask players to join; never use `ready` to move them after the knife round. Club delivery and payload still need a live test. |
+| Knife round ended / live play began | The published webhook event list has no knife-round, round-end, side-choice, or `match_status_ongoing` event. The game-integration docs distinguish `Match Ready` from `Match Started`, but those server-to-server game events are not App Studio webhooks available to this app. Polling a match's `ONGOING` status has an unverified relation to the knife round and first live round. | No reliable FACEIT-only trigger for voice moves exactly after the knife round. Keep an admin "Move teams" button; do not infer the moment from a timer, `ready`, or `ONGOING` until measured. |
+| Match finished | App Studio lists `match_status_finished` (also aborted and cancelled). `/matches/{id}` includes `status`, `finished_at`, result, room teams and IDs; `/matches/{id}/stats` returns match stats. | Automatic return to the Discord lobby and a result notification are plausible after a verified Club webhook, with an idempotent handler and a manual fallback. Delivery latency, payload, and Club coverage remain unmeasured. |
+| Find live Club matches | Data API documents `/hubs/{hub_id}/matches?type=ongoing` and `/matches/{id}`. The linked Club URL ID returned HTTP 200 from that hub endpoint for both `ongoing` and `past` (empty lists, as no Club queue match has been played). `search/clans` returned the same Club ID and its separate `organizer_id`. | The existing candidate finder can use this Club ID with the documented hub endpoint. Confirm actual Club match appearance and timestamps during the first queue match. Player history is a completed-match fallback, not a proven live feed. |
+| Live round score | Match-detail schema has generic status/start/result fields but no documented round number, knife result, or guaranteed in-progress score. Match stats schema does not promise live updates. | Treat live round score as unavailable until measured against a running Club match. |
+
+Read-only check on 2026-10-02: linked Club `44ba2a59-0d90-4087-8d6c-0ebae2d3e47a` returned HTTP 200 and zero items from `/hubs/{id}/matches?type=ongoing` and `type=past`; `search/clans?name=skarpeciarze&game=cs2` returned that Club ID with `organizer_id=e881bc29-4d6a-43de-af4d-4a6994130c2d`. No match payload was available to inspect. App Studio permits Organizer subscriptions for a static list of other organizer GUIDs, with some private fields possibly hidden; it does not explicitly state that a Club's internal queue generates those events for the Club's organizer ID. An App Studio owner must subscribe to that organizer and record one callback from a real match. The webhook configuration supports a custom authentication header. The public documentation does not give a delivery latency or retry guarantee for these events.
+
+**Field test to finish S6:** (1) play one match in the linked Club queue; record match ID and `competition_id`; (2) subscribe to room-created, ready, finished, aborted and cancelled events for the recorded organizer ID and capture redacted timestamps/payload keys; (3) query the Club's hub match list and `/matches/{id}` before ready, after the knife round and at finish; (4) compare FACEIT room teams to the voted lineup and verify Discord move/return from a deployed function. Never log API keys, webhook secrets or player tokens.
+
+Discord messages for **our own** mix creation and lineup lock can be sent from Mixer actions independently of FACEIT. Only FACEIT room/score/result notifications depend on the field test.
+
 ## Discord (Phase 5, D19)
 
 One site-wide bot. Env: `DISCORD_BOT_TOKEN`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`.
