@@ -218,6 +218,24 @@ const en = {
     realText: (odds: string, rank: number) =>
       `A different split: ${odds} on paper, rank ${rank} of 126 by evenness. The Result tab shows how that went.`,
   },
+  discordVoice: {
+    title: "Discord voice",
+    hint: "After the knife round, move connected players to their team channels. Return them to the lobby after play.",
+    teams: "Move teams to channels",
+    lobby: "Return players to lobby",
+    moved: (count: number) => `Moved ${count} players.`,
+    notConnected: (names: string) => `Not in voice: ${names}.`,
+    unlinked: (names: string) => `Discord not linked: ${names}.`,
+    failed: (names: string) =>
+      `Move failed: ${names}. Check bot permissions and channel access.`,
+    errors: {
+      forbidden: "Only a group admin can move players.",
+      mix: "This mix has no locked 5v5 lineup for this action.",
+      channels:
+        "Set up the three Discord voice channels in group settings first.",
+      failed: "Discord is unavailable. Try again shortly.",
+    },
+  },
   admin: {
     title: "Admin",
     voting:
@@ -749,6 +767,24 @@ const pl: Dict = {
     realTitle: "Co naprawdę zagraliście 16.12.2024",
     realText: (odds, rank) =>
       `Inny podział: ${odds} na papierze, ${rank}. miejsce na 126 pod względem wyrównania. Jak to się skończyło, widać w zakładce z wynikiem.`,
+  },
+  discordVoice: {
+    title: "Kanały głosowe Discord",
+    hint: "Po nożówce przenieś graczy do kanałów drużyn. Po grze wróć z nimi do lobby.",
+    teams: "Przenieś drużyny na kanały",
+    lobby: "Przenieś graczy do lobby",
+    moved: (count) => `Przeniesiono graczy: ${count}.`,
+    notConnected: (names) => `Nie byli na voice: ${names}.`,
+    unlinked: (names) => `Nie połączyli Discorda: ${names}.`,
+    failed: (names) =>
+      `Nie udało się przenieść: ${names}. Sprawdź uprawnienia bota i dostęp do kanałów.`,
+    errors: {
+      forbidden: "Tylko admin grupy może przenosić graczy.",
+      mix: "Ten miks nie ma zamkniętego składu 5 na 5 dla tej akcji.",
+      channels:
+        "Najpierw ustaw trzy kanały głosowe Discorda w ustawieniach grupy.",
+      failed: "Discord jest niedostępny. Spróbuj ponownie za chwilę.",
+    },
   },
   admin: {
     title: "Admin",

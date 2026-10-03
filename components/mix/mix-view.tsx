@@ -7,6 +7,7 @@ import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { DiscordMissing } from "./discord-missing";
+import { DiscordVoice } from "./discord-voice";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ExternalLink, Lock } from "lucide-react";
 import {
@@ -213,6 +214,12 @@ export function MixView({
                 groupSlug={groupSlug}
               />
             )}
+            {groupSlug &&
+              data.viewerIsAdmin &&
+              data.discordGuildConnected &&
+              (state === "locked" || state === "played") && (
+                <DiscordVoice mixId={data.mix.id} state={state} />
+              )}
 
             {state === "lobby" && <Lobby />}
 

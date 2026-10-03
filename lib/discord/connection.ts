@@ -3,8 +3,10 @@ import { z } from "zod";
 export const DISCORD_GUILD_COOKIE = "mixer_discord_guild";
 export const DISCORD_PLAYER_COOKIE = "mixer_discord_player";
 
-// View Channel, Send Messages, Move Members.
-export const BOT_PERMISSIONS = String((1 << 10) | (1 << 11) | (1 << 24));
+// View Channel, Send Messages, Connect, Move Members.
+export const BOT_PERMISSIONS = String(
+  (1 << 10) | (1 << 11) | (1 << 20) | (1 << 24),
+);
 
 export interface DiscordChannel {
   id: string;

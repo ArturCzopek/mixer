@@ -83,3 +83,29 @@ export async function guildChannels(
     .filter((item) => item.type === 0 || item.type === 2)
     .sort((a, b) => a.position - b.position || a.name.localeCompare(b.name));
 }
+
+/** Discord can move only members already connected to voice in this guild. */
+export async function moveDiscordMember(
+  guildId: string,
+  userId: string,
+  channelId: string,
+): Promise<"moved" | "not_connected"> {
+  const response = await fetch(
+    `${API}/guilds/${snowflake.parse(guildId)}/members/${snowflake.parse(userId)}`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bot ${requireEnv("DISCORD_BOT_TOKEN")}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ channel_id: snowflake.parse(channelId) }),
+      cache: "no-store",
+    },
+  );
+  if (response.ok) return "moved";
+  if (response.status === 400) {
+    const body = await response.json().catch(() => null);
+    if (body?.code === 40032) return "not_connected";
+  }
+  throw new Error(`Discord move failed: HTTP ${response.status}`);
+}

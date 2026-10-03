@@ -47,7 +47,7 @@ describe("Discord server connection", () => {
     expect(url.searchParams.get("scope")).toBe("bot guilds");
     expect(url.searchParams.get("response_type")).toBe("code");
     expect(url.searchParams.get("permissions")).toBe(BOT_PERMISSIONS);
-    expect(Number(BOT_PERMISSIONS)).toBe(16780288);
+    expect(Number(BOT_PERMISSIONS)).toBe(17828864);
     expect(url.searchParams.get("state")).toBe(NONCE);
   });
 

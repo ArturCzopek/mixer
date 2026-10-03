@@ -76,6 +76,7 @@ export default async function MixLobbyPage({
     });
     data.faceitClubUrl = group.faceitClubUrl;
     data.unlinkedDiscordPlayers = unlinkedDiscordPlayers;
+    data.discordGuildConnected = !!group.discordGuildId;
     if (mix.status === "played") {
       const { data: maps, error } = await adminDb()
         .from("matches")

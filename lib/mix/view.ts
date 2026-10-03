@@ -57,6 +57,8 @@ export interface MixViewData {
   faceitClubUrl?: string | null;
   /** Participants without a linked Discord account, when the group has a Discord server. */
   unlinkedDiscordPlayers?: string[];
+  /** A connected Discord server enables manual voice controls for group admins. */
+  discordGuildConnected?: boolean;
   mix: {
     /** Mix id; also seeds the tie-break between equally voted variants (D33). */
     id: string;
