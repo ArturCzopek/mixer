@@ -8,6 +8,7 @@ import { MixLobbyView } from "@/components/mix/lobby-view";
 import { MixView } from "@/components/mix/mix-view";
 import { hasGroupRole } from "@/lib/auth/roles";
 import { getSession } from "@/lib/auth/server";
+import { notifyMixLater } from "@/lib/discord/notify";
 import { groupBySlug } from "@/lib/groups/queries";
 import { groupMixes, mixLobby, mixVariantPage } from "@/lib/mix/queries";
 import { mixVariantViewData } from "@/lib/mix/view";
@@ -26,11 +27,11 @@ export async function generateMetadata({
   };
 }
 
-/** Public lobby. The server decides who can see each action; every action checks again. */
 function withinHours(iso: string, hours: number) {
   return Date.now() - Date.parse(iso) < hours * 3600_000;
 }
 
+/** Public lobby. The server decides who can see each action; every action checks again. */
 export default async function MixLobbyPage({
   params,
 }: PageProps<"/g/[slug]/m/[mixId]">) {
@@ -43,6 +44,9 @@ export default async function MixLobbyPage({
     getSession(),
   ]);
   if (!group || !mix || mix.groupId !== group.id) notFound();
+  // Votes can also close in pg_cron, where no app code runs; the first view after that posts.
+  if (mix.status === "locked" && group.discordGuildId)
+    notifyMixLater(mix.id, "locked");
   const unlinkedDiscordPlayers =
     group.discordGuildId && mix.status !== "played"
       ? mix.participants

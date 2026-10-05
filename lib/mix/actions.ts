@@ -5,6 +5,7 @@ import { z } from "zod";
 import { AuthError } from "@/lib/auth/roles";
 import { requireGroupRole, requireSession } from "@/lib/auth/server";
 import { adminDb } from "@/lib/db/admin";
+import { notifyMixLater } from "@/lib/discord/notify";
 import {
   faceitRoomId,
   type FaceitCandidate,
@@ -162,6 +163,7 @@ export async function createMix(
     return logFailure("createMix", error);
   }
   if (!data) return logFailure("createMix returned no id", data);
+  notifyMixLater(data.id, "created");
   redirect(`/g/${group.slug}/m/${data.id}`);
 }
 
@@ -491,10 +493,12 @@ export async function closeMixVoting(mixId: string): Promise<MixActionState> {
   if (!uuid.safeParse(mixId).success) return { error: "forbidden" };
   const auth = await authorizedMix("closeMixVoting", mixId, "admin");
   if ("error" in auth) return auth;
-  return variantRpc("closeMixVoting", "close_mix_votes", {
+  const result = await variantRpc("closeMixVoting", "close_mix_votes", {
     p_mix_id: mixId,
     p_require_due: false,
   });
+  if (result && "ok" in result) notifyMixLater(mixId, "locked");
+  return result;
 }
 
 export async function reopenMixVoting(mixId: string): Promise<MixActionState> {
@@ -534,11 +538,17 @@ export async function recordManualResults(
   if (!parsed.success) return { error: "result" };
   const auth = await authorizedMix("recordManualResults", mixId, "admin");
   if ("error" in auth) return auth;
-  return variantRpc("recordManualResults", "record_manual_mix_results", {
-    p_mix_id: mixId,
-    p_actor_id: auth.session.playerId,
-    p_maps: parsed.data,
-  });
+  const result = await variantRpc(
+    "recordManualResults",
+    "record_manual_mix_results",
+    {
+      p_mix_id: mixId,
+      p_actor_id: auth.session.playerId,
+      p_maps: parsed.data,
+    },
+  );
+  if (result && "ok" in result) notifyMixLater(mixId, "played");
+  return result;
 }
 
 export async function findFaceitMatches(
@@ -617,7 +627,7 @@ export async function importFaceitMatches(
       matchIds,
       extraId ? [extraId] : [],
     );
-    return variantRpc(
+    const result = await variantRpc(
       "importFaceitMatches",
       mix.status === "played"
         ? "enrich_manual_mix_results"
@@ -629,6 +639,8 @@ export async function importFaceitMatches(
         p_maps: maps,
       },
     );
+    if (result && "ok" in result) notifyMixLater(mixId, "played");
+    return result;
   } catch (error) {
     return logFailure("importFaceitMatches", error);
   }

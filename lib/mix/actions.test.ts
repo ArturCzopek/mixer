@@ -38,6 +38,7 @@ vi.mock("@/lib/mix/variant-service", () => ({
   StaleVariantSetError: class extends Error {},
 }));
 vi.mock("@/lib/mix/faceit-service", () => faceitService);
+vi.mock("@/lib/discord/notify", () => ({ notifyMixLater: vi.fn() }));
 vi.mock("next/navigation", () => ({
   redirect: (url: string) => {
     throw new Error(`redirect ${url}`);

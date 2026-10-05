@@ -84,6 +84,24 @@ export async function guildChannels(
     .sort((a, b) => a.position - b.position || a.name.localeCompare(b.name));
 }
 
+export async function postDiscordMessage(channelId: string, content: string) {
+  const response = await fetch(
+    `${API}/channels/${snowflake.parse(channelId)}/messages`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bot ${requireEnv("DISCORD_BOT_TOKEN")}`,
+        "Content-Type": "application/json",
+      },
+      // Admin-typed titles must never ping @everyone or roles.
+      body: JSON.stringify({ content, allowed_mentions: { parse: [] } }),
+      cache: "no-store",
+    },
+  );
+  if (!response.ok)
+    throw new Error(`Discord post failed: HTTP ${response.status}`);
+}
+
 /** Discord can move only members already connected to voice in this guild. */
 export async function moveDiscordMember(
   guildId: string,

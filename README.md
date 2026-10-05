@@ -106,7 +106,7 @@ another server clears the old channel selection. Group admins can move the locke
 separate team voice channels after the knife round and return it to the lobby from the mix page.
 Players must already be connected to voice in that server. The result lists players who were offline,
 unlinked, or could not be moved. A live connection requires the owner to create the Discord
-application and add its credentials. Text notifications are not implemented yet.
+application and add its credentials. The bot posts to the selected text channel once when a mix is created, when its lineup locks (or on the first page view after an automatic close) and when results are saved. Posts never mention anyone.
 
 Signed-in players can link or unlink their own Discord account from the group roster. Linking uses
 OAuth2 `identify`, stores only the verified Discord user ID, and requires the same Steam session on
