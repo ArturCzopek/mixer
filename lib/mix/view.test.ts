@@ -11,6 +11,7 @@ vi.mock("@/lib/external/leetify", () => ({
   getFaceitMatches: vi.fn().mockResolvedValue(null),
 }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
+vi.mock("@/lib/discord/actions", () => ({ moveMixDiscordPlayers: vi.fn() }));
 vi.mock("@/lib/mix/actions", () => ({
   approveMixVariants: vi.fn(),
   castMixVote: vi.fn(),
