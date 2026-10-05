@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     const { data: mixes, error } = await db
       .from("mixes")
       .select(
-        "id, group_id, chosen_variant_id, discord_notices, group:groups!mixes_group_id_fkey!inner(discord_guild_id)",
+        "id, group_id, chosen_variant_id, group:groups!mixes_group_id_fkey!inner(discord_guild_id)",
       )
       .in("status", ["locked", "played"])
       .gte("locked_at", since)
@@ -45,7 +45,6 @@ export async function POST(request: Request) {
           id: string;
           group_id: string;
           chosen_variant_id: string;
-          discord_notices: string[];
         }[]
       >();
     if (error) throw error;
@@ -81,14 +80,7 @@ export async function POST(request: Request) {
       })),
     );
     const mix = mixes.find((item) => item.id === mixId);
-    if (
-      !mix ||
-      !(await claimMixFlag(
-        mix.id,
-        `returned:${match.matchId}`,
-        mix.discord_notices,
-      ))
-    )
+    if (!mix || !(await claimMixFlag(mix.id, `returned:${match.matchId}`)))
       return Response.json({ ignored: true }, { headers });
 
     after(async () => {

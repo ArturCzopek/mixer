@@ -16,25 +16,15 @@ interface NoticeMix {
   };
 }
 
-/**
- * Adds `flag` to the mix's discord_notices unless already there. True for exactly one caller,
- * so each notice or automatic move happens once even when requests race.
- */
-export async function claimMixFlag(
-  mixId: string,
-  flag: string,
-  current: string[],
-): Promise<boolean> {
-  if (current.includes(flag)) return false;
-  const { data, error } = await adminDb()
-    .from("mixes")
-    .update({ discord_notices: [...current, flag] })
-    .eq("id", mixId)
-    .not("discord_notices", "cs", `{"${flag}"}`)
-    .select("id")
-    .maybeSingle();
+/** True for exactly one caller per mix and flag (atomic in the database), so each notice or
+ * automatic move happens once even when requests race. */
+export async function claimMixFlag(mixId: string, flag: string) {
+  const { data, error } = await adminDb().rpc("claim_mix_flag", {
+    p_mix_id: mixId,
+    p_flag: flag,
+  });
   if (error) throw error;
-  return !!data;
+  return data === true;
 }
 
 /** Posts the notice to the group's text channel once per mix and event; never throws. */
@@ -58,7 +48,7 @@ export async function notifyMix(mixId: string, event: MixNotice) {
       return;
 
     // ponytail: a failed post is not retried; add a retry if Discord drops messages in practice.
-    if (!(await claimMixFlag(mixId, event, mix.discord_notices))) return;
+    if (!(await claimMixFlag(mixId, event))) return;
 
     const base = process.env.APP_URL?.replace(/\/$/, "");
     const data: Parameters<typeof mixNoticeText>[1] = {

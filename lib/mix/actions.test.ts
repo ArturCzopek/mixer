@@ -38,7 +38,8 @@ vi.mock("@/lib/mix/variant-service", () => ({
   StaleVariantSetError: class extends Error {},
 }));
 vi.mock("@/lib/mix/faceit-service", () => faceitService);
-vi.mock("@/lib/discord/notify", () => ({ notifyMixLater: vi.fn() }));
+const notify = vi.hoisted(() => ({ notifyMixLater: vi.fn() }));
+vi.mock("@/lib/discord/notify", () => notify);
 vi.mock("next/navigation", () => ({
   redirect: (url: string) => {
     throw new Error(`redirect ${url}`);
@@ -493,7 +494,13 @@ describe("mix action validation and writes", () => {
   });
 
   it("uses admin RPCs for closing, reopening, and starting a match", async () => {
+    notify.notifyMixLater.mockClear();
     expect(await closeMixVoting(MIX)).toEqual({ ok: true });
+    // Only a successful lock schedules the Discord notice.
+    expect(notify.notifyMixLater).toHaveBeenCalledExactlyOnceWith(
+      MIX,
+      "locked",
+    );
     expect(await reopenMixVoting(MIX)).toEqual({ ok: true });
     expect(await startMixMatch(MIX)).toEqual({ ok: true });
     expect(db.rpcCalls).toEqual([
