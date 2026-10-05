@@ -108,6 +108,12 @@ Players must already be connected to voice in that server. The result lists play
 unlinked, or could not be moved. A live connection requires the owner to create the Discord
 application and add its credentials. The bot posts to the selected text channel once when a mix is created, when its lineup locks (or on the first page view after an automatic close) and when results are saved. Posts never mention anyone.
 
+Automatic return to the lobby: in FACEIT App Studio, add a webhook to
+`https://YOUR_HOST/api/webhooks/faceit` with header `X-Mixer-Secret` set to `FACEIT_WEBHOOK_SECRET`,
+subscribed to `match_status_finished` for the Club's organizer. When a room finishes and at least 8
+of a recently locked mix's 10 players were in it, that lineup goes back to the lobby once per match.
+Until a real Club match confirms delivery (S6), the manual button stays the reliable path.
+
 Signed-in players can link or unlink their own Discord account from the group roster. Linking uses
 OAuth2 `identify`, stores only the verified Discord user ID, and requires the same Steam session on
 return. A Discord account can belong to only one player. Active mixes list participants who have
