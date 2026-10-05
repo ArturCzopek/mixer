@@ -27,6 +27,10 @@ export async function generateMetadata({
 }
 
 /** Public lobby. The server decides who can see each action; every action checks again. */
+function withinHours(iso: string, hours: number) {
+  return Date.now() - Date.parse(iso) < hours * 3600_000;
+}
+
 export default async function MixLobbyPage({
   params,
 }: PageProps<"/g/[slug]/m/[mixId]">) {
@@ -76,7 +80,12 @@ export default async function MixLobbyPage({
     });
     data.faceitClubUrl = group.faceitClubUrl;
     data.unlinkedDiscordPlayers = unlinkedDiscordPlayers;
-    data.discordGuildConnected = !!group.discordGuildId;
+    // Voice controls only until the evening is over, not on old or archived mixes.
+    data.discordGuildConnected =
+      !!group.discordGuildId &&
+      (mix.status === "locked" ||
+        (!data.archiveSource &&
+          withinHours(data.matchStartedAt ?? data.mixAt, 12)));
     if (mix.status === "played") {
       const { data: maps, error } = await adminDb()
         .from("matches")

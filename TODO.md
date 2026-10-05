@@ -14,7 +14,7 @@ the MVP (M1-9) if it is ready; P0-6 (separate prod Supabase) comes right before 
       queue (D17: private Club queue) and, after the first mix, send the match room link(s) to the partner working with you.
 - [ ] *(optional)* FACEIT developer terms: if you see a clause against storing match stats, tell the partner working with you (D20: FACEIT data policy).
 - [ ] *(optional, for M4-6)* S4 browser test of the demo parser once the spike page exists.
-- [ ] *(later, Phase 5)* Discord application + bot for D-1.
+- [x] Discord application + bot (D-1, done 2026-10-05; credentials in `.env.local` and Vercel).
 
 ## Next session (Codex or Claude): start here
 
