@@ -15,6 +15,10 @@ the MVP (M1-9) if it is ready; P0-6 (separate prod Supabase) comes right before 
 - [ ] *(optional)* FACEIT developer terms: if you see a clause against storing match stats, tell the partner working with you (D20: FACEIT data policy).
 - [ ] *(optional, for M4-6)* S4 browser test of the demo parser once the spike page exists.
 - [x] Discord application + bot (D-1, done 2026-10-05; credentials in `.env.local` and Vercel).
+- [ ] Reset the Discord bot token (shown in a session log 2026-10-05); update `.env.local` and Vercel.
+- [ ] Set `FACEIT_WEBHOOK_SECRET` in Vercel; in FACEIT App Studio add a webhook to
+      `https://YOUR_HOST/api/webhooks/faceit`, header `X-Mixer-Secret`, event `match_status_finished`,
+      organizer of our Club (docs/06). Then one real Club match verifies D-3 auto-return, D-4 and S6.
 
 ## Next session (Codex or Claude): start here
 
