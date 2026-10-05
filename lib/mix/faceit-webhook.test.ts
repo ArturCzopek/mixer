@@ -12,6 +12,7 @@ const body = (event: string, players = roster(0, 10)) => ({
   event,
   payload: {
     id: "1-66c23f96-3866-4a8d-ad47-f9dc8cfd96f5",
+    entity: { id: "club" },
     teams: [{ roster: players.slice(0, 5) }, { roster: players.slice(5) }],
   },
 });
@@ -24,6 +25,7 @@ describe("finishedMatch", () => {
     expect(match?.matchId).toBe("1-66c23f96-3866-4a8d-ad47-f9dc8cfd96f5");
     expect(match?.players.has(steam(9))).toBe(true);
     expect(match?.players.has("faceit-0")).toBe(true);
+    expect(match?.entityId).toBe("club");
   });
 
   it("ignores other events and malformed bodies", () => {
@@ -39,23 +41,35 @@ describe("mixForMatch", () => {
   it("picks the mix whose lineup played, tolerating two stand-ins", () => {
     expect(
       mixForMatch(match, [
-        { id: "other", lineup: lineup(20) },
-        { id: "ours", lineup: lineup(2) },
+        { id: "other", clubId: "club", lineup: lineup(20) },
+        { id: "ours", clubId: "club", lineup: lineup(2) },
       ]),
     ).toBe("ours");
   });
 
   it("matches by FACEIT id when the Steam id is unknown", () => {
     const byFaceit = Array.from({ length: 10 }, (_, i) => [`faceit-${i}`]);
-    expect(mixForMatch(match, [{ id: "ours", lineup: byFaceit }])).toBe("ours");
+    expect(
+      mixForMatch(match, [{ id: "ours", clubId: null, lineup: byFaceit }]),
+    ).toBe("ours");
+  });
+
+  it("refuses a room from another hub with the same players", () => {
+    expect(
+      mixForMatch(match, [
+        { id: "ours", clubId: "other-hub", lineup: lineup(0) },
+      ]),
+    ).toBeNull();
   });
 
   it("refuses when fewer than 8 match or the room fits two mixes", () => {
-    expect(mixForMatch(match, [{ id: "x", lineup: lineup(3) }])).toBeNull();
+    expect(
+      mixForMatch(match, [{ id: "x", clubId: null, lineup: lineup(3) }]),
+    ).toBeNull();
     expect(
       mixForMatch(match, [
-        { id: "a", lineup: lineup(0) },
-        { id: "b", lineup: lineup(1) },
+        { id: "a", clubId: null, lineup: lineup(0) },
+        { id: "b", clubId: null, lineup: lineup(1) },
       ]),
     ).toBeNull();
   });

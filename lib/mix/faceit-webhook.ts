@@ -9,6 +9,7 @@ const webhook = z.object({
   payload: z
     .object({
       id: z.string().optional(),
+      entity: z.object({ id: z.string().optional() }).optional(),
       teams: z
         .array(
           z.object({
@@ -29,6 +30,8 @@ const webhook = z.object({
 
 export interface FinishedMatch {
   matchId: string;
+  /** Hub or Club the room belongs to, when the payload names it. */
+  entityId: string | null;
   /** FACEIT player ids and SteamID64s of everyone in the room. */
   players: Set<string>;
 }
@@ -46,18 +49,26 @@ export function finishedMatch(body: unknown): FinishedMatch | null {
       if (player.id) players.add(player.id);
       if (player.game_id) players.add(player.game_id);
     }
-  return { matchId, players };
+  return {
+    matchId,
+    entityId: parsed.data.payload?.entity?.id ?? null,
+    players,
+  };
 }
 
 export interface LineupMix {
   id: string;
+  /** The group's FACEIT Club id, if linked. */
+  clubId: string | null;
   /** Each lineup player's identifiers: SteamID64 and FACEIT player id when known. */
   lineup: string[][];
 }
 
 /**
  * The mix whose chosen lineup played this room: at least 8 of its 10 players are in the room
- * (a late swap or a stand-in must not block the return). Null when none or several qualify.
+ * (a late swap or a stand-in must not block the return) and, when both sides name it, in the
+ * group's own Club, so the same friends in another hub never trigger it. Null when none or several
+ * qualify.
  */
 export function mixForMatch(
   match: FinishedMatch,
@@ -65,6 +76,7 @@ export function mixForMatch(
 ): string | null {
   const hits = mixes.filter(
     (mix) =>
+      (!match.entityId || !mix.clubId || match.entityId === mix.clubId) &&
       mix.lineup.filter((ids) => ids.some((id) => match.players.has(id)))
         .length >= 8,
   );
