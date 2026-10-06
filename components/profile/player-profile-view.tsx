@@ -37,6 +37,7 @@ export function PlayerProfileView({
     .map((point) => ({
       id: point.id,
       rating: point.rating,
+      dateLabel: date(point.at),
       title: t.profile.ratingPoint(
         date(point.at),
         point.map,
@@ -181,7 +182,9 @@ export function PlayerProfileView({
                         <tr>
                           <th className="p-2">{t.profile.map}</th>
                           <th>{t.profile.score}</th>
-                          <th>{t.profile.result}</th>
+                          <th>
+                            <span className="sr-only">{t.profile.result}</span>
+                          </th>
                           <th>K / D / A</th>
                           <th>ADR</th>
                           <th>{t.profile.rating}</th>

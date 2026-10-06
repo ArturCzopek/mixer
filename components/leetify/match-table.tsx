@@ -39,7 +39,9 @@ export function LeetifyMatchTable({
             <th className="p-2">{t.leetify.date}</th>
             <th>{t.leetify.map}</th>
             <th className="text-right">{t.leetify.score}</th>
-            <th className="px-2">{t.leetify.result}</th>
+            <th className="px-2">
+              <span className="sr-only">{t.leetify.result}</span>
+            </th>
             <th className="text-right">{t.leetify.kad}</th>
             <th className="px-2 text-right">{t.leetify.rating}</th>
           </tr>

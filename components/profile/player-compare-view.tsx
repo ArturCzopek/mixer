@@ -225,6 +225,7 @@ function MixProfileColumn({
     .map((point) => ({
       id: point.id,
       rating: point.rating,
+      dateLabel: date(point.at),
       title: t.profile.ratingPoint(
         date(point.at),
         point.map,
@@ -300,7 +301,9 @@ function MixProfileColumn({
               <tr>
                 <th className="p-2">{t.profile.map}</th>
                 <th>{t.profile.score}</th>
-                <th>{t.profile.result}</th>
+                <th>
+                  <span className="sr-only">{t.profile.result}</span>
+                </th>
                 <th>{t.profile.kda}</th>
                 <th>{t.profile.adr}</th>
                 <th>{t.profile.rating}</th>

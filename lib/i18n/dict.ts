@@ -629,6 +629,9 @@ const en = {
     currentFaceitElo: "Current FACEIT ELO",
     ratingTrendCount: (shown: number, total: number) =>
       `${shown} of ${total} rated maps`,
+    ratingTrendMin: "Min",
+    ratingTrendReference: (value: string) => `Reference ${value}`,
+    ratingTrendMax: "Max",
     ratingPoint: (date: string, map: string, score: string, rating: string) =>
       `${date} · ${map} · ${score} · Mixer Rating ${rating}`,
     premierRating: "Premier",
@@ -645,7 +648,7 @@ const en = {
       "No rated mix maps yet. Score-only maps still count toward the record.",
     mapHistory: "Map history",
     map: "Map",
-    score: "Score A:B",
+    score: "Score",
     result: "Result",
     bestTeammates: "Best teammates",
     empty:
@@ -1241,6 +1244,9 @@ const pl: Dict = {
     faceitElo: "ELO FACEIT",
     currentFaceitElo: "Aktualne ELO FACEIT",
     ratingTrendCount: (shown, total) => `${shown} z ${total} ocenionych map`,
+    ratingTrendMin: "Min",
+    ratingTrendReference: (value) => `Odniesienie ${value}`,
+    ratingTrendMax: "Maks.",
     ratingPoint: (date, map, score, rating) =>
       `${date} · ${map} · ${score} · Mixer Rating ${rating}`,
     premierRating: "Premier",
@@ -1257,7 +1263,7 @@ const pl: Dict = {
       "Brak map z ratingiem. Mapy z samym wynikiem nadal liczą się do bilansu.",
     mapHistory: "Historia map",
     map: "Mapa",
-    score: "Wynik A:B",
+    score: "Wynik",
     result: "Rezultat",
     bestTeammates: "Najlepsi współgracze",
     empty:

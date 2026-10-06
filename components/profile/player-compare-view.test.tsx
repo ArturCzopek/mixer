@@ -178,6 +178,9 @@ describe("PlayerCompareView", () => {
     expect(html).toContain("de_inferno");
     expect(html).toContain("Avery: Team A");
     expect(html).toContain("Blake: Team B");
+    expect(html).toContain("<th>Score</th>");
+    expect(html).not.toContain("Score A:B");
+    expect(html).toContain('<span class="sr-only">Result</span>');
   });
 
   it("renders separate attributed Leetify panels for FACEIT and Premier", () => {

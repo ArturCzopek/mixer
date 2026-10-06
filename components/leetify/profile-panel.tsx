@@ -75,6 +75,7 @@ export function LeetifyProfilePanel({
         {
           id: `${match.finishedAt}-${index}`,
           rating: value,
+          dateLabel: date,
           title: t.leetify.ratingPoint(
             date,
             match.map,

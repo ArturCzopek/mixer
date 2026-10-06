@@ -65,6 +65,9 @@ Next, in order:
 Mix, FACEIT and Premier. Leetify uses raw per-match ratings with a zero reference line and no
 fabricated points for missing ratings; hover details and attribution remain. Component regression
 tests are now included in the standard test command.
+Owner readability follow-up (2026-10-06): score headers say only "Score" / "Wynik"; redundant result
+headers are visually hidden. Rating charts show a value scale, endpoint dates and an explicit label
+for the fixed reference line (Mixer Rating 1.00; Leetify 0.00), which is not a computed average.
 
 **M3-3 implemented (Codex, 2026-10-06):** `/g/[slug]/compare` is linked from the group roster and has
 shareable selections of two distinct active members and Mix/FACEIT/Premier. Profiles stack on mobile;

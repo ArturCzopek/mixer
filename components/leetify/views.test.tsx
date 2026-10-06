@@ -52,6 +52,7 @@ describe("Leetify views", () => {
     expect(html).toContain("20/4/10");
     expect(html).toContain("+2.34");
     expect(html).toContain("Data Provided by Leetify");
+    expect(html).toContain('<span class="sr-only">Result</span>');
     expect(html).toContain('href="https://leetify.com/"');
   });
 
