@@ -6,90 +6,10 @@ import { useState } from "react";
 import { useLang, useT } from "@/components/i18n";
 import { Tabs, Well, Window } from "@/components/vgui";
 import { LeetifyProfilePanel } from "@/components/leetify/profile-panel";
+import { RatingTrend } from "@/components/profile/rating-trend";
 import type { groupPlayerProfile } from "@/lib/profile/queries";
 
 type Profile = NonNullable<Awaited<ReturnType<typeof groupPlayerProfile>>>;
-
-export function RatingTrend({
-  points,
-  groupSlug,
-}: {
-  points: Profile["summary"]["trend"];
-  groupSlug: string;
-}) {
-  const t = useT();
-  const lang = useLang();
-  if (!points.length)
-    return <p className="text-dim p-3 text-xs">{t.profile.noRatings}</p>;
-  const chronological = [...points].reverse().slice(-20);
-  const values = chronological.map((point) => point.rating);
-  const low = Math.min(...values, 0.8) - 0.08;
-  const high = Math.max(...values, 1.2) + 0.08;
-  const x = (index: number) =>
-    chronological.length === 1
-      ? 300
-      : 26 + (index * 548) / (chronological.length - 1);
-  const y = (value: number) => 132 - ((value - low) / (high - low)) * 116;
-  const formatDate = (value: string) =>
-    new Intl.DateTimeFormat(lang === "pl" ? "pl-PL" : "en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      timeZone: "Europe/Warsaw",
-    }).format(new Date(value));
-  const path = chronological
-    .map(
-      (point, index) =>
-        `${index ? "L" : "M"}${x(index).toFixed(1)},${y(point.rating).toFixed(1)}`,
-    )
-    .join(" ");
-  return (
-    <svg
-      viewBox="0 0 600 150"
-      role="img"
-      aria-label={t.profile.ratingTrend}
-      className="h-36 w-full"
-      preserveAspectRatio="none"
-    >
-      <line
-        x1="26"
-        x2="574"
-        y1={y(1)}
-        y2={y(1)}
-        stroke="currentColor"
-        className="text-dim"
-        strokeDasharray="3 5"
-        opacity="0.55"
-      />
-      <path d={path} fill="none" stroke="var(--color-gold)" strokeWidth="2.5" />
-      {chronological.map((point, index) => {
-        const rating = point.rating.toFixed(2);
-        const title = t.profile.ratingPoint(
-          formatDate(point.at),
-          point.map,
-          `${point.scoreA}:${point.scoreB}`,
-          rating,
-        );
-        return (
-          <Link
-            key={point.id}
-            href={`/g/${groupSlug}/m/${point.mixId}`}
-            aria-label={title}
-            className="focus-visible:outline-gold focus-visible:outline-2 focus-visible:outline-offset-2"
-          >
-            <title>{title}</title>
-            <circle
-              cx={x(index)}
-              cy={y(point.rating)}
-              r="5"
-              fill="var(--color-gold)"
-            />
-          </Link>
-        );
-      })}
-    </svg>
-  );
-}
 
 export function PlayerProfileView({
   groupSlug,
@@ -111,6 +31,20 @@ export function PlayerProfileView({
       year: "numeric",
       timeZone: "Europe/Warsaw",
     }).format(new Date(value));
+  const trendPoints = [...summary.trend]
+    .reverse()
+    .slice(-20)
+    .map((point) => ({
+      id: point.id,
+      rating: point.rating,
+      title: t.profile.ratingPoint(
+        date(point.at),
+        point.map,
+        `${point.scoreA}:${point.scoreB}`,
+        point.rating.toFixed(2),
+      ),
+      href: `/g/${groupSlug}/m/${point.mixId}`,
+    }));
   return (
     <main className="mx-auto w-full max-w-[1180px] flex-1 px-2 pb-12">
       <p className="text-dim mb-2 text-xs">
@@ -227,7 +161,16 @@ export function PlayerProfileView({
                         summary.trend.length,
                       )}
                     </p>
-                    <RatingTrend points={summary.trend} groupSlug={groupSlug} />
+                    {trendPoints.length ? (
+                      <RatingTrend
+                        points={trendPoints}
+                        label={t.profile.ratingTrend}
+                      />
+                    ) : (
+                      <p className="text-dim p-3 text-xs">
+                        {t.profile.noRatings}
+                      </p>
+                    )}
                   </Well>
                   <h2 className="text-gold mt-4 mb-1 text-sm font-bold">
                     {t.profile.mapHistory}

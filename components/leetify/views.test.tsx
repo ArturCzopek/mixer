@@ -2,10 +2,11 @@ import { createElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "@/components/i18n";
-import { LeetifyProfilePanel, LeetifyRatingChart } from "./profile-panel";
+import { LeetifyProfilePanel } from "./profile-panel";
 import { LeetifyPreviewCard } from "./preview-card";
 import { LeetifyAttribution, LeetifyMatchTable } from "./match-table";
 import { PlayerProfileView } from "@/components/profile/player-profile-view";
+import { RatingTrend } from "@/components/profile/rating-trend";
 import type { LeetifyMatch } from "@/lib/external/leetify";
 
 vi.mock("next/link", () => ({
@@ -54,7 +55,7 @@ describe("Leetify views", () => {
     expect(html).toContain('href="https://leetify.com/"');
   });
 
-  it("shows only the latest 20 raw matches and plots raw Leetify Ratings", () => {
+  it("shows the latest 20 matches and plots each non-null raw Leetify Rating", () => {
     const history = Array.from({ length: 22 }, (_, index) => ({
       ...matches[0],
       finishedAt: new Date(
@@ -64,19 +65,47 @@ describe("Leetify views", () => {
       score: [13, index] as [number, number],
       leetifyRating: index === 1 ? -0.45 : index === 2 ? null : 0.12,
     }));
+    const points = [...history.slice(0, 20)]
+      .reverse()
+      .flatMap((match, index) => {
+        if (match.leetifyRating === null) return [];
+        const value = match.leetifyRating;
+        const rating =
+          value > 0
+            ? `+${value.toFixed(2)}`
+            : value < 0
+              ? `−${Math.abs(value).toFixed(2)}`
+              : "0.00";
+        return [
+          {
+            id: `${match.finishedAt}-${index}`,
+            rating: value,
+            title: `06 Oct 2026 · ${match.map} · ${match.score[0]}:${match.score[1]} · Leetify Rating ${rating}`,
+          },
+        ];
+      });
     const html = render(
       createElement(
         "div",
         null,
-        createElement(LeetifyRatingChart, { matches: history }),
+        createElement(RatingTrend, {
+          points,
+          label: "Raw Leetify Rating by match",
+          referenceValue: 0,
+        }),
         createElement(LeetifyMatchTable, { matches: history }),
       ),
     );
-    expect(html.match(/<circle/g)).toHaveLength(20);
+    expect(html.match(/<circle/g)).toHaveLength(19);
+    expect(html.match(/<path/g)).toHaveLength(1);
+    expect(html).toContain('aria-label="Raw Leetify Rating by match"');
     expect(html.match(/<tr/g)).toHaveLength(21);
     expect(html).toContain("map-0");
     expect(html).toContain("13:0");
     expect(html).toContain("Leetify Rating +0.12");
+    expect(html).toContain("Leetify Rating −0.45");
+    expect(html).not.toContain("map-2 · 13:2 · Leetify Rating 0.00");
+    expect(html).not.toContain("<a");
     expect(html).toContain('class="px-2 text-right text-gold"');
     expect(html).toContain('class="px-2 text-right text-text"');
     expect(html).not.toContain("map-20");
@@ -247,7 +276,7 @@ describe("Leetify views", () => {
       }),
     );
     expect(html).toContain('href="https://www.faceit.com/en/cs2/room/1-room"');
-    expect(html).toContain("Open FACEIT room");
+    expect(html).toContain("FACEIT room");
     expect(html).toContain(">98</td>");
 
     const withoutExternalData = render(

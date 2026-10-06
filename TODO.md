@@ -14,7 +14,9 @@ before the first real mix.
 - **M4-5 (captain draft):** deferred.
 - **UX batches 1–5:** done 2026-10-06. Batch 5 is one shared VGUI window with a responsive internal
   split, active-mix-aware creation, collapsible Mixer Rating leaders and Discord profile links.
-- Next: **M3-3 (head-to-head comparison)**, followed by **M4-7 (per-group balance settings)**.
+- **M3-3 (head-to-head comparison):** includes both side-by-side profiles by source and shared mix
+  results when playing together or against each other (Artur, 2026-10-06).
+- Next: **M4-7 (per-group balance settings)**.
 - **P0-6 (separate Production Supabase project):** do this immediately before the first real mix.
 
 ## Owner (Artur)
@@ -56,15 +58,24 @@ webhook auto-return (`app/api/webhooks/faceit`, unverified until a real Club mat
 
 Next, in order:
 
-1. **Chart reuse (owner feedback 2026-10-06):** the FACEIT and Premier tabs must use the same
-   connected-line chart as the Mix tab (`RatingTrend` in `components/profile/player-profile-view.tsx`)
-   instead of the separate `LeetifyRatingChart` in `components/leetify/profile-panel.tsx`. Extract
-   `RatingTrend` into a shared component with props for points, label and optional link, feed it the
-   raw Leetify Rating per match (no averages, D5), keep hover details and "Data Provided by Leetify",
-   delete `LeetifyRatingChart`. Small task: no plan round needed beyond a one-line note to Artur.
-2. **M3-3 (head-to-head comparison):** plan first in Polish for Artur, then implement.
-3. **M4-7 (per-group balance settings):** plan first.
-4. Full design + UX review with Artur afterwards (he expects more remarks).
+1. **M4-7 (per-group balance settings):** plan first. Preserve the balancing formulas and defaults.
+2. Full design + UX review with Artur afterwards (he expects more remarks).
+
+**Chart reuse implemented (Codex, 2026-10-06):** `components/profile/rating-trend.tsx` is shared by
+Mix, FACEIT and Premier. Leetify uses raw per-match ratings with a zero reference line and no
+fabricated points for missing ratings; hover details and attribution remain. Component regression
+tests are now included in the standard test command.
+
+**M3-3 implemented (Codex, 2026-10-06):** `/g/[slug]/compare` is linked from the group roster and has
+shareable selections of two distinct active members and Mix/FACEIT/Premier. Profiles stack on mobile;
+shared mix history counts maps and evenings separately, with opponent and teammate results and mix
+links. Score-only maps count without fabricated player statistics. Live local browser checks covered
+the GET form, empty player history, a real pair with 36 shared maps / 13 evenings, and both Leetify
+sources. No migration, database writes, or balancing changes. Implementation and planning delegated
+to `gpt-6-luna` with `xhigh`; integration and validation handled by Codex.
+Validation: 388 tests, lint, typecheck, format check and production build passed. Local browser
+checks also covered Polish labels and empty/loaded Leetify panels; the VGUI finish review returned
+`ship`. Existing owner-only live checks above remain open.
 
 Housekeeping noted by Codex: `.impeccable/design.json` is stale against `DESIGN.md` and
 `.impeccable/surfaces/app-g-slug-mix-id-page-tsx.md` is orphaned; refresh or delete when touching

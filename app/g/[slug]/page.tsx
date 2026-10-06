@@ -282,6 +282,12 @@ export default async function GroupPage({
               <span className="flex-1">
                 {t.groups.members(group.members.length)}
               </span>
+              <Link
+                href={`/g/${group.slug}/compare`}
+                className={`${groupPageLinkClassName} shrink-0`}
+              >
+                {t.profile.comparePlayers}
+              </Link>
             </ListHead>
             {group.members.length === 0 && (
               <p className="text-dim px-1.5 py-2 text-[11px]">

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useLang, useT } from "@/components/i18n";
 import { Well } from "@/components/vgui";
+import { RatingTrend } from "@/components/profile/rating-trend";
 import type { LeetifyMatch, LeetifyProfile } from "@/lib/external/leetify";
 import { LeetifyAttribution, LeetifyMatchTable } from "./match-table";
 
@@ -21,6 +22,7 @@ export function LeetifyProfilePanel({
   source: "faceit" | "premier";
 }) {
   const t = useT();
+  const lang = useLang();
   const [data, setData] = useState<ProfileResponse | null>(null);
   const [failed, setFailed] = useState(false);
 
@@ -52,6 +54,36 @@ export function LeetifyProfilePanel({
           [t.profile.faceitElo, data?.ranks.faceit_elo],
         ]
       : [[t.profile.premierRating, data?.ranks.premier]];
+  const ratingPoints = [...matches.slice(0, 20)]
+    .reverse()
+    .flatMap((match, index) => {
+      const value = match.leetifyRating;
+      if (value === null) return [];
+      const rating =
+        value > 0
+          ? `+${value.toFixed(2)}`
+          : value < 0
+            ? `−${Math.abs(value).toFixed(2)}`
+            : "0.00";
+      const date = new Intl.DateTimeFormat(lang === "pl" ? "pl-PL" : "en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        timeZone: "Europe/Warsaw",
+      }).format(new Date(match.finishedAt));
+      return [
+        {
+          id: `${match.finishedAt}-${index}`,
+          rating: value,
+          title: t.leetify.ratingPoint(
+            date,
+            match.map,
+            `${match.score[0]}:${match.score[1]}`,
+            rating,
+          ),
+        },
+      ];
+    });
   const emptyMessage = failed
     ? t.leetify.notAnswering(name)
     : data?.privacyMode
@@ -79,8 +111,17 @@ export function LeetifyProfilePanel({
           ))}
         </Well>
       ) : null}
-      {!pending && matches.length > 0 && (
-        <LeetifyRatingChart matches={matches} />
+      {!pending && ratingPoints.length > 0 && (
+        <Well className="mb-2 px-2 py-1.5">
+          <p className="text-dim mb-1 text-[11px]">
+            {t.leetify.rawRatingByMatch} · {t.leetify.lastMatches}
+          </p>
+          <RatingTrend
+            points={ratingPoints}
+            label={t.leetify.rawRatingByMatch}
+            referenceValue={0}
+          />
+        </Well>
       )}
       <LeetifyMatchTable
         matches={matches.slice(0, 20)}
@@ -90,96 +131,5 @@ export function LeetifyProfilePanel({
       />
       <LeetifyAttribution />
     </div>
-  );
-}
-
-export function LeetifyRatingChart({ matches }: { matches: LeetifyMatch[] }) {
-  const t = useT();
-  const lang = useLang();
-  const recent = matches.slice(0, 20).reverse();
-  const ratings = recent.flatMap((match) =>
-    match.leetifyRating === null ? [] : [match.leetifyRating],
-  );
-  if (recent.length === 0) return null;
-  const extent = Math.max(0.1, ...ratings.map(Math.abs));
-  const x = (index: number) =>
-    recent.length === 1 ? 300 : 26 + (index * 548) / (recent.length - 1);
-  const y = (value: number) => 76 - (value / extent) * 58;
-  const ratingText = (value: number | null) =>
-    value === null
-      ? "—"
-      : value > 0
-        ? `+${value.toFixed(2)}`
-        : value < 0
-          ? `−${Math.abs(value).toFixed(2)}`
-          : "0.00";
-  const formatDate = (value: string) =>
-    new Intl.DateTimeFormat(lang === "pl" ? "pl-PL" : "en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      timeZone: "Europe/Warsaw",
-    }).format(new Date(value));
-
-  return (
-    <Well className="mb-2 px-2 py-1.5">
-      <p className="text-dim mb-1 text-[11px]">
-        {t.leetify.rawRatingByMatch} · {t.leetify.lastMatches}
-      </p>
-      <svg
-        viewBox="0 0 600 152"
-        role="img"
-        aria-label={t.leetify.rawRatingByMatch}
-        className="h-32 w-full"
-        preserveAspectRatio="none"
-      >
-        <line
-          x1="26"
-          x2="574"
-          y1={y(0)}
-          y2={y(0)}
-          stroke="var(--vg-dim)"
-          strokeDasharray="3 5"
-          opacity="0.65"
-        />
-        {recent.map((match, index) => {
-          const value = match.leetifyRating;
-          const title = t.leetify.ratingPoint(
-            formatDate(match.finishedAt),
-            match.map,
-            `${match.score[0]}:${match.score[1]}`,
-            ratingText(value),
-          );
-          return (
-            <g key={`${match.finishedAt}-${index}`}>
-              {value !== null && (
-                <line
-                  x1={x(index)}
-                  x2={x(index)}
-                  y1={y(0)}
-                  y2={y(value)}
-                  stroke={value > 0 ? "var(--vg-gold)" : "var(--vg-text)"}
-                  strokeWidth="2"
-                />
-              )}
-              <circle
-                cx={x(index)}
-                cy={y(value ?? 0)}
-                r="4"
-                fill={
-                  value === null
-                    ? "var(--vg-dim)"
-                    : value > 0
-                      ? "var(--vg-gold)"
-                      : "var(--vg-text)"
-                }
-              >
-                <title>{title}</title>
-              </circle>
-            </g>
-          );
-        })}
-      </svg>
-    </Well>
   );
 }
