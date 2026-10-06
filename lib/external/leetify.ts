@@ -1,31 +1,35 @@
-// Leetify Public API client (server only). DISPLAY ONLY: Leetify data is fetched live on every
-// request, never cached, stored, recalculated or renamed, and always shown with
-// "Data Provided by Leetify" (CLAUDE.md, docs/06). Header `_leetify_key` (Bearer returns 401).
+// Leetify Public API client (server only). DISPLAY ONLY: cached for five minutes in Next's HTTP
+// cache, never stored, recalculated or renamed, and always shown with the required attribution.
 
 import { z } from "zod";
 import { requireEnv } from "@/lib/env";
 import { getJson, type FetchLike } from "./http";
 
 const API = "https://api-public.cs-prod.leetify.com/v3";
+export const LEETIFY_REVALIDATE_S = 300;
+export const LEETIFY_PREMIER_SOURCE = "matchmaking" as const;
 
-/** One FACEIT match as the Leetify card shows it. */
+export type LeetifyDataSource = "faceit" | typeof LEETIFY_PREMIER_SOURCE;
+
+/** One match in the API's team-relative score and Leetify display scale. */
 export interface LeetifyMatch {
-  /** `finished_at` */
   finishedAt: string;
-  /** `data_source` (the card keeps only "faceit") */
-  dataSource: "faceit";
-  /** `map_name` */
+  dataSource: LeetifyDataSource;
   map: string;
-  /** The player's team rounds : the other team's, from `team_scores`. */
   score: [number, number];
-  /**
-   * The player's `leetify_rating` in Leetify's own display format (the API's 0.0123 is shown by
-   * Leetify as +1.23): formatting only, the number itself is Leetify's.
-   */
-  leetifyRating: number;
-  /** `total_kills` / `total_assists` / `total_deaths`, as Leetify reports them. */
+  leetifyRating: number | null;
   kad: [number, number, number];
 }
+
+const profileSchema = z.object({
+  // The live API sends "public" (seen 2026-10-06); older docs show a boolean. Anything else is private.
+  privacy_mode: z.union([z.boolean(), z.string()]),
+  ranks: z.object({
+    faceit: z.number().nullable().optional(),
+    faceit_elo: z.number().nullable().optional(),
+    premier: z.number().nullable().optional(),
+  }),
+});
 
 const matchSchema = z.object({
   finished_at: z.string(),
@@ -46,59 +50,113 @@ const matchSchema = z.object({
   ),
 });
 
+export interface LeetifyProfile {
+  privacyMode: boolean;
+  ranks: {
+    faceit?: number | null;
+    faceit_elo?: number | null;
+    premier?: number | null;
+  };
+}
+
 export interface LeetifyClientOptions {
   apiKey?: string;
   fetch?: FetchLike;
 }
 
-/** The player's FACEIT matches in [from, to), newest first, as Leetify reports them. */
-export function toFaceitMatches(
+export async function getLeetifyProfile(
+  steamId: string,
+  opts: LeetifyClientOptions = {},
+): Promise<LeetifyProfile | null> {
+  const body = await getJson(
+    `${API}/profile?steam64_id=${encodeURIComponent(steamId)}`,
+    profileSchema,
+    {
+      service: "leetify",
+      headers: { _leetify_key: opts.apiKey ?? requireEnv("LEETIFY_API_KEY") },
+      revalidate: LEETIFY_REVALIDATE_S,
+      fetch: opts.fetch,
+      allowNotFound: true,
+    },
+  );
+  return (
+    body && {
+      privacyMode:
+        body.privacy_mode !== false && body.privacy_mode !== "public",
+      ranks: body.ranks,
+    }
+  );
+}
+
+/** API match history, with the player's team first and Leetify's displayed rating scale. */
+export function toLeetifyMatches(
   body: unknown,
   steamId: string,
-  range: { from: Date; to: Date },
+  source: LeetifyDataSource,
 ): LeetifyMatch[] {
   const out: LeetifyMatch[] = [];
-  for (const m of z.array(matchSchema).parse(body)) {
-    const t = Date.parse(m.finished_at);
-    if (m.data_source !== "faceit") continue;
-    if (t < range.from.getTime() || t >= range.to.getTime()) continue;
-    const me = m.stats.find((s) => s.steam64_id === steamId);
-    if (!me || me.leetify_rating === null) continue;
-    const ours = m.team_scores.find(
-      (s) => s.team_number === me.initial_team_number,
+  for (const match of z.array(matchSchema).parse(body ?? [])) {
+    if (match.data_source !== source) continue;
+    const time = Date.parse(match.finished_at);
+    if (!Number.isFinite(time)) continue;
+    const player = match.stats.find((stat) => stat.steam64_id === steamId);
+    if (!player) continue;
+    const ours = match.team_scores.find(
+      (team) => team.team_number === player.initial_team_number,
     );
-    const theirs = m.team_scores.find(
-      (s) => s.team_number !== me.initial_team_number,
+    const theirs = match.team_scores.find(
+      (team) => team.team_number !== player.initial_team_number,
     );
     if (!ours || !theirs) continue;
     out.push({
-      finishedAt: new Date(t).toISOString(),
-      dataSource: "faceit",
-      map: m.map_name,
+      finishedAt: new Date(time).toISOString(),
+      dataSource: source,
+      map: match.map_name,
       score: [ours.score, theirs.score],
-      leetifyRating: Math.round(me.leetify_rating * 10000) / 100,
-      kad: [me.total_kills, me.total_assists, me.total_deaths],
+      leetifyRating:
+        player.leetify_rating === null
+          ? null
+          : Math.round(player.leetify_rating * 10000) / 100,
+      kad: [player.total_kills, player.total_assists, player.total_deaths],
     });
   }
   return out.sort((a, b) => b.finishedAt.localeCompare(a.finishedAt));
 }
 
-/** Live, uncached. Returns null when Leetify does not know the player (404). */
-export async function getFaceitMatches(
+export function toFaceitMatches(
+  body: unknown,
   steamId: string,
   range: { from: Date; to: Date },
+): LeetifyMatch[] {
+  return toLeetifyMatches(body, steamId, "faceit").filter((match) => {
+    const time = Date.parse(match.finishedAt);
+    return time >= range.from.getTime() && time < range.to.getTime();
+  });
+}
+
+export async function getLeetifyMatches(
+  steamId: string,
   opts: LeetifyClientOptions = {},
-): Promise<LeetifyMatch[] | null> {
-  const body = await getJson(
+): Promise<unknown | null> {
+  return getJson(
     `${API}/profile/matches?steam64_id=${encodeURIComponent(steamId)}`,
     z.unknown(),
     {
       service: "leetify",
       headers: { _leetify_key: opts.apiKey ?? requireEnv("LEETIFY_API_KEY") },
-      revalidate: 0,
+      revalidate: LEETIFY_REVALIDATE_S,
       fetch: opts.fetch,
       allowNotFound: true,
     },
   );
-  return body === null ? null : toFaceitMatches(body, steamId, range);
+}
+
+/** Last-30-day FACEIT preview for existing server-rendered callers. */
+export async function getFaceitMatches(
+  steamId: string,
+  range: { from: Date; to: Date },
+  opts: LeetifyClientOptions = {},
+): Promise<LeetifyMatch[] | null> {
+  const body = await getLeetifyMatches(steamId, opts);
+  return toFaceitMatches(body, steamId, range);
 }

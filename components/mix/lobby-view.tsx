@@ -6,6 +6,7 @@ import { useActionState, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useT } from "@/components/i18n";
 import { ListHead, VButton, Well, Window } from "@/components/vgui";
+import { LeetifyPreviewCard } from "@/components/leetify/preview-card";
 import { DiscordMissing } from "./discord-missing";
 import {
   addParticipant,
@@ -18,6 +19,7 @@ import {
   type MixActionState,
 } from "@/lib/mix/actions";
 import type { LobbyParticipant, MixLobby } from "@/lib/mix/queries";
+import { cn } from "@/lib/utils";
 
 export function CreateMixForm({ groupId }: { groupId: string }) {
   const t = useT();
@@ -72,9 +74,13 @@ export function MixLobbyView({
   const t = useT();
   const router = useRouter();
   const [feedback, setFeedback] = useState<MixActionError>();
+  const [focusedSteamId, setFocusedSteamId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [newPlayerId, setNewPlayerId] = useState(candidates[0]?.playerId ?? "");
   const joinedIds = new Set(mix.participants.map((player) => player.playerId));
+  const focusedParticipant = mix.participants.find(
+    (participant) => participant.steamId === focusedSteamId,
+  );
   const isJoined = viewerId !== null && joinedIds.has(viewerId);
   const open = mix.status === "open";
   const count = mix.participants.length;
@@ -124,6 +130,8 @@ export function MixLobbyView({
               position={index + 1}
               removable={canManage && open && participant.playerId !== viewerId}
               pending={pending}
+              focused={focusedSteamId === participant.steamId}
+              onFocus={() => setFocusedSteamId(participant.steamId)}
               onRemove={() =>
                 run(() => removeParticipant(mix.id, participant.playerId))
               }
@@ -146,6 +154,16 @@ export function MixLobbyView({
             ),
           )}
         </Well>
+        {focusedParticipant && (
+          <LeetifyPreviewCard
+            key={focusedParticipant.steamId}
+            player={{
+              steamId: focusedParticipant.steamId,
+              name:
+                focusedParticipant.displayName ?? focusedParticipant.steamId,
+            }}
+          />
+        )}
 
         {feedback && (
           <Well
@@ -153,6 +171,15 @@ export function MixLobbyView({
             className="text-alert mb-2 px-2 py-1.5 text-[11px]"
           >
             {t.lobby.errors[feedback]}
+          </Well>
+        )}
+        {pending && (
+          <Well
+            role="status"
+            aria-live="polite"
+            className="text-dim mb-2 px-2 py-1.5 text-[11px]"
+          >
+            {t.loading.working}
           </Well>
         )}
 
@@ -263,18 +290,27 @@ function ParticipantRow({
   position,
   removable,
   pending,
+  focused,
+  onFocus,
   onRemove,
 }: {
   participant: LobbyParticipant;
   position: number;
   removable: boolean;
   pending: boolean;
+  focused: boolean;
+  onFocus: () => void;
   onRemove: () => void;
 }) {
   const t = useT();
   const name = participant.displayName ?? participant.steamId;
   return (
-    <div className="border-row flex min-w-0 items-center gap-2 border-b px-1.5 py-1.5 last:border-b-0">
+    <div
+      className={cn(
+        "border-row flex min-w-0 items-center gap-2 border-b px-1.5 py-1.5 last:border-b-0",
+        focused && "bg-hover",
+      )}
+    >
       {participant.avatarUrl ? (
         <Image
           src={participant.avatarUrl}
@@ -287,9 +323,18 @@ function ParticipantRow({
       ) : (
         <span className="border-lo bg-row size-5 shrink-0 border" />
       )}
-      <span className="text-text min-w-0 flex-1 truncate text-[13px]">
+      <button
+        type="button"
+        aria-pressed={focused}
+        title={t.leetify.previewTitle(name)}
+        onClick={onFocus}
+        className={cn(
+          "hover:text-gold focus-visible:outline-gold min-w-0 flex-1 truncate text-left text-[13px] focus-visible:outline-1",
+          focused ? "text-gold font-bold" : "text-text",
+        )}
+      >
         {name}
-      </span>
+      </button>
       <span className="text-dim shrink-0 text-[11px]">
         {t.lobby.joined(position)}
       </span>

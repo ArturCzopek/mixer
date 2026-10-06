@@ -8,6 +8,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { DiscordMissing } from "./discord-missing";
 import { DiscordVoice } from "./discord-voice";
+import { LeetifyPreviewCard } from "@/components/leetify/preview-card";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ExternalLink, Lock } from "lucide-react";
 import {
@@ -174,6 +175,11 @@ export function MixView({
     data.variants[0]?.number ?? 1,
   );
   const [focusId, setFocusId] = React.useState(data.mix.meId);
+  const [previewSelected, setPreviewSelected] = React.useState(false);
+  const selectPlayer = (id: string) => {
+    setFocusId(id);
+    setPreviewSelected(true);
+  };
   const activeVariantNo = mix.variants.some((v) => v.number === variantNo)
     ? variantNo
     : (mix.variants[0]?.number ?? 1);
@@ -229,7 +235,8 @@ export function MixView({
                 variantNo={activeVariantNo}
                 onVariantChange={setVariantNo}
                 focusId={focusId}
-                onFocus={setFocusId}
+                onFocus={selectPlayer}
+                showPreview={previewSelected}
               />
             )}
 
@@ -254,7 +261,8 @@ export function MixView({
                     <VariantBody
                       variant={variant}
                       focusId={focusId}
-                      onFocus={setFocusId}
+                      onFocus={selectPlayer}
+                      showPreview={previewSelected}
                     />
                   )}
                   {variant && <Tally />}
@@ -357,12 +365,14 @@ function BalancingPanel({
   onVariantChange,
   focusId,
   onFocus,
+  showPreview,
 }: {
   variant?: Variant;
   variantNo: number;
   onVariantChange: (number: number) => void;
   focusId: string;
   onFocus: (id: string) => void;
+  showPreview: boolean;
 }) {
   const { data } = useMix();
   const t = useT();
@@ -394,6 +404,7 @@ function BalancingPanel({
                 variant={variant}
                 focusId={focusId}
                 onFocus={onFocus}
+                showPreview={showPreview}
               />
             )}
           </Sheet>
@@ -836,12 +847,13 @@ function VariantBody({
   variant,
   focusId,
   onFocus,
+  showPreview,
 }: {
   variant: Variant;
   focusId: string;
   onFocus: (id: string) => void;
+  showPreview: boolean;
 }) {
-  const { data } = useMix();
   const everyone = [...variant.teamA, ...variant.teamB];
   const focused = everyone.find((p) => p.steamId === focusId) ?? everyone[0];
   return (
@@ -863,7 +875,9 @@ function VariantBody({
       </div>
       <div className="lg:[&>details:first-child]:mt-0">
         <Explanation player={focused} everyone={everyone} variant={variant} />
-        {data.leetify && <LeetifyCard player={focused} />}
+        {showPreview && (
+          <LeetifyPreviewCard key={focused.steamId} player={focused} />
+        )}
       </div>
     </div>
   );
@@ -891,149 +905,6 @@ function Labels({ variant }: { variant: Variant }) {
         <Badge key={l}>{l}</Badge>
       ))}
     </div>
-  );
-}
-
-const LEETIFY_ROWS = 8;
-const LEETIFY_COLS = "grid-cols-[3.6rem_1fr_2.8rem_3.6rem_3.4rem]";
-
-/**
- * Leetify preview (M3-2) as an old-client property window: the player's FACEIT matches in the
- * window the server fetched live (never stored), each with its Leetify Rating exactly as Leetify shows it. Nothing is averaged or
- * recomputed (Leetify terms). Fixed height: always LEETIFY_ROWS rows, so switching players never
- * moves the page.
- */
-function LeetifyCard({ player }: { player: Player }) {
-  const { data } = useMix();
-  const t = useT();
-  const lw = data.leetify!;
-  const found = lw.matches[player.steamId];
-  const matches = found ?? [];
-  const span = dates(lw.window.from, lw.window.to);
-  const won = matches.filter((m) => m.score[0] > m.score[1]).length;
-  const shown = matches.slice(0, LEETIFY_ROWS);
-  const rating = (n: number) =>
-    n > 0 ? `+${n.toFixed(2)}` : n < 0 ? `−${Math.abs(n).toFixed(2)}` : "0.00";
-  return (
-    <details open className="group mt-2.5">
-      <summary className="bevel bg-window hover:bg-hover flex cursor-pointer list-none items-center justify-between px-2 py-1.5 select-none">
-        <span className="truncate">
-          {t.leetify.title(lw.window.live)}{" "}
-          <b className="text-text">{player.name}</b>
-        </span>
-        <ChevronDown
-          aria-hidden
-          className="text-dim size-3.5 shrink-0 group-open:rotate-180"
-        />
-      </summary>
-      <Well className="text-dim flex h-[42px] items-center gap-1.5 px-2 text-[11px]">
-        <span aria-hidden className="bg-gold size-[7px] shrink-0" />
-        {found === null ? (
-          <span>{t.leetify.notAnswering(player.name)}</span>
-        ) : matches.length === 0 ? (
-          <span>{t.leetify.none(span)}</span>
-        ) : (
-          <span>
-            <b className="text-text">{matches.length}</b>{" "}
-            {t.leetify.matches(span)} ·{" "}
-            <b className="text-text">
-              {t.leetify.wl(won, matches.length - won)}
-            </b>{" "}
-            · {t.leetify.liveNotStored}
-          </span>
-        )}
-      </Well>
-      <div
-        aria-label={t.leetify.resultsAria}
-        className="mt-1.5 flex h-[16px] flex-row-reverse flex-wrap content-start justify-end gap-0.5 overflow-hidden px-0.5"
-      >
-        {matches.map((m, i) => (
-          <span
-            key={i}
-            title={`${m.map} ${m.score[0]}:${m.score[1]}`}
-            className={cn(
-              "size-[7px]",
-              m.score[0] > m.score[1] ? "bg-win" : "bg-loss",
-            )}
-          />
-        ))}
-      </div>
-      <Well className="mt-1.5">
-        <div
-          className={cn(
-            "border-lo bg-window text-dim grid items-end gap-x-2 border-b px-1.5 py-1 text-[10px] leading-tight tracking-[0.06em] uppercase",
-            LEETIFY_COLS,
-          )}
-        >
-          <span>{t.leetify.date}</span>
-          <span>{t.leetify.map}</span>
-          <span className="text-right">{t.leetify.score}</span>
-          <span className="text-right">{t.leetify.kad}</span>
-          <span className="text-right">{t.leetify.rating}</span>
-        </div>
-        <div className="relative">
-          {Array.from({ length: LEETIFY_ROWS }, (_, i) => {
-            const m = shown[i];
-            return (
-              <div
-                key={i}
-                className={cn(
-                  "border-row grid h-[27px] items-center gap-x-2 border-b px-1.5",
-                  LEETIFY_COLS,
-                )}
-              >
-                {m && (
-                  <>
-                    <span className="text-dim text-[11px]">
-                      {m.score[0] > m.score[1] ? (
-                        <b className="text-win">{t.leetify.win}</b>
-                      ) : (
-                        <b className="text-loss">{t.leetify.loss}</b>
-                      )}{" "}
-                      {ddmm(m.finishedAt)}
-                    </span>
-                    <span className="truncate">{m.map.replace("de_", "")}</span>
-                    <span className="text-right">
-                      {m.score[0]}
-                      <span className="text-dim">:</span>
-                      {m.score[1]}
-                    </span>
-                    <span className="text-right">{m.kad.join("/")}</span>
-                    <b
-                      className={cn(
-                        "text-right",
-                        m.leetifyRating > 0 && "text-win",
-                        m.leetifyRating < 0 && "text-loss",
-                      )}
-                    >
-                      {rating(m.leetifyRating)}
-                    </b>
-                  </>
-                )}
-              </div>
-            );
-          })}
-          {matches.length === 0 && (
-            <p className="text-dim absolute inset-0 grid place-items-center px-6 text-center text-[11px] italic">
-              {t.leetify.placeholder(player.name)}
-            </p>
-          )}
-        </div>
-        <p className="text-dim h-[24px] px-1.5 py-1 text-[11px]">
-          {matches.length > shown.length &&
-            t.leetify.more(matches.length - shown.length)}
-        </p>
-      </Well>
-      <a
-        href="https://leetify.com/"
-        target="_blank"
-        rel="noreferrer"
-        className="bevel bg-sheet text-text mt-1.5 flex items-center justify-center gap-1.5 px-2 py-1.5 text-[11px] font-bold no-underline"
-      >
-        Data Provided by Leetify
-        <ExternalLink className="size-3" aria-hidden />
-      </a>
-    </details>
   );
 }
 

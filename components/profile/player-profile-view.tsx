@@ -2,8 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import { useLang, useT } from "@/components/i18n";
-import { Well, Window } from "@/components/vgui";
+import { Tabs, Well, Window } from "@/components/vgui";
+import { LeetifyProfilePanel } from "@/components/leetify/profile-panel";
 import type { groupPlayerProfile } from "@/lib/profile/queries";
 
 type Profile = NonNullable<Awaited<ReturnType<typeof groupPlayerProfile>>>;
@@ -54,7 +56,7 @@ function RatingTrend({ points }: { points: Profile["summary"]["trend"] }) {
           r="3.5"
           fill="var(--color-gold)"
         >
-          <title>{`${new Date(point.at).toLocaleDateString()} · ${point.rating.toFixed(2)}`}</title>
+          <title>{`${point.at.slice(0, 10)} ·${point.rating.toFixed(2)}`}</title>
         </circle>
       ))}
     </svg>
@@ -72,6 +74,7 @@ export function PlayerProfileView({
 }) {
   const t = useT();
   const lang = useLang();
+  const [source, setSource] = useState<"mix" | "faceit" | "premier">("mix");
   const { player, faceit, summary } = data;
   const date = (value: string) =>
     new Intl.DateTimeFormat(lang === "pl" ? "pl-PL" : "en-GB", {
@@ -168,100 +171,121 @@ export function PlayerProfileView({
             </div>
           </Well>
         </div>
-        {summary.mapCount === 0 ? (
-          <Well className="text-dim mt-3 p-4 text-sm">{t.profile.empty}</Well>
-        ) : (
-          <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(220px,1fr)]">
-            <div className="min-w-0">
-              <h2 className="text-gold mb-1 text-sm font-bold">
-                {t.profile.ratingTrend}
-              </h2>
-              <Well>
-                <RatingTrend points={summary.trend} />
-              </Well>
-              <h2 className="text-gold mt-4 mb-1 text-sm font-bold">
-                {t.profile.mapHistory}
-              </h2>
-              <Well className="overflow-x-auto">
-                <table className="w-full min-w-[620px] text-left text-xs">
-                  <thead className="bg-window text-dim">
-                    <tr>
-                      <th className="p-2">{t.profile.map}</th>
-                      <th>{t.profile.score}</th>
-                      <th>{t.profile.result}</th>
-                      <th>K / D / A</th>
-                      <th>ADR</th>
-                      <th>{t.profile.rating}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {summary.maps.map((map) => (
-                      <tr key={map.matchId} className="border-row border-t">
-                        <td className="p-2">
-                          <Link
-                            className="text-gold underline"
-                            href={`/g/${groupSlug}/m/${map.mixId}`}
-                          >
-                            {map.mixTitle}
-                          </Link>
-                          <span className="text-dim block">
-                            {date(map.playedAt)} ·{" "}
-                            {map.mapName ?? `#${map.mapNumber}`}
-                          </span>
-                        </td>
-                        <td>
-                          {map.scoreA}:{map.scoreB}
-                        </td>
-                        <td
-                          className={
-                            map.outcome === "win"
-                              ? "text-win"
-                              : map.outcome === "loss"
-                                ? "text-loss"
-                                : "text-dim"
-                          }
+        <div className="mt-3">
+          <Tabs
+            label={t.profile.source}
+            value={source}
+            onChange={setSource}
+            items={[
+              { value: "mix", label: t.profile.mixTab },
+              { value: "faceit", label: t.profile.faceitTab },
+              { value: "premier", label: t.profile.premierTab },
+            ]}
+          />
+          {source === "mix" ? (
+            summary.mapCount === 0 ? (
+              <Well className="text-dim p-4 text-sm">{t.profile.empty}</Well>
+            ) : (
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(220px,1fr)]">
+                <div className="min-w-0">
+                  <h2 className="text-gold mb-1 text-sm font-bold">
+                    {t.profile.ratingTrend}
+                  </h2>
+                  <Well>
+                    <RatingTrend points={summary.trend} />
+                  </Well>
+                  <h2 className="text-gold mt-4 mb-1 text-sm font-bold">
+                    {t.profile.mapHistory}
+                  </h2>
+                  <Well className="overflow-x-auto">
+                    <table className="w-full min-w-[620px] text-left text-xs">
+                      <thead className="bg-window text-dim">
+                        <tr>
+                          <th className="p-2">{t.profile.map}</th>
+                          <th>{t.profile.score}</th>
+                          <th>{t.profile.result}</th>
+                          <th>K / D / A</th>
+                          <th>ADR</th>
+                          <th>{t.profile.rating}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {summary.maps.map((map) => (
+                          <tr key={map.matchId} className="border-row border-t">
+                            <td className="p-2">
+                              <Link
+                                className="text-gold underline"
+                                href={`/g/${groupSlug}/m/${map.mixId}`}
+                              >
+                                {map.mixTitle}
+                              </Link>
+                              <span className="text-dim block">
+                                {date(map.playedAt)} ·{" "}
+                                {map.mapName ?? `#${map.mapNumber}`}
+                              </span>
+                            </td>
+                            <td>
+                              {map.scoreA}:{map.scoreB}
+                            </td>
+                            <td
+                              className={
+                                map.outcome === "win"
+                                  ? "text-win"
+                                  : map.outcome === "loss"
+                                    ? "text-loss"
+                                    : "text-dim"
+                              }
+                            >
+                              {t.profile.outcome[map.outcome]}
+                            </td>
+                            <td>
+                              {map.stats?.kills === null || !map.stats
+                                ? "—"
+                                : `${map.stats.kills} / ${map.stats.deaths ?? "—"} / ${map.stats.assists ?? "—"}`}
+                            </td>
+                            <td>{map.stats?.adr?.toFixed(0) ?? "—"}</td>
+                            <td>{map.stats?.rating?.toFixed(2) ?? "—"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </Well>
+                </div>
+                <div>
+                  <h2 className="text-gold mb-1 text-sm font-bold">
+                    {t.profile.bestTeammates}
+                  </h2>
+                  <Well className="divide-row divide-y text-xs">
+                    {summary.bestTeammates.slice(0, 5).map((mate) => (
+                      <div
+                        key={mate.id}
+                        className="flex items-center justify-between gap-2 p-2"
+                      >
+                        <Link
+                          className="text-gold min-w-0 truncate underline"
+                          href={`/g/${groupSlug}/p/${mate.steamId}`}
                         >
-                          {t.profile.outcome[map.outcome]}
-                        </td>
-                        <td>
-                          {map.stats?.kills === null || !map.stats
-                            ? "—"
-                            : `${map.stats.kills} / ${map.stats.deaths ?? "—"} / ${map.stats.assists ?? "—"}`}
-                        </td>
-                        <td>{map.stats?.adr?.toFixed(0) ?? "—"}</td>
-                        <td>{map.stats?.rating?.toFixed(2) ?? "—"}</td>
-                      </tr>
+                          {mate.name}
+                        </Link>
+                        <span className="text-dim shrink-0">
+                          {mate.wins}/{mate.maps} ·{" "}
+                          {Math.round((mate.wins / mate.maps) * 100)}%
+                        </span>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
-              </Well>
-            </div>
-            <div>
-              <h2 className="text-gold mb-1 text-sm font-bold">
-                {t.profile.bestTeammates}
-              </h2>
-              <Well className="divide-row divide-y text-xs">
-                {summary.bestTeammates.slice(0, 5).map((mate) => (
-                  <div
-                    key={mate.id}
-                    className="flex items-center justify-between gap-2 p-2"
-                  >
-                    <Link
-                      className="text-gold min-w-0 truncate underline"
-                      href={`/g/${groupSlug}/p/${mate.steamId}`}
-                    >
-                      {mate.name}
-                    </Link>
-                    <span className="text-dim shrink-0">
-                      {mate.wins}/{mate.maps} ·{" "}
-                      {Math.round((mate.wins / mate.maps) * 100)}%
-                    </span>
-                  </div>
-                ))}
-              </Well>
-            </div>
-          </div>
-        )}
+                  </Well>
+                </div>
+              </div>
+            )
+          ) : (
+            <LeetifyProfilePanel
+              key={player.steamId}
+              steamId={player.steamId}
+              name={player.name}
+              source={source}
+            />
+          )}
+        </div>
       </Window>
     </main>
   );

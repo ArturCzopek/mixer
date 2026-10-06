@@ -3,7 +3,6 @@
 
 import type { BalanceConfig, SkillBreakdown, Variant } from "@/lib/balance";
 import type { MatchAward } from "@/lib/awards";
-import type { LeetifyMatch } from "@/lib/external/leetify";
 import type { GroupMember } from "@/lib/groups/queries";
 import type { SkillSnapshotInput } from "./generation";
 import type { MixVariantPage } from "./queries";
@@ -109,14 +108,6 @@ export interface MixViewData {
     source: "manual" | "faceit" | "demo" | "mixed" | "popflash";
     awards?: MatchAward[];
   };
-  /**
-   * Live Leetify preview per player (FACEIT matches in `window`, never stored); a player's entry is
-   * null when Leetify could not be reached or does not know them. Null hides the card.
-   */
-  leetify: {
-    window: { from: string; to: string; live: boolean };
-    matches: Record<string, LeetifyMatch[] | null>;
-  } | null;
   /** Set on the showcase page (its title and notes come from the dictionary). */
   showcase?: {
     /** The lineup they really played that evening, for comparison with the voted variant. */
@@ -362,7 +353,6 @@ export function mixVariantViewData(
     })),
     swapLog,
     result: { maps: [], source: "faceit" },
-    leetify: null,
   };
 }
 

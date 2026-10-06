@@ -12,7 +12,8 @@ export function DiscordVoice({
   mixId: string;
   state: "locked" | "played";
 }) {
-  const t = useT().discordVoice;
+  const dict = useT();
+  const t = dict.discordVoice;
   const [result, run, pending] = useActionState(
     moveMixDiscordPlayers.bind(null, mixId),
     undefined,
@@ -30,11 +31,11 @@ export function DiscordVoice({
             primary
             disabled={pending}
           >
-            {t.teams}
+            {pending ? dict.loading.working : t.teams}
           </VButton>
         )}
         <VButton type="submit" name="target" value="lobby" disabled={pending}>
-          {t.lobby}
+          {pending ? dict.loading.working : t.lobby}
         </VButton>
       </form>
       {result && (

@@ -100,14 +100,19 @@ Why FACEIT directly and not via Leetify: Leetify's terms forbid storing or recal
 | `GET /v2/matches/{dataSource}/{dataSourceId}` | Match by source ID (e.g. `faceit`, `matchmaking`) |
 
 We use it for the profile tabs **FACEIT** and **Premier**, by filtering match history on `data_source`,
-and for the **Leetify preview** (M3-2): a small card fetched live when someone opens a player (tap in
-the lobby / variant, profile header). Owner (2026-09-25): **FACEIT matches of the last 30 days only**
-(`/v3/profile/matches`, `data_source = "faceit"`, `finished_at` within 30 days): per match the date,
-map, score and the player's **Leetify Rating** exactly as Leetify shows it, plus the count of matches
-and wins. No profile-wide numbers (aim, positioning…) and no averages or other scores computed from
-Leetify data (their terms forbid recalculating). With the "Data Provided by Leetify" logo. Fetched by a server route with `cache: "no-store"`, never written to
-the database, never an input to balancing. `privacy_mode` on → the card says the profile is private.
+and for the **Leetify preview** (M3-2): a small card fetched when someone selects a player in the lobby
+or a variant. Owner (2026-09-25): **FACEIT matches of the last 30 days only**
+(`/v3/profile/matches`, `data_source = "faceit"`, `finished_at` within 30 days): each match shows its W/L
+result, date, map, score and the player's **Leetify Rating** exactly as Leetify displays it, with K/A/D
+and the required attribution. No averages or other scores are computed from Leetify data.
+`/api/leetify/[steamId]` uses Next's five-minute server fetch cache (`revalidate: 300`); data is never
+written to the database or used for balancing or Mixer Rating. privacy_mode on means the UI says the
+profile is private.
 
+**Premier source check (2026-10-06):** a live `/v3/profile/matches` response returned
+`data_source: "matchmaking"` for Premier matches (the same response also contained `faceit`,
+`matchmaking_wingman` and `matchmaking_competitive`). The Premier tab filters on `matchmaking` based
+on this real API response.
 ### Leetify developer guidelines: hard rules for us
 
 From https://leetify.com/blog/leetify-api-developer-guidelines/:
@@ -115,7 +120,7 @@ From https://leetify.com/blog/leetify-api-developer-guidelines/:
    Never imply the app is affiliated with or endorsed by Leetify. Do not use "Leetify" in the app name.
 2. **Do not modify metrics**: same names, same scales, same display format (Aim is "Aim: 95", not "95%").
    No recalculated scores.
-3. **Do not store data** from the API: fetch at request time. Short-lived HTTP caching (minutes) is fine;
+3. **Do not store data** from the API in our database. Short-lived server HTTP caching (minutes) is fine;
    no database tables for Leetify data.
 
 Consequences for the design:
@@ -159,4 +164,4 @@ One site-wide bot. Env: `DISCORD_BOT_TOKEN`, `DISCORD_CLIENT_ID`, `DISCORD_CLIEN
 |---|---|
 | Steam names / avatars | 1 h fetch cache; stored in `players` and refreshed on login (no daily refresh job yet) |
 | FACEIT ELO / form | 10 min fetch cache; per-mix snapshot storage is planned |
-| Leetify profile / matches | No fetch cache (`no-store`); never persisted |
+| Leetify profile / matches | Five-minute server fetch cache; never persisted to our database |

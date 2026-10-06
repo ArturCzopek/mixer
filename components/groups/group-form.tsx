@@ -79,7 +79,7 @@ export function GroupForm({
         </Well>
       )}
       <VButton type="submit" primary disabled={pending}>
-        {submit}
+        {pending ? t.loading.working : submit}
       </VButton>
     </form>
   );

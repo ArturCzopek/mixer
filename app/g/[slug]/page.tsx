@@ -7,6 +7,7 @@ import { DiscordSettings } from "@/components/groups/discord-settings";
 import { MemberActions } from "@/components/groups/member-actions";
 import { AddRosterPlayer, RosterElo } from "@/components/groups/roster-form";
 import { CreateMixForm } from "@/components/mix/lobby-view";
+import { PendingSubmit } from "@/components/vgui/pending-submit";
 import { Badge, ListHead, Well, Window } from "@/components/vgui";
 import { hasGroupRole } from "@/lib/auth/roles";
 import { getSession } from "@/lib/auth/server";
@@ -321,9 +322,9 @@ export default async function GroupPage({
                     )}
                   {m.playerId === session?.playerId && m.discordUserId && (
                     <form action={unlinkDiscordAccount.bind(null, accountNext)}>
-                      <button type="submit" className="text-gold underline">
+                      <PendingSubmit pendingLabel={t.loading.working}>
                         {t.groups.discordAccount.disconnect}
-                      </button>
+                      </PendingSubmit>
                     </form>
                   )}
                 </div>

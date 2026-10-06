@@ -318,12 +318,9 @@ cookie (1 year) so the server renders the chosen language. All UI strings live i
 attribution). Code, docs and data stay English.
 
 ## D35. Showcase uses the voted variant, live Leetify, Accepted (2026-09-26)
-Amends D31. On `/demo` the locked lineup is the variant that won the (made-up) vote, like in the real
-app; the lineup they really played in 2024 is shown next to it for comparison, and the Result tab
-shows that real lineup's result. The Leetify card is live (last 30 days before today; Leetify keeps
-no 2024 matches), fetched on every request, never cached or stored. The mock preview `/design/mix`
-was removed.
-
+Amends D31. On /demo the locked lineup is the variant that won the made-up vote. The real 2024 lineup
+and results remain visible for comparison. The Leetify card shows the last 30 days and is never
+stored. D41 amends its cache policy. The /design/mix mock was removed.
 ## D36. Write path: authorize first, invariants in the database, Accepted (2026-09-27)
 From M1-G on (audit task A2). Every server action starts with `requireSession` /
 `requireGroupRole` (roles read from the DB per request, D18) before any read or write it does for
@@ -353,3 +350,10 @@ After sign-ups close, a group admin may replace a participant who drops out with
 ## D40. Generation fallback when FACEIT data is missing, Accepted (2026-09-27)
 
 For each player, E uses FACEIT ELO first, then that group's `manual_skill_override`, then the mean of other players' available FACEIT/manual ELO values in the same mix. Each source is recorded in the snapshot and named in the calculation panel. If the entire ten-player roster has no sourced ELO, use a neutral 1400 ELO seed (Artur's 2026-09-28 amendment) and show that source explicitly so generation still completes. A failed FACEIT form fetch stores no form samples, records the form as unavailable, and contributes F = 0. The existing engine, formulas, and defaults do not change. FACEIT's existing client retry on 429/5xx remains in effect (A4/Q2).
+
+## D41. Five-minute server cache for Leetify display, Accepted (2026-10-06)
+Amends D35. Leetify profile and match data is fetched by `/api/leetify/[steamId]` and may be reused in
+Next's server HTTP cache for 300 seconds (`revalidate: 300`). It is never written to our database, used
+as a balance input, or mixed into Mixer Rating. Profile tabs show Mix, FACEIT and Premier; the preview
+shows only FACEIT matches from the last 30 days. A live `/v3/profile/matches` response checked on
+2026-10-06 used `data_source = matchmaking` for Premier.

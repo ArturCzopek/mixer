@@ -13,7 +13,13 @@ import {
   type FaceitMatchStat,
 } from "./faceit";
 import { ExternalApiError, type FetchLike } from "./http";
-import { getFaceitMatches, toFaceitMatches } from "./leetify";
+import {
+  getFaceitMatches,
+  getLeetifyProfile,
+  LEETIFY_PREMIER_SOURCE,
+  toFaceitMatches,
+  toLeetifyMatches,
+} from "./leetify";
 import {
   getPlayerSummaries,
   parseSteamInput,
@@ -352,7 +358,34 @@ describe("leetify client (invented sample, Leetify data is never stored)", () =>
     ]);
   });
 
-  it("sends the _leetify_key header and never caches", async () => {
+  it("keeps FACEIT and Premier sources separate using Leetify's matchmaking source", () => {
+    const base = match({});
+    const matches = [
+      {
+        ...base,
+        data_source: "matchmaking",
+        stats: [{ ...base.stats[0], leetify_rating: 0.1223 }],
+      },
+      {
+        ...base,
+        finished_at: "2026-09-21T20:00:00.000Z",
+        stats: [{ ...base.stats[0], leetify_rating: null }],
+      },
+    ];
+    expect(LEETIFY_PREMIER_SOURCE).toBe("matchmaking");
+    expect(toLeetifyMatches(matches, me, LEETIFY_PREMIER_SOURCE)).toEqual([
+      {
+        finishedAt: "2026-09-20T20:00:00.000Z",
+        dataSource: "matchmaking",
+        map: "de_nuke",
+        score: [9, 13],
+        leetifyRating: 12.23,
+        kad: [14, 3, 17],
+      },
+    ]);
+  });
+
+  it("sends the _leetify_key header and uses the five-minute Next cache", async () => {
     const seen: RequestInit[] = [];
     await getFaceitMatches(me, range, {
       apiKey: "k",
@@ -362,6 +395,42 @@ describe("leetify client (invented sample, Leetify data is never stored)", () =>
       },
     });
     expect((seen[0].headers as Record<string, string>)._leetify_key).toBe("k");
-    expect(seen[0].cache).toBe("no-store");
+    expect(seen[0].next).toEqual({ revalidate: 300 });
+  });
+
+  it("reads privacy and source ranks from the live Leetify profile", async () => {
+    const seen: {
+      url: string;
+      init: RequestInit & { next?: { revalidate: number } };
+    }[] = [];
+    const profile = await getLeetifyProfile(me, {
+      apiKey: "k",
+      fetch: async (url, init) => {
+        seen.push({
+          url,
+          init: init as RequestInit & { next?: { revalidate: number } },
+        });
+        return json({
+          privacy_mode: false,
+          ranks: { faceit: 10, faceit_elo: 2169, premier: 18693 },
+        });
+      },
+    });
+    expect(profile).toEqual({
+      privacyMode: false,
+      ranks: { faceit: 10, faceit_elo: 2169, premier: 18693 },
+    });
+    expect(seen[0].url).toContain("/v3/profile?steam64_id=");
+    expect(seen[0].init.next).toEqual({ revalidate: 300 });
+  });
+
+  it("reads the live string privacy_mode", async () => {
+    const read = (privacy_mode: unknown) =>
+      getLeetifyProfile(me, {
+        apiKey: "k",
+        fetch: async () => json({ privacy_mode, ranks: {} }),
+      });
+    expect((await read("public"))?.privacyMode).toBe(false);
+    expect((await read("private"))?.privacyMode).toBe(true);
   });
 });

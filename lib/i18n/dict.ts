@@ -93,13 +93,17 @@ const en = {
   leetify: {
     title: (live: boolean) =>
       `Leetify · FACEIT, last 30 days${live ? " (live)" : ""}`,
+    previewTitle: (name: string) => `Leetify · ${name} · FACEIT, last 30 days`,
     notAnswering: (name: string) =>
       `Leetify is not answering for ${name} right now.`,
+    privateProfile: "This Leetify profile is private.",
+    noRecentFaceit: "No FACEIT matches in the last 30 days.",
     none: (span: string) => `No FACEIT matches ${span}.`,
     matches: (span: string) => `FACEIT matches ${span}`,
-    wl: (w: number, l: number) => `${w} W ${l} L`,
+    wl: (w: number, l: number, d = 0) => `${w} W ${l} L${d ? ` ${d} D` : ""}`,
     win: "W",
     loss: "L",
+    draw: "D",
     kad: "K/A/D",
     liveNotStored: "live from Leetify, not stored",
     resultsAria: "Results, newest first",
@@ -107,6 +111,7 @@ const en = {
     map: "Map",
     score: "Score",
     rating: "Leetify Rating",
+    result: "Result",
     placeholder: (name: string) =>
       `No FACEIT in 30 days. ${name} is either touching grass or secretly grinding Premier.`,
     more: (n: number) => `and ${n} more on Leetify`,
@@ -573,7 +578,14 @@ const en = {
   },
   profile: {
     title: "Player profile",
+    source: "Profile source",
+    mixTab: "Mix",
+    faceitTab: "FACEIT",
+    premierTab: "Premier",
     faceitLevel: "FACEIT level",
+    faceitElo: "FACEIT ELO",
+    premierRating: "Premier",
+    noLeetifyMatches: "No matches for this source.",
     faceitProfile: "Open FACEIT profile",
     faceitUnavailable: "FACEIT ELO is unavailable for this player.",
     maps: "Maps",
@@ -592,6 +604,17 @@ const en = {
     empty:
       "No played mix maps yet. Results will appear after the first evening.",
     outcome: { win: "Win", loss: "Loss", draw: "Draw" },
+  },
+  loading: {
+    loading: "Loading...",
+    working: "Working...",
+    leetify: "Loading Leetify data...",
+    routes: {
+      groups: "Loading groups...",
+      group: "Loading group...",
+      mix: "Loading mix...",
+      profile: "Loading player profile...",
+    },
   },
   showcase: {
     title: "Showcase: our popflash evening of 16 Dec 2024",
@@ -686,12 +709,16 @@ const pl: Dict = {
   leetify: {
     title: (live) =>
       `Leetify · FACEIT, ostatnie 30 dni${live ? " (na żywo)" : ""}`,
+    previewTitle: (name) => `Leetify · ${name} · FACEIT, ostatnie 30 dni`,
     notAnswering: (name) => `Leetify nie odpowiada teraz dla gracza ${name}.`,
+    privateProfile: "Ten profil Leetify jest prywatny.",
+    noRecentFaceit: "Brak meczów FACEIT z ostatnich 30 dni.",
     none: (span) => `Brak meczów FACEIT ${span}.`,
     matches: (span) => `meczów FACEIT ${span}`,
-    wl: (w, l) => `${w} W ${l} P`,
+    wl: (w, l, d = 0) => `${w} W ${l} P${d ? ` ${d} R` : ""}`,
     win: "W",
     loss: "P",
+    draw: "R",
     kad: "K/A/D",
     liveNotStored: "na żywo z Leetify, nie zapisujemy",
     resultsAria: "Wyniki, od najnowszego",
@@ -699,6 +726,7 @@ const pl: Dict = {
     map: "Mapa",
     score: "Wynik",
     rating: "Leetify Rating",
+    result: "Rezultat",
     placeholder: (name) =>
       `Zero FACEIT od 30 dni. ${name} albo dotyka trawy, albo po cichu grinduje Premiera.`,
     more: (n) => `i jeszcze ${n} na Leetify`,
@@ -1115,7 +1143,14 @@ const pl: Dict = {
   },
   profile: {
     title: "Profil gracza",
+    source: "Źródło profilu",
+    mixTab: "Mix",
+    faceitTab: "FACEIT",
+    premierTab: "Premier",
     faceitLevel: "Poziom FACEIT",
+    faceitElo: "ELO FACEIT",
+    premierRating: "Premier",
+    noLeetifyMatches: "Brak meczów z tego źródła.",
     faceitProfile: "Otwórz profil FACEIT",
     faceitUnavailable: "ELO FACEIT tego gracza jest niedostępne.",
     maps: "Mapy",
@@ -1134,6 +1169,17 @@ const pl: Dict = {
     empty:
       "Nie ma jeszcze rozegranych map. Wyniki pojawią się po pierwszym wieczorze.",
     outcome: { win: "Wygrana", loss: "Porażka", draw: "Remis" },
+  },
+  loading: {
+    loading: "Wczytywanie...",
+    working: "Zapisywanie...",
+    leetify: "Wczytywanie danych Leetify...",
+    routes: {
+      groups: "Wczytywanie grup...",
+      group: "Wczytywanie grupy...",
+      mix: "Wczytywanie miksu...",
+      profile: "Wczytywanie profilu gracza...",
+    },
   },
   showcase: {
     title: "Pokaz: nasz wieczór na popflashu, 16.12.2024",

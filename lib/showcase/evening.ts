@@ -11,7 +11,6 @@ import {
   winProbability,
   type PlayerInput,
 } from "@/lib/balance";
-import { getFaceitMatches } from "@/lib/external/leetify";
 import { previewVoters, type MixViewData } from "@/lib/mix/view";
 import evening from "./evening-2024-12-16.json";
 
@@ -72,19 +71,6 @@ export async function showcaseViewData(): Promise<MixViewData> {
     "17:25",
   ];
 
-  const now = new Date();
-  const window = { from: new Date(now.getTime() - 30 * 86_400_000), to: now };
-  const leetify = process.env.LEETIFY_API_KEY
-    ? Object.fromEntries(
-        await Promise.all(
-          ids.map(async (id) => [
-            id,
-            await getFaceitMatches(id, window).catch(() => null),
-          ]),
-        ),
-      )
-    : null;
-
   return {
     mix: {
       id: "showcase-2024-12-16",
@@ -126,14 +112,6 @@ export async function showcaseViewData(): Promise<MixViewData> {
         b: m.b,
         lines: m.lines.map((l) => ({ ...l, team: l.team as "A" | "B" })),
       })),
-    },
-    leetify: leetify && {
-      window: {
-        from: window.from.toISOString(),
-        to: window.to.toISOString(),
-        live: true,
-      },
-      matches: leetify,
     },
     showcase: {
       real: {

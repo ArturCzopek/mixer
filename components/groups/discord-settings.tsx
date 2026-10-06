@@ -32,7 +32,8 @@ export function DiscordSettings({
   result?: string;
   action: Action;
 }) {
-  const t = useT().groups.discord;
+  const dict = useT();
+  const t = dict.groups.discord;
   const [state, run, pending] = useActionState(action, undefined);
   const voice = channels.filter((channel) => channel.type === 2);
   const text = channels.filter((channel) => channel.type === 0);
@@ -113,7 +114,7 @@ export function DiscordSettings({
                 </Well>
               )}
               <VButton type="submit" primary disabled={pending}>
-                {t.save}
+                {pending ? dict.loading.working : t.save}
               </VButton>
             </form>
           )}

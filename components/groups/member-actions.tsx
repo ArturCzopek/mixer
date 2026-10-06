@@ -40,6 +40,11 @@ export function MemberActions({
           {t.groups.errors[state.error]}
         </span>
       )}
+      {pending && (
+        <span role="status" className="text-dim text-[11px]">
+          {t.loading.working}
+        </span>
+      )}
       <button
         type="button"
         disabled={pending}

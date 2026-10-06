@@ -12,7 +12,7 @@ before the first real mix.
 ## Owner decisions (2026-10-06)
 
 - **M4-5 (captain draft):** deferred.
-- After the current deployment-verification follow-up, queue **M3-2 (Leetify tabs)**, **M3-3
+- Queue **M3-3
   (head-to-head comparison)**, then **M4-7 (per-group balance settings)**, followed by a full
   design and UX review with Artur.
 - **P0-6 (separate Production Supabase project):** do this immediately before the first real mix.
@@ -29,11 +29,6 @@ before the first real mix.
       `https://YOUR_HOST/api/webhooks/faceit`, header `X-Mixer-Secret`, event `match_status_finished`,
       organizer of our Club (docs/06). Then one real Club match verifies D-3 auto-return, D-4 and S6.
 
-### Deployment verification still needing Artur (2026-10-06)
-
-- [ ] **P0-4 (deploy pipeline + keep-alive cron):** in Vercel, confirm the Production `CRON_SECRET`,
-      the daily `/api/cron/keepalive` job, a successful manual run (200 in function logs), and a PR
-      Preview deployment.
 - [x] **M1-5 race script:** `db-race-check.mjs` passed all six cases on 2026-10-06 (run by Claude;
       Codex's sandbox could not authorize to the Management API).
 - [ ] **M1-3 (group roster):** have a pre-added roster member sign in through Steam on Production to

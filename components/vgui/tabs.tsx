@@ -21,6 +21,7 @@ export function Tabs<T extends string | number>({
         return (
           <button
             key={item.value}
+            type="button"
             role="tab"
             aria-selected={on}
             onClick={() => onChange(item.value)}
