@@ -175,6 +175,78 @@ describe("mix skill generation", () => {
     expect(result[selected.playerId].breakdown.contributions.F).toBe(0);
   });
 
+  it("uses one recent mix rating with shrinkage toward the group average", async () => {
+    const { skillSnapshots } = await import("./generation");
+    const selected = member(0);
+    const result = await skillSnapshots([selected], {
+      now,
+      source: sourceWith({ [selected.steamId]: null }),
+      mixRatings: [
+        {
+          playerId: selected.playerId,
+          playedAt: "2026-09-20T20:00:00.000Z",
+          mapNumber: 1,
+          rating: 1.5,
+        },
+        {
+          playerId: "other-group-player",
+          playedAt: "2026-09-19T20:00:00.000Z",
+          mapNumber: 1,
+          rating: 1,
+        },
+      ],
+    });
+    const snapshot = result[selected.playerId];
+    expect(snapshot.input).toMatchObject({
+      mixRatings: [1.5],
+      mixGroupRating: 1.25,
+    });
+    expect(snapshot.breakdown.mix).toMatchObject({
+      status: "ok",
+      maps: 1,
+      groupRating: 1.25,
+    });
+    expect(snapshot.breakdown.M).toBeGreaterThan(0);
+    expect(snapshot.breakdown.weights).toMatchObject({ mixForm: 0.5 });
+  });
+
+  it("keeps the ten newest numeric ratings ordered by played time then map number", async () => {
+    const { skillSnapshots } = await import("./generation");
+    const selected = member(0);
+    const mixRatings = [
+      ...Array.from({ length: 11 }, (_, index) => ({
+        playerId: selected.playerId,
+        playedAt:
+          index === 0 ? "2026-10-01T20:00:00.000Z" : "2026-09-21T20:00:00.000Z",
+        mapNumber: index + 1,
+        rating: 1.01 + index / 100,
+      })),
+      {
+        playerId: "other-group-player",
+        playedAt: "2026-09-18T20:00:00.000Z",
+        mapNumber: 1,
+        rating: 0.99,
+      },
+      {
+        playerId: selected.playerId,
+        playedAt: "invalid",
+        mapNumber: 1,
+        rating: 99,
+      },
+    ];
+    const result = await skillSnapshots([selected], {
+      now,
+      source: sourceWith({ [selected.steamId]: null }),
+      mixRatings,
+    });
+    const snapshot = result[selected.playerId];
+    expect(snapshot.input.mixRatings).toEqual([
+      1.01, 1.11, 1.1, 1.09, 1.08, 1.07, 1.06, 1.05, 1.04, 1.03,
+    ]);
+    expect(snapshot.input.mixGroupRating).toBeCloseTo(1.0541667);
+    expect(snapshot.breakdown.mix.maps).toBe(10);
+  });
+
   it("never repeats a split shown in an earlier generation", async () => {
     const { selectedVariants, skillSnapshots } = await import("./generation");
     const roster = steamIds.slice(0, 10).map((_, index) => member(index));

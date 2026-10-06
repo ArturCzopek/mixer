@@ -33,7 +33,15 @@ export interface SkillSnapshotInput extends PlayerInput {
   eloSource: EloSource;
   faceitLevel: number | null;
   faceitFormAvailable: boolean;
+  mixGroupRating: number | null;
   swapInheritedFrom: string | null;
+}
+
+export interface MixRatingSample {
+  playerId: string;
+  playedAt: string;
+  mapNumber: number;
+  rating: number;
 }
 
 export interface SkillSnapshot {
@@ -61,10 +69,35 @@ export async function skillSnapshots(
     clubId?: string | null;
     config?: BalanceConfig;
     source?: FaceitSource;
+    mixRatings?: MixRatingSample[];
   },
 ): Promise<Record<string, SkillSnapshot>> {
   const config = options.config ?? DEFAULT_BALANCE_CONFIG;
   const source = options.source ?? faceit;
+  const numericMixRatings = (options.mixRatings ?? []).filter(
+    (sample) =>
+      Number.isFinite(sample.rating) &&
+      Number.isFinite(Date.parse(sample.playedAt)) &&
+      Number.isFinite(sample.mapNumber),
+  );
+  const mixGroupRating = numericMixRatings.length
+    ? mean(numericMixRatings.map((sample) => sample.rating))
+    : null;
+  const recentMixRatings = new Map<string, number[]>();
+  for (const member of members) {
+    recentMixRatings.set(
+      member.playerId,
+      numericMixRatings
+        .filter((sample) => sample.playerId === member.playerId)
+        .sort(
+          (a, b) =>
+            Date.parse(b.playedAt) - Date.parse(a.playedAt) ||
+            b.mapNumber - a.mapNumber,
+        )
+        .slice(0, config.mix.maps)
+        .map((sample) => sample.rating),
+    );
+  }
   const loaded = await Promise.all(
     members.map(async (member) => {
       let profile: FaceitPlayer | null = null;
@@ -137,12 +170,13 @@ export async function skillSnapshots(
       manualSkillOverride: member.manualElo,
       faceit: { matches: samples satisfies FaceitMatchSample[] },
       activity: { playedAt: item.playedAt },
-      mixRatings: [],
+      mixRatings: recentMixRatings.get(member.playerId) ?? [],
       preferredRole: member.preferredRole,
       resolvedElo,
       eloSource,
       faceitLevel,
       faceitFormAvailable,
+      mixGroupRating,
       swapInheritedFrom: null,
     };
     const breakdown = skillScore(
@@ -153,7 +187,7 @@ export async function skillSnapshots(
             ? resolvedElo
             : member.manualElo,
       },
-      { now: options.now, groupRating: null },
+      { now: options.now, groupRating: input.mixGroupRating },
       config,
     );
     snapshots[member.playerId] = { input, breakdown };

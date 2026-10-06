@@ -18,7 +18,7 @@ S = wE·E + wF·F + wM·M + wA·A     # weights from config (D22): wE = 1, wF = 
 |---|---|---|
 | **E**: base | Resolved base ELO | FACEIT ELO → this group's `manual_skill_override` → mean of other players' sourced FACEIT/manual ELO in this mix → neutral 1400 only when nobody in the roster has sourced ELO (D40); each source is shown in the panel |
 | **F**: FACEIT form | Recent FACEIT performance vs. the player's own baseline, scaled by ELO (asymmetry) | FACEIT matches from the **last 30 days** |
-| **M**: mix form | How the player performs **in our mixes** | Our own mix stats (FACEIT import or demo) |
+| **M**: mix form | How the player performs **in our mixes** | Numeric per-player Mixer Ratings from played maps in the same group, including the Popflash archive and manual maps later enriched with stats; score-only maps and missing ratings are excluded |
 | **A**: activity | Rust penalty / small bonus for regular play | Sessions in the last 30 days (FACEIT history + mix maps) |
 
 The engine returns every intermediate number with S (M1-4b, `SkillBreakdown` in `lib/balance/skill.ts`),
@@ -130,23 +130,32 @@ Examples:
 
 ### M: mix form (our own rating)
 
-Uses the mixer rating (HLTV 2.0-style, see [demo pipeline](05-demo-pipeline.md#rating)) from the
-player's **last N = 10 mix maps**, shrunk toward the group average so one great map does not swing everything:
+Uses the Mixer Rating (see [demo pipeline](05-demo-pipeline.md#rating)) from each player's **10 most
+recent rated maps**, ordered by `matches.played_at` then `map_number`, shrunk toward the group average
+so one great map does not swing everything. Every numeric `match_player_stats.rating` from played
+mixes in the same group counts, including FACEIT-imported maps, the Popflash archive, and manual maps
+later enriched with stats. Score-only maps and missing per-player ratings do not count. There is no
+minimum map count; shrinkage `k = 5` applies from the first rating.
 
 ```
-r̄_group = average rating of all players over all mix maps
-r̂       = (n · r̄_player + k · r̄_group) / (n + k)      # n = maps played, k = 5
-M       = clamp( γ · (r̂ − r̄_group), −M_max, +M_max )
+groupRating = average of all numeric ratings on earlier played maps in the group
+playerRating = average of this player's latest n ratings, where n <= 10
+shrunk = (n * playerRating + k * groupRating) / (n + k)  # k = 5
+M = clamp(gamma * (shrunk - groupRating), -M_max, +M_max)
 ```
-Defaults: `γ = 1000`, `M_max = 200`. Example: after 10 maps at 1.15 when the group average is 1.00,
-r̂ = 1.10, so M = +100 ELO. A player with no mix history gets M = 0.
 
-**Asymmetry (D32):** like F, the raw value `γ · (r̂ − r̄_group)` (clamped to ±M_max) is multiplied by
-m+(E) for good mix form and m−(E) for a slump, from `mix.asymmetry` (defaults equal to
-`form.asymmetry`: ≤1000 ELO ×1.5 / ×0.3, 1500 ×1.0 / ×0.45, ≥2000 ×0.1 / ×0.6). Example: +100 raw
-becomes +150 at 1000 ELO and +10 at 2000; −100 becomes −30 and −60.
+Defaults: `gamma = 1000`, `M_max = 200`. Example: after 10 maps at 1.15 when the group average is
+1.00, the shrunk rating is 1.10, so M = +100 ELO. A player with no rated maps gets M = 0; with no
+group ratings M is also 0. The recent player ratings, group average and explanation are stored in the
+skill snapshot, so past explanations stay fixed and re-rolls reuse the same inputs.
 
-**Cold start:** until we have ~3 mixes with demos, M ≈ 0 for everyone and balancing is effectively FACEIT-only.
+**Asymmetry (D32):** like F, the raw value `gamma * (shrunk - groupRating)` (clamped to +/- M_max) is
+multiplied by m+(E) for good mix form and m-(E) for a slump, from `mix.asymmetry` (defaults equal to
+`form.asymmetry`: <=1000 ELO x1.5 / x0.3, 1500 x1.0 / x0.45, >=2000 x0.1 / x0.6). Example: +100 raw
+becomes +150 at 1000 ELO and +10 at 2000; -100 becomes -30 and -60.
+
+**Cold start:** while the group has no numeric Mixer Ratings, M = 0 and balancing uses the other
+terms. Once the group has ratings, M uses the available history without a minimum-map threshold.
 
 ## 2. Win probability
 

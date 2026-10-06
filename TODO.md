@@ -125,6 +125,11 @@ Mismatches roll back the whole import; archived mixes cannot be enriched. Migrat
 seven SQL files and publishable-key checks; `db-race-check.mjs` passed manual-vs-FACEIT concurrent
 result submission. A real admin browser enrichment still needs a played mix with matching rooms.
 
+**2026-10-06:** M2-6 (mix form M) is done. Generation now reads same-group Mixer Ratings from
+played maps, including Popflash and enriched manual results; it uses each player's 10 newest ratings
+and shrinks toward the group average with `k = 5` from the first rating. Snapshot inputs preserve the
+history used for the explanation and re-roll. Weight remains 0.5; no migration or UI change.
+
 **A5 done 2026-09-27:** `faceitForm()` skips invalid `finishedAt` values instead of counting them
 in the baseline; regression tests cover unchanged valid inputs and the thin-baseline threshold.
 

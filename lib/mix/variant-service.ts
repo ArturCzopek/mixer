@@ -6,8 +6,53 @@ import { mixGenerationData, type MixGenerationData } from "@/lib/mix/queries";
 import {
   selectedVariants,
   skillSnapshots,
+  type MixRatingSample,
   type SkillSnapshot,
 } from "./generation";
+
+interface MixRatingMapRow {
+  map_number: number;
+  played_at: string;
+  stats: { player_id: string; rating: number | string | null }[];
+}
+
+export async function mixRatingHistory(
+  groupId: string,
+): Promise<MixRatingSample[]> {
+  const maps: MixRatingMapRow[] = [];
+  for (let offset = 0; ; offset += 1000) {
+    const { data, error } = await adminDb()
+      .from("matches")
+      .select(
+        "map_number, played_at, mix:mixes!matches_mix_id_fkey!inner(group_id, status), stats:match_player_stats!match_player_stats_match_id_fkey(player_id, rating)",
+      )
+      .eq("mix.group_id", groupId)
+      .eq("mix.status", "played")
+      .order("played_at", { ascending: false })
+      .order("map_number", { ascending: false })
+      .order("id", { ascending: true })
+      .range(offset, offset + 999)
+      .returns<MixRatingMapRow[]>();
+    if (error) throw new Error(`mixRatingHistory: ${error.message}`);
+    maps.push(...data);
+    if (data.length < 1000) break;
+  }
+  return maps.flatMap((map) =>
+    map.stats.flatMap((stat) => {
+      if (stat.rating === null || stat.rating === "") return [];
+      const rating = Number(stat.rating);
+      if (!Number.isFinite(rating)) return [];
+      return [
+        {
+          playerId: stat.player_id,
+          playedAt: map.played_at,
+          mapNumber: map.map_number,
+          rating,
+        },
+      ];
+    }),
+  );
+}
 
 export class StaleVariantSetError extends Error {}
 
@@ -72,14 +117,16 @@ export async function initialVariantPlan(mixId: string) {
 
   const config = resolveConfig();
   const at = mix.scheduledAt ? new Date(mix.scheduledAt) : new Date();
-  const [snapshots, previous] = await Promise.all([
-    skillSnapshots(mix.participants, {
-      now: at,
-      clubId: mix.clubId,
-      config,
-    }),
+  const [previous, mixRatings] = await Promise.all([
     previousSplit(mix.groupId, mix.id),
+    mixRatingHistory(mix.groupId),
   ]);
+  const snapshots = await skillSnapshots(mix.participants, {
+    now: at,
+    clubId: mix.clubId,
+    config,
+    mixRatings,
+  });
   const selected = selectedVariants(snapshots, mix.participants, config, {
     previousSplit: previous,
   });
