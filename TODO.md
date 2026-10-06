@@ -6,7 +6,16 @@ Only what is still open. Task IDs refer to [docs/07-roadmap.md](docs/07-roadmap.
 ## Release plan
 
 We keep building until the owner organises the first real mix. When ten people sign up, we release
-the MVP (M1-9) if it is ready; P0-6 (separate prod Supabase) comes right before that.
+the MVP (M1-9) if it is ready; P0-6 (separate Production Supabase project) happens immediately
+before the first real mix.
+
+## Owner decisions (2026-10-06)
+
+- **M4-5 (captain draft):** deferred.
+- After the current deployment-verification follow-up, queue **M3-2 (Leetify tabs)**, **M3-3
+  (head-to-head comparison)**, then **M4-7 (per-group balance settings)**, followed by a full
+  design and UX review with Artur.
+- **P0-6 (separate Production Supabase project):** do this immediately before the first real mix.
 
 ## Owner (Artur)
 
@@ -19,6 +28,20 @@ the MVP (M1-9) if it is ready; P0-6 (separate prod Supabase) comes right before 
 - [ ] Set `FACEIT_WEBHOOK_SECRET` in Vercel; in FACEIT App Studio add a webhook to
       `https://YOUR_HOST/api/webhooks/faceit`, header `X-Mixer-Secret`, event `match_status_finished`,
       organizer of our Club (docs/06). Then one real Club match verifies D-3 auto-return, D-4 and S6.
+
+### Deployment verification still needing Artur (2026-10-06)
+
+- [ ] **P0-4 (deploy pipeline + keep-alive cron):** in Vercel, confirm the Production `CRON_SECRET`,
+      the daily `/api/cron/keepalive` job, a successful manual run (200 in function logs), and a PR
+      Preview deployment.
+- [x] **M1-5 race script:** `db-race-check.mjs` passed all six cases on 2026-10-06 (run by Claude;
+      Codex's sandbox could not authorize to the Management API).
+- [ ] **M1-3 (group roster):** have a pre-added roster member sign in through Steam on Production to
+      verify first-login claim, refreshed identity, and no duplicate; also exercise the admin roster
+      controls there.
+- [ ] **M1-5 (mix lobby sign-ups):** with two real browser sessions on Production, create a disposable
+      mix, join from the second session, verify the live participant update and join order, then
+      remove the disposable mix.
 
 ## Next session (Codex or Claude): start here
 
@@ -151,10 +174,11 @@ already shows a thin baseline) and logout CSRF (harmless).
 - **Groups (M1-G, 2026-09-27):** our group is `/g/skarpeciarze` (FACEIT Club linked, 12 roster players
   seeded with `scripts/seed-group.mjs`; names fill in on first login or with M1-3). One menu bar in
   the root layout on every page (mixer › group menu, backdrop, language, account).
-- **Next tasks, in order:** finish the remaining M1-5 (mix sign-ups) and M1-6 (variant generation)
-  live checks above; M1-7 (voting under D33: public votes and closing rules) and M1-8 (public
-  read-only pages) are implemented. P0-6 (separate Production Supabase) comes before the MVP release.
-  The CS 1.6 backdrop uses a stable fixed layer and a cookie-backed preference.
+- **Next tasks, in order:** finish the owner checks above and the remaining M1-6 (variant generation)
+  real-player/admin browser checks; M1-7 (voting under D33: public votes and closing rules) and M1-8
+  (public read-only pages) are implemented. Then continue with the 2026-10-06 queue above. P0-6
+  (separate Production Supabase project) happens immediately before the first real mix. The CS 1.6
+  backdrop uses a stable fixed layer and a cookie-backed preference.
 
 ## Where the keys are
 
