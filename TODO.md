@@ -24,10 +24,11 @@ before the first real mix.
 - [ ] *(optional)* FACEIT developer terms: if you see a clause against storing match stats, tell the partner working with you (D20: FACEIT data policy).
 - [ ] *(optional, for M4-6)* S4 browser test of the demo parser once the spike page exists.
 - [x] Discord application + bot (D-1, done 2026-10-05; credentials in `.env.local` and Vercel).
-- [ ] Reset the Discord bot token (shown in a session log 2026-10-05); update `.env.local` and Vercel.
-- [ ] Set `FACEIT_WEBHOOK_SECRET` in Vercel; in FACEIT App Studio add a webhook to
-      `https://YOUR_HOST/api/webhooks/faceit`, header `X-Mixer-Secret`, event `match_status_finished`,
-      organizer of our Club (docs/06). Then one real Club match verifies D-3 auto-return, D-4 and S6.
+- [x] Discord bot token reset, `FACEIT_WEBHOOK_SECRET` in Vercel, FACEIT App Studio webhook to
+      `https://mixer-gray.vercel.app/api/webhooks/faceit` (done 2026-10-06).
+- [ ] Play one real Club match with friends: verifies D-3 auto-return to the lobby, D-4 lock/result
+      notices and S6. If players are not returned, check the Vercel log line
+      `FACEIT finish: lobby return` / `FACEIT webhook failed` and adjust `lib/mix/faceit-webhook.ts`.
 
 - [x] **M1-5 race script:** `db-race-check.mjs` passed all six cases on 2026-10-06 (run by Claude;
       Codex's sandbox could not authorize to the Management API).
@@ -44,6 +45,30 @@ before the first real mix.
 `docs/04-team-balancing.md`, `DESIGN.md`. Owner talks Polish; code/docs English; UI strings go
 through `lib/i18n` (English default, Polish toggle); push straight to `main` after test, lint,
 typecheck, format:check and build. Pushes to `main` deploy to Vercel **Production**.
+
+### Handoff 2026-10-06 (Claude → Codex)
+
+Shipped this session: Discord D-1/D-2 done, D-3 manual moves + FACEIT `match_status_finished`
+webhook auto-return (`app/api/webhooks/faceit`, unverified until a real Club match), D-4 notices
+(`lib/discord/notify.ts`, atomic `claim_mix_flag`), M2-6 (mix form M from real ratings), M3-2
+(Leetify tabs + preview, 5-min cache, D41), loading panels, UX batches 1–5. Leetify's live API sends
+`privacy_mode` as a string (`"public"`), see `lib/external/leetify.ts`.
+
+Next, in order:
+
+1. **Chart reuse (owner feedback 2026-10-06):** the FACEIT and Premier tabs must use the same
+   connected-line chart as the Mix tab (`RatingTrend` in `components/profile/player-profile-view.tsx`)
+   instead of the separate `LeetifyRatingChart` in `components/leetify/profile-panel.tsx`. Extract
+   `RatingTrend` into a shared component with props for points, label and optional link, feed it the
+   raw Leetify Rating per match (no averages, D5), keep hover details and "Data Provided by Leetify",
+   delete `LeetifyRatingChart`. Small task: no plan round needed beyond a one-line note to Artur.
+2. **M3-3 (head-to-head comparison):** plan first in Polish for Artur, then implement.
+3. **M4-7 (per-group balance settings):** plan first.
+4. Full design + UX review with Artur afterwards (he expects more remarks).
+
+Housekeeping noted by Codex: `.impeccable/design.json` is stale against `DESIGN.md` and
+`.impeccable/surfaces/app-g-slug-mix-id-page-tsx.md` is orphaned; refresh or delete when touching
+design docs.
 
 ### Audit follow-up (Codex audit 2026-09-26, reviewed by Claude)
 
