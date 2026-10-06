@@ -32,6 +32,7 @@ const en = {
     signIn: "Sign In Through Steam",
     signInShort: "Sign In",
     signOut: "Sign Out",
+    myProfile: "My Profile",
     siteAdmin: "site admin",
     showcase: "See a Real Mix: 16 Dec 2024",
     source: "source",
@@ -75,7 +76,8 @@ const en = {
     playerJoinOrder: "Player · join order",
     player: "Player",
     tapForDetails: " · tap for details",
-    skill: "Skill S",
+    skill: "Balance score S",
+    showPlayerDetails: (name: string) => `Show ${name}'s balance details`,
     freeSlot: "free slot",
     joined: (t: string) => `Joined ${t}`,
     teamA: "Team A",
@@ -112,20 +114,26 @@ const en = {
     score: "Score",
     rating: "Leetify Rating",
     result: "Result",
+    rawRatingByMatch: "Raw Leetify Rating by match",
+    lastMatches: "Last 20 matches",
+    ratingPoint: (date: string, map: string, score: string, rating: string) =>
+      `${date} · ${map} · ${score} · Leetify Rating ${rating}`,
     placeholder: (name: string) =>
       `No FACEIT in 30 days. ${name} is either touching grass or secretly grinding Premier.`,
     more: (n: number) => `and ${n} more on Leetify`,
   },
   explain: {
     title: "How was this calculated?",
-    eName: "FACEIT ELO",
-    eNote: (level: number) =>
-      `${level ? `Level ${level}, ` : ""}live from FACEIT`,
-    eManual: "FACEIT ELO missing: the group admin's manual ELO",
-    eMixMean: "Fallback: mean ELO of the other players in this mix",
-    eNeutral: "No sourced ELO in the lineup: neutral default of 1400",
-    eSwapSlot: (steamId: string) =>
-      `Keeps the approved slot's skill; inherited from ${steamId}`,
+    eName: "E contribution",
+    eFaceitAtLineup: (elo: string, level: number) =>
+      `${elo} ELO at lineup · ${level ? `level ${level} · ` : ""}FACEIT data used for this mix`,
+    eManualAtLineup: (elo: string) =>
+      `${elo} ELO at lineup · group admin's manual value because FACEIT ELO was unavailable`,
+    eMixMeanAtLineup: (elo: string) =>
+      `${elo} ELO at lineup · mean of the other players' sourced ELO in this mix`,
+    eNeutralAtLineup: (elo: string) => `${elo} ELO at lineup · neutral default`,
+    eSwapAtLineup: (elo: string, steamId: string) =>
+      `${elo} ELO at lineup · approved slot inherited from ${steamId}`,
     fName: (days: number) => `FACEIT form, last ${days} days`,
     mName: (weight: number) =>
       `Mix form${weight === 1 ? "" : ` · weight ${weight}`}`,
@@ -584,6 +592,11 @@ const en = {
     premierTab: "Premier",
     faceitLevel: "FACEIT level",
     faceitElo: "FACEIT ELO",
+    currentFaceitElo: "Current FACEIT ELO",
+    ratingTrendCount: (shown: number, total: number) =>
+      `${shown} of ${total} rated maps`,
+    ratingPoint: (date: string, map: string, score: string, rating: string) =>
+      `${date} · ${map} · ${score} · Mixer Rating ${rating}`,
     premierRating: "Premier",
     noLeetifyMatches: "No matches for this source.",
     faceitProfile: "Open FACEIT profile",
@@ -647,6 +660,7 @@ const pl: Dict = {
     signIn: "Zaloguj przez Steam",
     signInShort: "Zaloguj",
     signOut: "Wyloguj",
+    myProfile: "Mój profil",
     siteAdmin: "admin strony",
     showcase: "Zobacz prawdziwy miks: 16.12.2024",
     source: "kod",
@@ -690,8 +704,9 @@ const pl: Dict = {
   lists: {
     playerJoinOrder: "Gracz · kolejność zapisów",
     player: "Gracz",
+    showPlayerDetails: (name) => `Pokaż szczegóły balansu gracza ${name}`,
     tapForDetails: " · kliknij po szczegóły",
-    skill: "Siła S",
+    skill: "Wynik balansu S",
     freeSlot: "wolne miejsce",
     joined: (t) => `Dołączył o ${t}`,
     teamA: "Drużyna A",
@@ -726,6 +741,10 @@ const pl: Dict = {
     map: "Mapa",
     score: "Wynik",
     rating: "Leetify Rating",
+    rawRatingByMatch: "Surowy Leetify Rating na mecz",
+    lastMatches: "Ostatnie 20 meczów",
+    ratingPoint: (date, map, score, rating) =>
+      `${date} · ${map} · ${score} · Leetify Rating ${rating}`,
     result: "Rezultat",
     placeholder: (name) =>
       `Zero FACEIT od 30 dni. ${name} albo dotyka trawy, albo po cichu grinduje Premiera.`,
@@ -733,13 +752,17 @@ const pl: Dict = {
   },
   explain: {
     title: "Jak to policzyliśmy?",
-    eName: "ELO FACEIT",
-    eNote: (level) => `${level ? `Poziom ${level}, ` : ""}na żywo z FACEIT`,
-    eManual: "Brak ELO FACEIT: ręczne ELO od admina grupy",
-    eMixMean: "Zapasowe: średnia ELO pozostałych graczy w tym miksie",
-    eNeutral: "Brak ELO w składzie: neutralna wartość 1400",
-    eSwapSlot: (steamId) =>
-      `Zachowano siłę zatwierdzonego miejsca w składzie; dane gracza ${steamId}`,
+    eName: "Wkład E",
+    eFaceitAtLineup: (elo, level) =>
+      `${elo} ELO przy układaniu składu · ${level ? `poziom ${level} · ` : ""}dane FACEIT użyte w tym miksie`,
+    eManualAtLineup: (elo) =>
+      `${elo} ELO przy układaniu składu · ręczna wartość admina, bo brakowało ELO FACEIT`,
+    eMixMeanAtLineup: (elo) =>
+      `${elo} ELO przy układaniu składu · średnia z ELO pozostałych graczy w tym miksie`,
+    eNeutralAtLineup: (elo) =>
+      `${elo} ELO przy układaniu składu · wartość neutralna`,
+    eSwapAtLineup: (elo, steamId) =>
+      `${elo} ELO przy układaniu składu · dane z zatwierdzonego slota od ${steamId}`,
     fName: (days) => `Forma na FACEIT, ostatnie ${days} dni`,
     mName: (weight) =>
       `Forma w miksach${weight === 1 ? "" : ` · waga ${weight}`}`,
@@ -1149,6 +1172,10 @@ const pl: Dict = {
     premierTab: "Premier",
     faceitLevel: "Poziom FACEIT",
     faceitElo: "ELO FACEIT",
+    currentFaceitElo: "Aktualne ELO FACEIT",
+    ratingTrendCount: (shown, total) => `${shown} z ${total} ocenionych map`,
+    ratingPoint: (date, map, score, rating) =>
+      `${date} · ${map} · ${score} · Mixer Rating ${rating}`,
     premierRating: "Premier",
     noLeetifyMatches: "Brak meczów z tego źródła.",
     faceitProfile: "Otwórz profil FACEIT",

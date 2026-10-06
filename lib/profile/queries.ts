@@ -33,7 +33,9 @@ export async function groupPlayerProfile(groupId: string, steamId: string) {
   const matchResult = playedMixes.length
     ? await adminDb()
         .from("matches")
-        .select("id, mix_id, map_number, map_name, played_at, score_a, score_b")
+        .select(
+          "id, mix_id, map_number, map_name, played_at, score_a, score_b, faceit_match_id",
+        )
         .in(
           "mix_id",
           playedMixes.map((mix) => mix.id),
@@ -104,6 +106,9 @@ export async function groupPlayerProfile(groupId: string, steamId: string) {
         playedAt: match.played_at,
         scoreA: match.score_a,
         scoreB: match.score_b,
+        faceitRoomUrl: match.faceit_match_id
+          ? `https://www.faceit.com/en/cs2/room/${encodeURIComponent(match.faceit_match_id)}`
+          : null,
         team: teamRow.team as "A" | "B",
         stats: ownStats
           ? {

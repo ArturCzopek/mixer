@@ -10,8 +10,15 @@ import type { groupPlayerProfile } from "@/lib/profile/queries";
 
 type Profile = NonNullable<Awaited<ReturnType<typeof groupPlayerProfile>>>;
 
-function RatingTrend({ points }: { points: Profile["summary"]["trend"] }) {
+export function RatingTrend({
+  points,
+  groupSlug,
+}: {
+  points: Profile["summary"]["trend"];
+  groupSlug: string;
+}) {
   const t = useT();
+  const lang = useLang();
   if (!points.length)
     return <p className="text-dim p-3 text-xs">{t.profile.noRatings}</p>;
   const chronological = [...points].reverse().slice(-20);
@@ -23,6 +30,13 @@ function RatingTrend({ points }: { points: Profile["summary"]["trend"] }) {
       ? 300
       : 26 + (index * 548) / (chronological.length - 1);
   const y = (value: number) => 132 - ((value - low) / (high - low)) * 116;
+  const formatDate = (value: string) =>
+    new Intl.DateTimeFormat(lang === "pl" ? "pl-PL" : "en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      timeZone: "Europe/Warsaw",
+    }).format(new Date(value));
   const path = chronological
     .map(
       (point, index) =>
@@ -48,17 +62,31 @@ function RatingTrend({ points }: { points: Profile["summary"]["trend"] }) {
         opacity="0.55"
       />
       <path d={path} fill="none" stroke="var(--color-gold)" strokeWidth="2.5" />
-      {chronological.map((point, index) => (
-        <circle
-          key={point.id}
-          cx={x(index)}
-          cy={y(point.rating)}
-          r="3.5"
-          fill="var(--color-gold)"
-        >
-          <title>{`${point.at.slice(0, 10)} ·${point.rating.toFixed(2)}`}</title>
-        </circle>
-      ))}
+      {chronological.map((point, index) => {
+        const rating = point.rating.toFixed(2);
+        const title = t.profile.ratingPoint(
+          formatDate(point.at),
+          point.map,
+          `${point.scoreA}:${point.scoreB}`,
+          rating,
+        );
+        return (
+          <Link
+            key={point.id}
+            href={`/g/${groupSlug}/m/${point.mixId}`}
+            aria-label={title}
+            className="focus-visible:outline-gold focus-visible:outline-2 focus-visible:outline-offset-2"
+          >
+            <title>{title}</title>
+            <circle
+              cx={x(index)}
+              cy={y(point.rating)}
+              r="5"
+              fill="var(--color-gold)"
+            />
+          </Link>
+        );
+      })}
     </svg>
   );
 }
@@ -109,8 +137,9 @@ export function PlayerProfileView({
               <p className="text-dim text-xs">{player.steamId}</p>
               {faceit ? (
                 <p className="mt-2 text-xs">
-                  {t.profile.faceitLevel}: <b>{faceit.level ?? "—"}</b> · ELO:{" "}
-                  <b>{faceit.elo ?? "—"}</b>
+                  {t.profile.faceitLevel}: <b>{faceit.level ?? "—"}</b>
+                  <br />
+                  {t.profile.currentFaceitElo}: <b>{faceit.elo ?? "—"}</b>
                   <br />
                   <a
                     href={faceit.profileUrl}
@@ -192,7 +221,13 @@ export function PlayerProfileView({
                     {t.profile.ratingTrend}
                   </h2>
                   <Well>
-                    <RatingTrend points={summary.trend} />
+                    <p className="text-dim mb-1 px-1 text-[11px]">
+                      {t.profile.ratingTrendCount(
+                        Math.min(summary.trend.length, 20),
+                        summary.trend.length,
+                      )}
+                    </p>
+                    <RatingTrend points={summary.trend} groupSlug={groupSlug} />
                   </Well>
                   <h2 className="text-gold mt-4 mb-1 text-sm font-bold">
                     {t.profile.mapHistory}
@@ -223,6 +258,16 @@ export function PlayerProfileView({
                                 {date(map.playedAt)} ·{" "}
                                 {map.mapName ?? `#${map.mapNumber}`}
                               </span>
+                              {map.faceitRoomUrl && (
+                                <a
+                                  className="text-gold text-[11px] underline"
+                                  href={map.faceitRoomUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  {t.played.faceitRoom}
+                                </a>
+                              )}
                             </td>
                             <td>
                               {map.scoreA}:{map.scoreB}

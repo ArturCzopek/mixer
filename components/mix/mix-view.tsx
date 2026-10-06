@@ -74,7 +74,7 @@ type Variant = Omit<ViewVariant, "teamA" | "teamB"> & {
 };
 
 /** The view data with ids resolved to players, plus the helpers every panel uses. */
-function resolve(data: MixViewData) {
+function resolve(data: MixViewData, groupSlug?: string) {
   const byId = new Map(data.players.map((p) => [p.steamId, p]));
   const player = (id: string) => byId.get(id)!;
   const team = (ids: string[]) => ids.map(player);
@@ -104,6 +104,8 @@ function resolve(data: MixViewData) {
   }));
   return {
     data,
+    profileHref: (steamId: string) =>
+      groupSlug ? `/g/${groupSlug}/p/${steamId}` : null,
     now: new Date(data.mixAt),
     explain,
     skill,
@@ -162,7 +164,7 @@ export function MixView({
   data: MixViewData;
   groupSlug?: string;
 }) {
-  const mix = React.useMemo(() => resolve(data), [data]);
+  const mix = React.useMemo(() => resolve(data, groupSlug), [data, groupSlug]);
   const t = useT();
   const lang = useLang();
   const when = new Intl.DateTimeFormat(lang === "pl" ? "pl-PL" : "en-GB", {
@@ -323,13 +325,19 @@ function StatusLine({ state }: { state: MixState }) {
     balancing: <>{t.status.balancing}</>,
     voting: data.showcase ? (
       <>
-        {t.status.voting(voted)} <b className="text-text">{waitingFor.name}</b>
+        {t.status.voting(voted)}{" "}
+        <b className="text-text">
+          <PlayerProfileName player={waitingFor} />
+        </b>
       </>
     ) : voted === 10 ? (
       <>{t.status.votingAll}</>
     ) : (
       <>
-        {t.status.voting(voted)} <b className="text-text">{waitingFor.name}</b>
+        {t.status.voting(voted)}{" "}
+        <b className="text-text">
+          <PlayerProfileName player={waitingFor} />
+        </b>
       </>
     ),
     locked: (
@@ -640,6 +648,33 @@ function Avatar({ player, size = 20 }: { player: Player; size?: number }) {
   );
 }
 
+function PlayerProfileName({
+  player,
+  selected = false,
+  selectableRow = false,
+}: {
+  player: Player;
+  selected?: boolean;
+  selectableRow?: boolean;
+}) {
+  const { profileHref } = useMix();
+  const href = profileHref(player.steamId);
+  return href ? (
+    <Link
+      className={cn(
+        "min-w-0 truncate underline hover:no-underline",
+        selectableRow && "pointer-events-auto",
+        selected ? "text-white" : "text-gold",
+      )}
+      href={href}
+    >
+      {player.name}
+    </Link>
+  ) : (
+    <span className="min-w-0 truncate">{player.name}</span>
+  );
+}
+
 function PlayerRow({
   player,
   index,
@@ -657,26 +692,42 @@ function PlayerRow({
   const { data, skill } = useMix();
   const t = useT();
   const hasSkill = data.breakdowns[player.steamId] !== undefined;
-  const Tag = onSelect ? "button" : "div";
   return (
-    <Tag
-      onClick={onSelect}
-      title={joinedAt && t.lists.joined(joinedAt)}
-      aria-pressed={onSelect ? selected : undefined}
+    <div
+      title={joinedAt ? t.lists.joined(joinedAt) : undefined}
       className={cn(
-        "border-row grid w-full items-center gap-2 border-b px-1.5 py-1 text-left",
+        "border-row relative grid w-full items-center gap-2 border-b px-1.5 py-1 text-left",
         hasSkill ? "grid-cols-[1fr_46%]" : "grid-cols-[1fr]",
         selected ? "bg-gold-deep text-white" : onSelect && "hover:bg-hover",
       )}
     >
-      <span className="flex min-w-0 items-center gap-2">
+      {onSelect && (
+        <button
+          type="button"
+          onClick={onSelect}
+          title={joinedAt ? t.lists.joined(joinedAt) : undefined}
+          aria-label={t.lists.showPlayerDetails(player.name)}
+          aria-pressed={selected}
+          className="focus-visible:outline-gold absolute inset-0 z-0 cursor-pointer"
+        />
+      )}
+      <span
+        className={cn(
+          "relative z-10 flex min-w-0 items-center gap-2",
+          onSelect && "pointer-events-none",
+        )}
+      >
         {index !== undefined && (
           <span className="text-dim w-4 shrink-0 text-right text-[11px]">
             {index}
           </span>
         )}
         <Avatar player={player} />
-        <span className="truncate">{player.name}</span>
+        <PlayerProfileName
+          player={player}
+          selected={selected}
+          selectableRow={Boolean(onSelect)}
+        />
         {player.level > 0 && (
           <span
             className={cn("text-[10px]", selected ? "text-white" : "text-dim")}
@@ -685,8 +736,14 @@ function PlayerRow({
           </span>
         )}
       </span>
-      {hasSkill && <SkillBar value={skill(player)} selected={selected} />}
-    </Tag>
+      {hasSkill && (
+        <span
+          className={cn("relative z-10", onSelect && "pointer-events-none")}
+        >
+          <SkillBar value={skill(player)} selected={selected} />
+        </span>
+      )}
+    </div>
   );
 }
 
@@ -934,7 +991,10 @@ function Explanation({
     <details open className="group mt-2.5">
       <summary className="bevel bg-window hover:bg-hover flex cursor-pointer list-none items-center justify-between px-2 py-1.5 select-none">
         <span>
-          {t.explain.title} <b className="text-text">{player.name}</b>
+          {t.explain.title}{" "}
+          <b className="text-text">
+            <PlayerProfileName player={player} />
+          </b>
         </span>
         <ChevronDown
           aria-hidden
@@ -968,8 +1028,12 @@ function PlayerExplanation({
 }) {
   const { data, explain, nameOf } = useMix();
   const t = useT();
+  const lang = useLang();
   const x = explain(player);
   const input = data.skillInputs?.[player.steamId];
+  const lineupElo = Number(input?.resolvedElo ?? x.E).toLocaleString(
+    lang === "pl" ? "pl-PL" : "en-GB",
+  );
   const w = x.weights;
   const c = x.contributions;
   const v = variant.engine;
@@ -994,16 +1058,19 @@ function PlayerExplanation({
         value={c.E}
         note={
           input?.eloSource === "faceit"
-            ? t.explain.eNote(player.level)
+            ? t.explain.eFaceitAtLineup(lineupElo, player.level)
             : input?.eloSource === "group-manual"
-              ? t.explain.eManual
+              ? t.explain.eManualAtLineup(lineupElo)
               : input?.eloSource === "mix-mean"
-                ? t.explain.eMixMean
+                ? t.explain.eMixMeanAtLineup(lineupElo)
                 : input?.eloSource === "neutral-default"
-                  ? t.explain.eNeutral
+                  ? t.explain.eNeutralAtLineup(lineupElo)
                   : input?.eloSource === "swap-slot"
-                    ? t.explain.eSwapSlot(input.swapInheritedFrom ?? "")
-                    : t.explain.eManual
+                    ? t.explain.eSwapAtLineup(
+                        lineupElo,
+                        input.swapInheritedFrom ?? "",
+                      )
+                    : t.explain.eManualAtLineup(lineupElo)
         }
       />
       <Term
@@ -1194,7 +1261,7 @@ function Tally() {
                   >
                     <Avatar player={p} size={14} />
                     <span className="truncate">
-                      {isMe ? t.tally.you : p.name}
+                      {isMe ? t.tally.you : <PlayerProfileName player={p} />}
                       {data.proxyVotes?.[id] &&
                         ` (${t.tally.castBy(data.proxyVotes[id])})`}
                     </span>
@@ -1209,7 +1276,12 @@ function Tally() {
         <p className="text-dim mt-1.5 px-0.5 text-[11px]">
           {t.tally.publicNotVoted}{" "}
           <b className="text-text">
-            {notVoted.map((player) => player.name).join(", ")}
+            {notVoted.map((player, index) => (
+              <React.Fragment key={player.steamId}>
+                {index > 0 && ", "}
+                <PlayerProfileName player={player} />
+              </React.Fragment>
+            ))}
           </b>
         </p>
       )}
@@ -1290,9 +1362,21 @@ function Locked() {
               )}
             </p>
             <p className="text-dim mt-1">
-              A: {real.teamA.map((p) => p.name).join(", ")}
+              A:{" "}
+              {real.teamA.map((player, index) => (
+                <React.Fragment key={player.steamId}>
+                  {index > 0 && ", "}
+                  <PlayerProfileName player={player} />
+                </React.Fragment>
+              ))}
               <br />
-              B: {real.teamB.map((p) => p.name).join(", ")}
+              B:{" "}
+              {real.teamB.map((player, index) => (
+                <React.Fragment key={player.steamId}>
+                  {index > 0 && ", "}
+                  <PlayerProfileName player={player} />
+                </React.Fragment>
+              ))}
             </p>
           </Well>
         )}
@@ -1886,8 +1970,14 @@ function Played() {
                       : t.played.teamWon(item.a > item.b ? "A" : "B")}
                   </span>
                 </span>
-                <b className="text-gold shrink-0 text-[13px]">
-                  {item.a}:{item.b}
+                <b className="shrink-0 text-[13px]">
+                  <span className={item.a > item.b ? "text-gold" : "text-text"}>
+                    {item.a}
+                  </span>
+                  <span className="text-dim">:</span>
+                  <span className={item.b > item.a ? "text-gold" : "text-text"}>
+                    {item.b}
+                  </span>
                 </b>
               </button>
             ))}
@@ -1947,9 +2037,14 @@ function Played() {
                   <div key={team}>
                     <b className="text-gold">{t.lists.team(team)}</b>
                     <p className="text-text">
-                      {(team === "A" ? winner.teamA : winner.teamB)
-                        .map((player) => player.name)
-                        .join(", ")}
+                      {(team === "A" ? winner.teamA : winner.teamB).map(
+                        (player, index) => (
+                          <React.Fragment key={player.steamId}>
+                            {index > 0 && ", "}
+                            <PlayerProfileName player={player} />
+                          </React.Fragment>
+                        ),
+                      )}
                     </p>
                   </div>
                 ))}
@@ -1964,9 +2059,9 @@ function Played() {
           <div className="grid sm:grid-cols-2">
             {data.result.awards.map((award) => {
               const [title, unit] = t.played.awardLabels[award.key];
-              const name =
-                data.players.find((player) => player.steamId === award.steamId)
-                  ?.name ?? award.steamId;
+              const player = data.players.find(
+                (item) => item.steamId === award.steamId,
+              );
               const rate = [
                 "cannonFodder",
                 "pacifist",
@@ -1979,7 +2074,13 @@ function Played() {
                   className="border-row border-b px-2 py-1.5"
                 >
                   <b className="text-gold block">{title}</b>
-                  <span className="text-text">{name}</span>
+                  <span className="text-text">
+                    {player ? (
+                      <PlayerProfileName player={player} />
+                    ) : (
+                      award.steamId
+                    )}
+                  </span>
                   <span className="text-dim">
                     {" "}
                     · {rate
@@ -2086,7 +2187,7 @@ function Scoreboard({ lines }: { lines: Line[] }) {
               >
                 <span className="flex min-w-0 items-center gap-2">
                   <Avatar player={r.player} />
-                  <span className="truncate">{r.player.name}</span>
+                  <PlayerProfileName player={r.player} />
                 </span>
                 <span className="text-right">{r.k}</span>
                 <span className="text-dim text-right">{r.a}</span>

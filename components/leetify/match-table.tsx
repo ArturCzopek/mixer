@@ -17,8 +17,8 @@ export function LeetifyMatchTable({
 }) {
   const t = useT();
   const lang = useLang();
-  const shown = fixedRows === undefined ? matches : matches.slice(0, fixedRows);
-  const rowCount = fixedRows ?? matches.length;
+  const shown = matches.slice(0, fixedRows ?? 20);
+  const rowCount = fixedRows ?? shown.length;
   const rating = (value: number | null) =>
     value === null
       ? "—"
@@ -95,7 +95,15 @@ export function LeetifyMatchTable({
                   </b>
                 </td>
                 <td className="text-right">{match.kad.join("/")}</td>
-                <td className="px-2 text-right">
+                <td
+                  className={`px-2 text-right ${
+                    match.leetifyRating === null
+                      ? "text-dim"
+                      : match.leetifyRating > 0
+                        ? "text-gold"
+                        : "text-text"
+                  }`}
+                >
                   {rating(match.leetifyRating)}
                 </td>
               </tr>

@@ -96,3 +96,30 @@ it("keeps rating when FACEIT has no ADR for a map", () => {
   expect(result.rating).toBe(1.2);
   expect(result.adr).toBeNull();
 });
+
+it("keeps the raw map and mix identifiers on each rated map point", () => {
+  const result = profileSummary([
+    {
+      ...base,
+      mapName: "de_mirage",
+      faceitRoomUrl: "https://www.faceit.com/en/cs2/room/1-room",
+      stats: {
+        kills: 20,
+        deaths: 10,
+        assists: 4,
+        adr: 92,
+        rounds: 21,
+        rating: 1.23,
+      },
+    },
+  ]);
+  expect(result.trend[0]).toMatchObject({
+    id: "m1",
+    mixId: "mix",
+    map: "de_mirage",
+    scoreA: 13,
+    scoreB: 7,
+    faceitRoomUrl: "https://www.faceit.com/en/cs2/room/1-room",
+    rating: 1.23,
+  });
+});

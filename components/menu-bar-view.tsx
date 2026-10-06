@@ -8,9 +8,11 @@ import { ChevronRight } from "lucide-react";
 import { LanguageToggle, useT } from "@/components/i18n";
 import { BackgroundToggle } from "@/components/vgui";
 import type { GroupLink } from "@/lib/groups/queries";
+import { myProfileHref } from "@/lib/profile/href";
 
 interface Me {
   name: string;
+  steamId: string;
   avatarUrl: string | null;
   isSiteAdmin: boolean;
 }
@@ -35,6 +37,7 @@ export function MenuBarView({
   const menu = useRef<HTMLDetailsElement>(null);
   const slug = /^\/g\/([^/]+)/.exec(path)?.[1];
   const current = groups.find((g) => g.slug === slug);
+  const profileHref = me ? myProfileHref(path, groups, me.steamId) : null;
   const close = () => menu.current?.removeAttribute("open");
 
   return (
@@ -89,6 +92,14 @@ export function MenuBarView({
             </div>
           </details>
         </>
+      )}
+      {profileHref && me && (
+        <Link
+          href={profileHref}
+          className="text-gold ml-1 shrink-0 no-underline hover:underline"
+        >
+          {t.home.myProfile}
+        </Link>
       )}
       <BackgroundToggle className="ml-auto" initialOn={initialBackdrop} />
       <LanguageToggle className="ml-2" />

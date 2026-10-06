@@ -126,6 +126,60 @@ describe("approved variants (D37)", () => {
   );
 });
 
+describe("mix page profile and score cues", () => {
+  const render = (
+    view: MixViewData,
+    state: "voting" | "locked" | "played",
+    groupSlug?: string,
+  ) =>
+    renderToStaticMarkup(
+      I18nProvider({
+        lang: "en",
+        children: createElement(MixView, { state, data: view, groupSlug }),
+      }),
+    );
+
+  it("labels the balance score separately from lineup ELO", () => {
+    const html = render(data, "voting");
+    expect(html).toContain("Balance score S");
+    expect(html).toContain("ELO at lineup");
+    expect(html).not.toContain("live from FACEIT");
+  });
+
+  it("links lineup names to their group Mixer profiles", () => {
+    const html = render(data, "locked", "crew");
+    const player = data.players[0];
+    expect(html).toContain(`href="/g/crew/p/${player.steamId}"`);
+    expect(html).toContain(`>${player.name}</a>`);
+  });
+
+  it("colors each map's winner gold and loser pale and shows available ADR", () => {
+    const line = data.result.maps[0].lines[0];
+    const view: MixViewData = {
+      ...data,
+      showcase: undefined,
+      archiveSource: null,
+      chosenVariantNumber: 1,
+      result: {
+        source: "faceit",
+        maps: [
+          { map: "de_mirage", a: 13, b: 8, lines: [line] },
+          { map: "de_nuke", a: 7, b: 13, lines: [line] },
+        ],
+      },
+    };
+    const html = render(view, "played", "crew");
+    expect(html).toMatch(
+      /class="text-gold">13<\/span><span class="text-dim">:<\/span><span class="text-text">8/,
+    );
+    expect(html).toMatch(
+      /class="text-text">7<\/span><span class="text-dim">:<\/span><span class="text-gold">13/,
+    );
+    expect(html).toContain(">ADR</span>");
+    expect(html).toContain(line.adr.toFixed(0));
+  });
+});
+
 describe("production voting view", () => {
   const render = (view: MixViewData, state: "voting" | "locked") =>
     renderToStaticMarkup(

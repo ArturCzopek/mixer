@@ -7,6 +7,7 @@ export interface ProfileMap {
   playedAt: string;
   scoreA: number;
   scoreB: number;
+  faceitRoomUrl?: string | null;
   team: "A" | "B";
   stats: {
     kills: number | null;
@@ -85,6 +86,11 @@ export function profileSummary(maps: ProfileMap[]) {
     trend: rated.map((map) => ({
       id: map.matchId,
       at: map.playedAt,
+      mixId: map.mixId,
+      map: map.mapName ?? `#${map.mapNumber}`,
+      scoreA: map.scoreA,
+      scoreB: map.scoreB,
+      faceitRoomUrl: map.faceitRoomUrl ?? null,
       rating: map.stats!.rating!,
     })),
     bestTeammates: [...mates.values()].sort(

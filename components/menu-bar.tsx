@@ -18,6 +18,7 @@ export async function MenuBar({
       me={
         session && {
           name: session.displayName ?? session.steamId,
+          steamId: session.steamId,
           avatarUrl: session.avatarUrl,
           isSiteAdmin: session.isSiteAdmin,
         }
