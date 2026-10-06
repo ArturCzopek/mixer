@@ -6,9 +6,17 @@ import { GroupForm } from "@/components/groups/group-form";
 import { DiscordSettings } from "@/components/groups/discord-settings";
 import { MemberActions } from "@/components/groups/member-actions";
 import { AddRosterPlayer, RosterElo } from "@/components/groups/roster-form";
-import { CreateMixForm } from "@/components/mix/lobby-view";
 import { PendingSubmit } from "@/components/vgui/pending-submit";
-import { Badge, ListHead, Well, Window } from "@/components/vgui";
+import { Badge, ListHead, Well } from "@/components/vgui";
+import {
+  ActiveMixLink,
+  activeGroupMix,
+  CollapsibleGroupLeaders,
+  DiscordMemberProfile,
+  GroupCreateMix,
+  GroupPageLayout,
+  groupPageLinkClassName,
+} from "@/components/groups/group-page-view";
 import { hasGroupRole } from "@/lib/auth/roles";
 import { getSession } from "@/lib/auth/server";
 import {
@@ -51,6 +59,7 @@ export default async function GroupPage({
       mix.status === "cancelled",
   );
   const currentMixes = mixes.filter((mix) => !archivedMixes.includes(mix));
+  const activeMix = activeGroupMix(mixes);
   const leaders = stats.leaderboard
     .filter((row) => row.ratedMaps >= 5)
     .slice(0, 5);
@@ -83,7 +92,9 @@ export default async function GroupPage({
         className="border-row text-text hover:bg-hover block border-b px-1.5 py-2 last:border-b-0"
       >
         <span className="flex items-center gap-2">
-          <span className="min-w-0 flex-1 truncate font-bold">{mix.title}</span>
+          <span className="text-gold min-w-0 flex-1 truncate font-bold underline decoration-1 underline-offset-2">
+            {mix.title}
+          </span>
           {!historical && (
             <span className="text-gold shrink-0 text-[11px] font-bold">
               {t.lobby.playersOf10(mix.participantCount)}
@@ -124,265 +135,293 @@ export default async function GroupPage({
     );
   };
   return (
-    <main className="mx-auto w-full max-w-[460px] px-2 py-6">
-      <Window title={group.name}>
-        <p className="mb-2 text-[11px]">
-          <span className="text-dim">{t.groups.club}: </span>
-          {group.faceitClubUrl ? (
-            <a
-              href={group.faceitClubUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {group.faceitClubUrl.replace(/^https:\/\/(www\.)?/, "")}
-            </a>
-          ) : (
-            <span className="text-dim">{t.groups.noClub}</span>
-          )}
-        </p>
-
-        <Well className="mb-2">
-          <ListHead>
-            <span className="flex-1">{t.lobby.mixList}</span>
-            <span>{t.lobby.playersColumn}</span>
-          </ListHead>
-          {currentMixes.length === 0 ? (
-            <p className="text-dim px-1.5 py-2 text-[11px]">
-              {t.groups.noCurrentMixes}
-            </p>
-          ) : (
-            currentMixes.map(mixRow)
-          )}
-        </Well>
-        <Well className="mb-2">
-          <ListHead>{t.groups.statsTitle}</ListHead>
-          <div className="grid grid-cols-3 gap-1 px-1.5 py-2 text-center">
-            {(
-              [
-                [stats.mixes, t.groups.statsMixes],
-                [stats.maps, t.groups.statsMaps],
-                [stats.players, t.groups.statsPlayers],
-              ] as const
-            ).map(([value, label]) => (
-              <div key={label}>
-                <b className="text-gold block text-[24px] leading-none">
-                  {value}
-                </b>
-                <span className="text-dim text-[10px]">{label}</span>
-              </div>
-            ))}
-          </div>
-          <p className="text-dim border-row border-t px-1.5 py-1 text-[11px]">
-            {t.groups.statsSources(
-              stats.sources.popflash,
-              stats.sources.faceit,
-              stats.sources.manual,
-              stats.sources.demo,
+    <GroupPageLayout
+      title={group.name}
+      activeMix={
+        activeMix ? (
+          <ActiveMixLink
+            href={`/g/${group.slug}/m/${activeMix.id}`}
+            title={activeMix.title}
+            status={t.lobby.status[activeMix.status]}
+          />
+        ) : null
+      }
+      main={
+        <>
+          <p className="text-[11px]">
+            <span className="text-dim">{t.groups.club}: </span>
+            {group.faceitClubUrl ? (
+              <a
+                href={group.faceitClubUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={groupPageLinkClassName}
+              >
+                {group.faceitClubUrl.replace(/^https:\/\/(www\.)?/, "")}
+              </a>
+            ) : (
+              <span className="text-dim">{t.groups.noClub}</span>
             )}
           </p>
-          <ListHead>{t.groups.statsLeaders}</ListHead>
-          {leaders.length === 0 ? (
-            <p className="text-dim px-1.5 py-2 text-[11px]">
-              {t.groups.statsEmpty}
-            </p>
-          ) : (
-            leaders.map((row, index) => (
-              <Link
-                key={row.steamId}
-                href={`/g/${group.slug}/p/${row.steamId}`}
-                className="border-row hover:bg-hover flex items-center gap-2 border-b px-1.5 py-1.5 last:border-b-0"
-              >
-                <span className="text-dim w-4 shrink-0 text-[11px]">
-                  {index + 1}.
-                </span>
-                <span className="min-w-0 flex-1">
-                  <b className="text-text block truncate">{row.name}</b>
-                  <span className="text-dim text-[10px]">
-                    {row.maps} {t.groups.statsMaps} · {row.wins}–{row.losses}{" "}
-                    W–L · K/D{" "}
-                    {row.deaths ? (row.kills / row.deaths).toFixed(2) : "—"} ·
-                    ADR {row.adr?.toFixed(0) ?? "—"}
-                  </span>
-                </span>
-                <b className="text-gold shrink-0">{row.rating!.toFixed(2)}</b>
-              </Link>
-            ))
-          )}
-          <p className="text-dim border-row border-t px-1.5 py-1 text-[10px]">
-            {t.groups.statsMinimum}
-          </p>
-        </Well>
-        {archivedMixes.length > 0 && (
-          <details className="mb-2">
-            <summary className="bevel bg-window hover:bg-hover text-gold px-2 py-1.5 font-bold">
-              {t.groups.archiveMixes(archivedMixes.length)}
-            </summary>
-            <Well>{archivedMixes.map(mixRow)}</Well>
-          </details>
-        )}
-        {canManage && (
-          <section className="mb-3">
-            <h2 className="text-text mb-1 text-[13px] font-bold">
-              {t.lobby.newMix}
-            </h2>
-            <CreateMixForm groupId={group.id} />
-          </section>
-        )}
 
-        {session &&
-          typeof discordAccountResult === "string" &&
-          discordAccountResult in t.groups.discordAccount.result && (
-            <Well
-              role="status"
-              className="text-dim mb-2 px-2 py-1.5 text-[11px]"
-            >
-              {
-                t.groups.discordAccount.result[
-                  discordAccountResult as keyof typeof t.groups.discordAccount.result
-                ]
-              }
-            </Well>
-          )}
+          <Well>
+            <ListHead>
+              <span className="flex-1">{t.lobby.mixList}</span>
+              <span>{t.lobby.playersColumn}</span>
+            </ListHead>
+            {currentMixes.length === 0 ? (
+              <p className="text-dim px-1.5 py-2 text-[11px]">
+                {t.groups.noCurrentMixes}
+              </p>
+            ) : (
+              currentMixes.map(mixRow)
+            )}
+          </Well>
+          <GroupCreateMix
+            groupId={group.id}
+            canManage={canManage}
+            hasActiveMix={activeMix !== null}
+            title={t.lobby.newMix}
+          />
 
-        <Well id="members" className="mb-2">
-          <ListHead>
-            <span className="flex-1">
-              {t.groups.members(group.members.length)}
-            </span>
-          </ListHead>
-          {group.members.length === 0 && (
-            <p className="text-dim px-1.5 py-2 text-[11px]">
-              {t.groups.noMembers}
-            </p>
-          )}
-          {group.members.map((m) => {
-            const name = m.displayName ?? m.steamId;
-            return (
-              <div
-                key={m.playerId}
-                className="border-row border-b px-1.5 py-2 last:border-b-0"
-              >
-                <div className="flex items-center gap-2">
-                  {m.avatarUrl ? (
-                    <Image
-                      src={m.avatarUrl}
-                      alt=""
-                      width={18}
-                      height={18}
-                      unoptimized
-                      className="border-lo border"
-                    />
-                  ) : (
-                    <span className="border-lo bg-row size-[18px] border" />
-                  )}
-                  <Link
-                    href={`/g/${group.slug}/p/${m.steamId}`}
-                    className="text-text min-w-0 flex-1 truncate no-underline"
-                  >
-                    {name}
-                  </Link>
-                  {m.role === "admin" && <Badge>{t.groups.admin}</Badge>}
+          {session &&
+            typeof discordAccountResult === "string" &&
+            discordAccountResult in t.groups.discordAccount.result && (
+              <Well role="status" className="text-dim px-2 py-1.5 text-[11px]">
+                {
+                  t.groups.discordAccount.result[
+                    discordAccountResult as keyof typeof t.groups.discordAccount.result
+                  ]
+                }
+              </Well>
+            )}
+
+          <Well>
+            <ListHead>{t.groups.statsTitle}</ListHead>
+            <div className="grid grid-cols-3 gap-1 px-1.5 py-2 text-center">
+              {(
+                [
+                  [stats.mixes, t.groups.statsMixes],
+                  [stats.maps, t.groups.statsMaps],
+                  [stats.players, t.groups.statsPlayers],
+                ] as const
+              ).map(([value, label]) => (
+                <div key={label}>
+                  <b className="text-gold block text-[24px] leading-none">
+                    {value}
+                  </b>
+                  <span className="text-dim text-[10px]">{label}</span>
                 </div>
-                <div className="text-dim mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px]">
-                  <a
-                    href={`https://steamcommunity.com/profiles/${m.steamId}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
+              ))}
+            </div>
+            <p className="text-dim border-row border-t px-1.5 py-1 text-[11px]">
+              {t.groups.statsSources(
+                stats.sources.popflash,
+                stats.sources.faceit,
+                stats.sources.manual,
+                stats.sources.demo,
+              )}
+            </p>
+            <CollapsibleGroupLeaders title={t.groups.statsLeaders}>
+              {leaders.length === 0 ? (
+                <p className="text-dim px-1.5 py-2 text-[11px]">
+                  {t.groups.statsEmpty}
+                </p>
+              ) : (
+                leaders.map((row, index) => (
+                  <Link
+                    key={row.steamId}
+                    href={`/g/${group.slug}/p/${row.steamId}`}
+                    className="border-row hover:bg-hover flex items-center gap-2 border-b px-1.5 py-1.5 last:border-b-0"
                   >
-                    Steam
-                  </a>
-                  {m.faceitNickname ? (
+                    <span className="text-dim w-4 shrink-0 text-[11px]">
+                      {index + 1}.
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <b className="text-gold block truncate underline decoration-1 underline-offset-2">
+                        {row.name}
+                      </b>
+                      <span className="text-dim text-[10px]">
+                        {row.maps} {t.groups.statsMaps} · {row.wins}–
+                        {row.losses} W–L · K/D{" "}
+                        {row.deaths ? (row.kills / row.deaths).toFixed(2) : "—"}{" "}
+                        · ADR {row.adr?.toFixed(0) ?? "—"}
+                      </span>
+                    </span>
+                    <b className="text-gold shrink-0">
+                      {row.rating!.toFixed(2)}
+                    </b>
+                  </Link>
+                ))
+              )}
+              <p className="text-dim border-row border-t px-1.5 py-1 text-[10px]">
+                {t.groups.statsMinimum}
+              </p>
+            </CollapsibleGroupLeaders>
+          </Well>
+          {archivedMixes.length > 0 && (
+            <details>
+              <summary className="bevel bg-window hover:bg-hover text-gold px-2 py-1.5 font-bold">
+                {t.groups.archiveMixes(archivedMixes.length)}
+              </summary>
+              <Well>{archivedMixes.map(mixRow)}</Well>
+            </details>
+          )}
+
+          <p className="text-dim">
+            <Link href="/" className={groupPageLinkClassName}>
+              {t.groups.home}
+            </Link>
+          </p>
+        </>
+      }
+      members={
+        <>
+          <Well>
+            <ListHead>
+              <span className="flex-1">
+                {t.groups.members(group.members.length)}
+              </span>
+            </ListHead>
+            {group.members.length === 0 && (
+              <p className="text-dim px-1.5 py-2 text-[11px]">
+                {t.groups.noMembers}
+              </p>
+            )}
+            {group.members.map((m) => {
+              const name = m.displayName ?? m.steamId;
+              return (
+                <div
+                  key={m.playerId}
+                  className="border-row border-b px-1.5 py-2 last:border-b-0"
+                >
+                  <div className="flex items-center gap-2">
+                    {m.avatarUrl ? (
+                      <Image
+                        src={m.avatarUrl}
+                        alt=""
+                        width={18}
+                        height={18}
+                        unoptimized
+                        className="border-lo border"
+                      />
+                    ) : (
+                      <span className="border-lo bg-row size-[18px] border" />
+                    )}
+                    <Link
+                      href={`/g/${group.slug}/p/${m.steamId}`}
+                      className={`${groupPageLinkClassName} min-w-0 flex-1 truncate`}
+                    >
+                      {name}
+                    </Link>
+                    {m.role === "admin" && <Badge>{t.groups.admin}</Badge>}
+                  </div>
+                  <div className="text-dim mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
                     <a
-                      href={`https://www.faceit.com/en/players/${encodeURIComponent(m.faceitNickname)}`}
+                      href={`https://steamcommunity.com/profiles/${m.steamId}`}
                       target="_blank"
                       rel="noopener noreferrer"
+                      className={groupPageLinkClassName}
                     >
-                      FACEIT · {m.faceitNickname}
+                      Steam
                     </a>
-                  ) : (
-                    <span>{t.roster.noFaceit}</span>
-                  )}
-                  <span>
-                    {t.roster.fallbackElo}: {m.manualElo ?? "—"}
-                  </span>
-                  <span>
-                    {m.discordUserId
-                      ? t.groups.discordAccount.linked
-                      : t.groups.discordAccount.unlinked}
-                  </span>
-                  {m.playerId === session?.playerId &&
-                    discordPlayerConfigured && (
+                    {m.faceitNickname ? (
                       <a
-                        href={`/auth/discord/player?next=${encodeURIComponent(accountNext)}`}
+                        href={`https://www.faceit.com/en/players/${encodeURIComponent(m.faceitNickname)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={groupPageLinkClassName}
                       >
-                        {m.discordUserId
-                          ? t.groups.discordAccount.change
-                          : t.groups.discordAccount.connect}
+                        FACEIT · {m.faceitNickname}
                       </a>
+                    ) : (
+                      <span>{t.roster.noFaceit}</span>
                     )}
-                  {m.playerId === session?.playerId && m.discordUserId && (
-                    <form action={unlinkDiscordAccount.bind(null, accountNext)}>
-                      <PendingSubmit pendingLabel={t.loading.working}>
-                        {t.groups.discordAccount.disconnect}
-                      </PendingSubmit>
-                    </form>
-                  )}
-                </div>
-                {canManage && (
-                  <>
-                    <RosterElo
-                      groupId={group.id}
-                      playerId={m.playerId}
-                      name={name}
-                      value={m.manualElo}
+                    <span>
+                      {t.roster.fallbackElo}: {m.manualElo ?? "—"}
+                    </span>
+                    <DiscordMemberProfile
+                      discordUserId={m.discordUserId}
+                      linkedText={t.groups.discordAccount.linked}
+                      unlinkedText={t.groups.discordAccount.unlinked}
+                      profileText={t.groups.discordAccount.profile}
                     />
-                    <div className="mt-2">
-                      <MemberActions
+                    {m.playerId === session?.playerId &&
+                      discordPlayerConfigured && (
+                        <a
+                          href={`/auth/discord/player?next=${encodeURIComponent(accountNext)}`}
+                          className={groupPageLinkClassName}
+                        >
+                          {m.discordUserId
+                            ? t.groups.discordAccount.change
+                            : t.groups.discordAccount.connect}
+                        </a>
+                      )}
+                    {m.playerId === session?.playerId && m.discordUserId && (
+                      <form
+                        action={unlinkDiscordAccount.bind(null, accountNext)}
+                      >
+                        <PendingSubmit
+                          pendingLabel={t.loading.working}
+                          className="bg-window text-dim px-1 py-0.5 text-[10px]"
+                        >
+                          {t.groups.discordAccount.disconnect}
+                        </PendingSubmit>
+                      </form>
+                    )}
+                  </div>
+                  {canManage && (
+                    <>
+                      <RosterElo
                         groupId={group.id}
                         playerId={m.playerId}
                         name={name}
-                        isAdmin={m.role === "admin"}
+                        value={m.manualElo}
                       />
-                    </div>
-                  </>
-                )}
-              </div>
-            );
-          })}
-        </Well>
+                      <div className="mt-2">
+                        <MemberActions
+                          groupId={group.id}
+                          playerId={m.playerId}
+                          name={name}
+                          isAdmin={m.role === "admin"}
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </Well>
 
-        {canManage && <AddRosterPlayer groupId={group.id} />}
+          {canManage && <AddRosterPlayer groupId={group.id} />}
 
-        {canManage && (
-          <details className="mb-2" open={typeof discordResult === "string"}>
-            <summary className="text-gold mb-1 cursor-pointer font-bold">
-              {t.groups.settings}
-            </summary>
-            <GroupForm
-              action={updateGroup.bind(null, group.id)}
-              withSlug={false}
-              defaults={{ name: group.name, faceitClub: group.faceitClubUrl }}
-              submit={t.groups.save}
-            />
-            <DiscordSettings
-              groupId={group.id}
-              guild={discord?.guild ?? null}
-              channels={discord?.channels ?? []}
-              settings={discord?.settings ?? {}}
-              available={discord?.available ?? false}
-              configured={discordConfigured}
-              result={
-                typeof discordResult === "string" ? discordResult : undefined
-              }
-              action={saveDiscordChannels.bind(null, group.id)}
-            />
-          </details>
-        )}
-
-        <p className="text-dim">
-          <Link href="/">{t.groups.home}</Link>
-        </p>
-      </Window>
-    </main>
+          {canManage && (
+            <details className="mb-2" open={typeof discordResult === "string"}>
+              <summary className="text-gold mb-1 cursor-pointer font-bold">
+                {t.groups.settings}
+              </summary>
+              <GroupForm
+                action={updateGroup.bind(null, group.id)}
+                withSlug={false}
+                defaults={{ name: group.name, faceitClub: group.faceitClubUrl }}
+                submit={t.groups.save}
+              />
+              <DiscordSettings
+                groupId={group.id}
+                guild={discord?.guild ?? null}
+                channels={discord?.channels ?? []}
+                settings={discord?.settings ?? {}}
+                available={discord?.available ?? false}
+                configured={discordConfigured}
+                result={
+                  typeof discordResult === "string" ? discordResult : undefined
+                }
+                action={saveDiscordChannels.bind(null, group.id)}
+              />
+            </details>
+          )}
+        </>
+      }
+    />
   );
 }

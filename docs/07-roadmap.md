@@ -121,7 +121,7 @@ the threshold. Names are UI copy (English), tone per PRODUCT.md.
 | [ ] **M3-3** | Head-to-head compare page | M3-1 | Two players side by side for a chosen source |
 | [~] **M3-4** | Leaderboards with minimum-maps threshold | M3-1 | **Partial 2026-09-29:** the group page shows an all-time Mixer Rating top five (at least five rated maps), maps, W–L, K/D and ADR, with clear Popflash/FACEIT/manual/demo source counts. Sorting by other metrics and a full leaderboard remain. |
 
-**Owner-approved UX follow-up (2026-10-06):** Batches 1–4 are complete before M3-3 and M4-7: header profile entry and distinct balance/ELO labels; profile Mixer Rating chart with 20-map cap, tooltips and mix links; raw last-20 Leetify Rating charts with attribution and no computed Leetify statistics; available FACEIT ADR/room links, mix profile links and verified score colors. **Next UX run: batch 5, the group page redesign.** Its two-part page must be one large panel/tile split internally, not two separate columns with a gap between them. Discord profile links are approved for that batch.
+**Owner-approved UX follow-up (2026-10-06):** Batches 1–5 are complete before M3-3 and M4-7: header profile entry and distinct balance/ELO labels; profile Mixer Rating chart with 20-map cap, tooltips and mix links; raw last-20 Leetify Rating charts with attribution and no computed Leetify statistics; available FACEIT ADR/room links, mix profile links and verified score colors; group page in one shared VGUI window with an internal responsive split, active-mix-aware creation, collapsible leaders and linked Discord profiles. The group page exception is documented in [DESIGN.md](../DESIGN.md).
 
 ## Phase 4: optional
 
@@ -159,7 +159,7 @@ P0-2 → S3 → M1-2 → M1-3
 M1-9 → M2-1 → M2-7 (manual results) → M2-2 → M2-3 → M2-4 (stats from FACEIT)
 ```
 
-**Next in order (status 2026-10-06):** UX batches 1–4 are complete. Batch 5 (group page redesign) is the next UX run, followed by the queued M3-3 and M4-7 work. Production checks confirmed the public roster page and the keep-alive route. P0-4 is complete after Artur's manual cron run returned HTTP 200 in function logs. `db-race-check.mjs` passed all six cases on 2026-10-06 (one earlier run failed its first case on request timing, not the cap). The Steam first-login check and two-browser lobby check remain open; see [TODO.md](../TODO.md). M1-G is complete.
+**Next in order (status 2026-10-06):** UX batches 1–5 are complete. M3-3 (head-to-head comparison) is next, followed by M4-7. Production checks confirmed the public roster page and the keep-alive route. P0-4 is complete after Artur's manual cron run returned HTTP 200 in function logs. `db-race-check.mjs` passed all six cases on 2026-10-06 (one earlier run failed its first case on request timing, not the cap). The Steam first-login check and two-browser lobby check remain open; see [TODO.md](../TODO.md). M1-G is complete.
 **Where keys live:** GitHub Actions secrets (used by the `API spike` / `DB migrate` workflows) and Vercel. The cloud sandbox has none and cannot reach `open.faceit.com` (Cloudflare challenge), so live FACEIT calls always go through a workflow or a deploy.
 **Owner inputs that unblock the rest:** FACEIT Club + one mix (S5) and the separate production database (P0-6). T-2 is complete.
 

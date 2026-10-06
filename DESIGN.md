@@ -192,6 +192,8 @@ A low-chroma olive family with bevel-edge tints and one warm gold highlight, tun
 
 The layout is a single column, phone first. The content column is capped at 460px (520px from the `md` breakpoint, 768px) and centered. There is 8px side padding outside the window. A breadcrumb menu bar (12px) sits above the window. The window holds everything, with a sunken status line at the top of its body. A fixed bottom action bar (olive-window, bevel-hi top edge, safe-area aware) holds two bevelled buttons: a secondary one at flex 1 and the primary at flex 2. Content reserves 76px at the bottom for it.
 
+**Group page exception (`/g/[slug]`):** the group roster uses one wide VGUI window, up to 1180px, with the mix and stats content on the left and members on the right from `lg`. A shared frame encloses both parts; a one-pixel internal divider separates them. It stacks into one column on smaller screens. A thin active-mix row may sit above the split. The Create Mix form stays immediately below the Mixes list and appears only when no mix is open, balancing, voting or locked.
+
 Spacing is tight and follows a 2px step: 2px (tab gaps), 4px (row padding, badge gaps), 6px (list padding, status line), 8px (window and sheet padding, button gaps), 10px (block separation between wells, button vertical padding), 12px (button horizontal padding). Lists use grids with fixed readout columns. The skill column is 46% of the row. Numbers stay in the same place across states.
 
 ## Elevation & Depth

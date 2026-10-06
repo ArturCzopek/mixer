@@ -451,6 +451,7 @@ const en = {
     discordAccount: {
       linked: "Discord linked",
       unlinked: "Discord not linked",
+      profile: "Discord profile",
       connect: "Link Discord",
       change: "Change Discord",
       disconnect: "Unlink",
@@ -1034,6 +1035,7 @@ const pl: Dict = {
     discordAccount: {
       linked: "Połączono z Discordem",
       unlinked: "Brak połączenia z Discordem",
+      profile: "Profil Discord",
       connect: "Połącz Discord",
       change: "Zmień konto Discord",
       disconnect: "Odłącz",

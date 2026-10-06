@@ -12,11 +12,9 @@ before the first real mix.
 ## Owner decisions (2026-10-06)
 
 - **M4-5 (captain draft):** deferred.
-- **UX batches 1–4:** done 2026-10-06, ahead of M3-3 and M4-7.
-- **Next UX run: batch 5 (group page redesign).** Its two-part group page must be **one large
-  panel/tile split internally**, not two separate columns with a gap between them. Discord profile
-  links are approved for this batch.
-- Then queue **M3-3 (head-to-head comparison)**, followed by **M4-7 (per-group balance settings)**.
+- **UX batches 1–5:** done 2026-10-06. Batch 5 is one shared VGUI window with a responsive internal
+  split, active-mix-aware creation, collapsible Mixer Rating leaders and Discord profile links.
+- Next: **M3-3 (head-to-head comparison)**, followed by **M4-7 (per-group balance settings)**.
 - **P0-6 (separate Production Supabase project):** do this immediately before the first real mix.
 
 ## Owner (Artur)
