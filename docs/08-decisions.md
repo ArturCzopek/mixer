@@ -374,3 +374,11 @@ Unknown match identities remain
 plain text. FACEIT ELO and level come directly from FACEIT; an unavailable lookup shows no value
 rather than a potentially stale Leetify copy. A roster shortcut compares the signed-in member
 with the clicked member, excluding the viewer's own row.
+
+## D43. Source-specific profile summaries, Accepted (2026-10-07)
+
+Artur requests Mix statistics only inside the Mix tab. Profile identity stays above the source
+selector; one shared summary layout below it displays that source's ranking and visible-window
+mean. Mix includes its record, overall Mixer Rating, ADR and K/D/A there. FACEIT and Premier retain
+their own ranks and Leetify statistics. Expanded per-match count fields keep the supplied values
+and remain display-only under D41; absent fields are hidden rather than inferred.

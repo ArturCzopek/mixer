@@ -16,7 +16,9 @@ before the first real mix.
   split, active-mix-aware creation, collapsible Mixer Rating leaders and Discord profile links.
 - **M3-3 (head-to-head comparison):** includes both side-by-side profiles by source and shared mix
   results when playing together or against each other (Artur, 2026-10-06).
-- Next: **M4-7 (per-group balance settings)**.
+- **2026-10-07 priority update:** extend **M2-8 (match awards)** and source statistics first;
+  investigate **M4-6 (demo extras)**. **M4-7 (per-group balance settings)** is deferred,
+  **M2-9 (live evening tracker)** is low priority. Database separation and the first real mix wait.
 - **P0-6 (separate Production Supabase project):** do this immediately before the first real mix.
 
 ## Owner (Artur)
@@ -58,8 +60,20 @@ webhook auto-return (`app/api/webhooks/faceit`, unverified until a real Club mat
 
 Next, in order:
 
-1. **M4-7 (per-group balance settings):** plan first. Preserve the balancing formulas and defaults.
-2. Full design + UX review with Artur afterwards (he expects more remarks).
+1. Continue **M2-8 (match awards)**: five remaining API-based awards need advanced FACEIT
+   fields persisted by both result-import RPCs and historical backfill.
+2. **S4 / M4-6 (browser demo parser / demo extras):** verify a recent CS2 demo in a worker,
+   including memory, compressed input and parity, before promising browser support.
+3. Further profile/source statistics and owner UX feedback. Balance settings and live scores wait.
+
+**2026-10-07 continuation:** thirteen award types are implemented (new: Head hunter, Spray and
+Pray, Lone wolf), plus three result-based quips. Missing data excludes an award; existing two per
+player / six per evening limits remain. Leetify FACEIT/Premier history can expand 18 supplied count
+fields per match; values stay as provided and are not persisted. Profile and comparison use one
+summary component; Mix statistics appear only in the Mix context, below the source selector.
+No migration or balancing change. Validation: 412 tests, lint, typecheck, format check and build.
+Delegated award logic used `gpt-6-sol` / medium; copy used `gpt-6-luna` / xhigh. Agents reached
+their account usage limit; Codex completed copy, profile changes, integration and validation.
 
 **Chart reuse implemented (Codex, 2026-10-06):** `components/profile/rating-trend.tsx` is shared by
 Mix, FACEIT and Premier. Leetify uses raw per-match ratings with a zero reference line and no

@@ -9,6 +9,7 @@ import Link from "next/link";
 import { DiscordMissing } from "./discord-missing";
 import { DiscordVoice } from "./discord-voice";
 import { LeetifyPreviewCard } from "@/components/leetify/preview-card";
+import { resultQuip } from "@/lib/mix/result-quip";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ExternalLink, Lock } from "lucide-react";
 import {
@@ -2216,6 +2217,7 @@ function Scoreboard({ lines }: { lines: Line[] }) {
 function Quip({ state }: { state: MixState }) {
   const { data, result, waitingFor, skill } = useMix();
   const t = useT();
+  const situational = resultQuip(data.result.maps);
   const text = {
     lobby: t.quips.lobby,
     balancing: t.quips.balancing,
@@ -2223,7 +2225,11 @@ function Quip({ state }: { state: MixState }) {
       ? t.quips.voting(waitingFor.name)
       : t.quips.votingOpen,
     locked: t.quips.locked,
-    played: data.archiveSource ? "" : playedQuip(result.all, skill, t),
+    played: situational
+      ? t.quips[situational]
+      : data.archiveSource
+        ? ""
+        : playedQuip(result.all, skill, t),
   }[state];
   if (!text) return null;
   return (

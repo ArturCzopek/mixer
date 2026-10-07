@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useLang, useT } from "@/components/i18n";
 import { Well } from "@/components/vgui";
 import { RatingTrend } from "@/components/profile/rating-trend";
+import { ProfileStats } from "@/components/profile/profile-stats";
 import type { LeetifyMatch, LeetifyProfile } from "@/lib/external/leetify";
 import {
   averageLeetifyRating,
@@ -108,29 +109,27 @@ export function LeetifyProfilePanel({
           {t.loading.leetify}
         </Well>
       ) : !data?.privacyMode && !failed ? (
-        <Well className="mb-2 flex flex-wrap gap-x-6 gap-y-2 px-3 py-2 text-xs">
-          {rankValues.map(([label, value]) => (
-            <div key={label}>
-              <span className="text-dim block">{label}</span>
-              <b className="text-gold text-lg">{value ?? "—"}</b>
-            </div>
-          ))}
-          {ratingAverage && (
-            <div>
-              <span className="text-dim block">
-                {t.leetify.averageRating(
-                  source === "faceit"
-                    ? t.profile.faceitTab
-                    : t.profile.premierTab,
-                  ratingAverage.count,
-                )}
-              </span>
-              <b className="text-gold text-lg tabular-nums">
-                {ratingAverage.value.toFixed(2)}
-              </b>
-            </div>
-          )}
-        </Well>
+        <ProfileStats
+          items={[
+            ...rankValues.map(([label, value]) => ({
+              label,
+              value: value ?? "—",
+            })),
+            ...(ratingAverage
+              ? [
+                  {
+                    label: t.leetify.averageRating(
+                      source === "faceit"
+                        ? t.profile.faceitTab
+                        : t.profile.premierTab,
+                      ratingAverage.count,
+                    ),
+                    value: ratingAverage.value.toFixed(2),
+                  },
+                ]
+              : []),
+          ]}
+        />
       ) : null}
       {!pending && ratingPoints.length > 0 && (
         <Well className="mb-2 px-2 py-1.5">

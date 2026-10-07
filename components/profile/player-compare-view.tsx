@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useLang, useT } from "@/components/i18n";
 import { LeetifyProfilePanel } from "@/components/leetify/profile-panel";
+import { MixProfileStats } from "@/components/profile/profile-stats";
 import {
   RatingTrend,
   type RatingTrendPoint,
@@ -235,39 +236,6 @@ function MixProfileColumn({
       ),
       href: `/g/${groupSlug}/m/${point.mixId}?match=${encodeURIComponent(point.id)}`,
     }));
-  const ratingAverage =
-    trendPoints.length > 0
-      ? trendPoints.reduce((sum, point) => sum + point.rating, 0) /
-        trendPoints.length
-      : null;
-  const metrics: [string, string | number][] = [
-    [t.profile.maps, summary.mapCount],
-    [
-      t.profile.record,
-      `${summary.wins} / ${summary.losses} / ${summary.draws}`,
-    ],
-    [
-      t.profile.winRate,
-      summary.winRate === null ? "—" : `${Math.round(summary.winRate * 100)}%`,
-    ],
-    [
-      t.profile.rating,
-      summary.rating === null ? "—" : summary.rating.toFixed(2),
-    ],
-    [t.profile.adr, summary.adr === null ? "—" : summary.adr.toFixed(1)],
-    [
-      t.profile.kda,
-      summary.ratedMaps
-        ? `${summary.kills} / ${summary.deaths} / ${summary.assists}`
-        : "—",
-    ],
-  ];
-  if (ratingAverage !== null)
-    metrics.splice(4, 0, [
-      t.profile.ratingTrendAverage(trendPoints.length),
-      ratingAverage.toFixed(2),
-    ]);
-
   return (
     <section className="min-w-0">
       <PlayerHeading
@@ -276,14 +244,10 @@ function MixProfileColumn({
         fallbackName={profile.player.steamId}
         label={index === 0 ? t.profile.playerA : t.profile.playerB}
       />
-      <Well className="grid grid-cols-2 gap-x-3 gap-y-2 p-2 text-xs sm:grid-cols-3">
-        {metrics.map(([label, value]) => (
-          <div key={label} className="min-w-0">
-            <span className="text-dim block">{label}</span>
-            <b className="text-text tabular-nums">{value}</b>
-          </div>
-        ))}
-      </Well>
+      <MixProfileStats
+        summary={summary}
+        ratings={trendPoints.map((point) => point.rating)}
+      />
       <h3 className="text-gold mt-3 mb-1 text-xs font-bold">
         {t.profile.ratingTrend}
       </h3>

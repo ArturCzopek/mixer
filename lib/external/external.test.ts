@@ -387,6 +387,24 @@ describe("leetify client (invented sample, Leetify data is never stored)", () =>
     ]);
   });
 
+  it("preserves supplied detail counts and missing values for both sources", () => {
+    const base = match({});
+    for (const source of ["faceit", "matchmaking"] as const) {
+      const input = {
+        ...base,
+        data_source: source,
+        stats: [
+          { ...base.stats[0], total_hs_kills: 7, flash_assist: 0, mvps: null },
+        ],
+      };
+      expect(toLeetifyMatches([input], me, source)[0].details).toEqual({
+        total_hs_kills: 7,
+        flash_assist: 0,
+        mvps: null,
+      });
+    }
+  });
+
   it("links both match sources only when Leetify provides a valid match ID", () => {
     const id = "6afda335-3147-4626-af66-e6241d4a6211";
     const withId = match({ id });

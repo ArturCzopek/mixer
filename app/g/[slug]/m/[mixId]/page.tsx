@@ -110,7 +110,7 @@ export default async function MixLobbyPage({
         ? await adminDb()
             .from("match_player_stats")
             .select(
-              "match_id, player_id, team, kills, deaths, assists, adr, rounds, rating, first_kills, clutch_wins, utility_damage, enemies_flashed, multi_4k, multi_5k",
+              "match_id, player_id, team, kills, deaths, assists, adr, rounds, rating, hs_kills, first_kills, clutch_wins, utility_damage, enemies_flashed, multi_4k, multi_5k",
             )
             .in("match_id", matchIds)
         : { data: [], error: null };
@@ -118,6 +118,7 @@ export default async function MixLobbyPage({
       const steamIds = new Map(
         page.participants.map((player) => [player.playerId, player.steamId]),
       );
+      const mapsById = new Map((maps ?? []).map((map) => [map.id, map]));
       data.result = {
         maps: (maps ?? []).map((map) => ({
           map: map.map_name
@@ -168,12 +169,21 @@ export default async function MixLobbyPage({
         awards: matchAwards(
           (storedStats ?? []).flatMap((stat): AwardStat[] => {
             const steamId = steamIds.get(stat.player_id);
+            const map = mapsById.get(stat.match_id);
             return steamId
               ? [
                   {
                     steamId,
                     rounds: stat.rounds,
                     kills: stat.kills,
+                    headshotKills: stat.hs_kills,
+                    matchId: map?.id,
+                    team:
+                      stat.team === "A" || stat.team === "B"
+                        ? stat.team
+                        : undefined,
+                    scoreA: map?.score_a,
+                    scoreB: map?.score_b,
                     deaths: stat.deaths,
                     assists: stat.assists,
                     adr: stat.adr === null ? null : Number(stat.adr),

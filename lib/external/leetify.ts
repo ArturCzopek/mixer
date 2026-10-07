@@ -11,6 +11,28 @@ export const LEETIFY_PREMIER_SOURCE = "matchmaking" as const;
 
 export type LeetifyDataSource = "faceit" | typeof LEETIFY_PREMIER_SOURCE;
 
+const detailSchema = z.object({
+  total_damage: z.number().nullable().optional(),
+  rounds_count: z.number().nullable().optional(),
+  rounds_survived: z.number().nullable().optional(),
+  total_hs_kills: z.number().nullable().optional(),
+  mvps: z.number().nullable().optional(),
+  multi2k: z.number().nullable().optional(),
+  multi3k: z.number().nullable().optional(),
+  multi4k: z.number().nullable().optional(),
+  multi5k: z.number().nullable().optional(),
+  flashbang_thrown: z.number().nullable().optional(),
+  flashbang_hit_foe: z.number().nullable().optional(),
+  flashbang_hit_friend: z.number().nullable().optional(),
+  flash_assist: z.number().nullable().optional(),
+  trade_kills_succeed: z.number().nullable().optional(),
+  traded_deaths_succeed: z.number().nullable().optional(),
+  shots_fired: z.number().nullable().optional(),
+  shots_hit_foe: z.number().nullable().optional(),
+  shots_hit_friend: z.number().nullable().optional(),
+});
+export type LeetifyDetailField = keyof z.infer<typeof detailSchema>;
+
 /** One match in the API's team-relative score and Leetify display scale. */
 export interface LeetifyMatch {
   finishedAt: string;
@@ -20,6 +42,7 @@ export interface LeetifyMatch {
   score: [number, number];
   leetifyRating: number | null;
   kad: [number, number, number];
+  details?: Partial<Record<LeetifyDetailField, number | null>>;
 }
 
 const profileSchema = z.object({
@@ -41,14 +64,16 @@ const matchSchema = z.object({
     z.object({ team_number: z.number(), score: z.number() }),
   ),
   stats: z.array(
-    z.object({
-      steam64_id: z.string(),
-      initial_team_number: z.number(),
-      leetify_rating: z.number().nullable(),
-      total_kills: z.number(),
-      total_assists: z.number(),
-      total_deaths: z.number(),
-    }),
+    z
+      .object({
+        steam64_id: z.string(),
+        initial_team_number: z.number(),
+        leetify_rating: z.number().nullable(),
+        total_kills: z.number(),
+        total_assists: z.number(),
+        total_deaths: z.number(),
+      })
+      .extend(detailSchema.shape),
   ),
 });
 
@@ -110,6 +135,7 @@ export function toLeetifyMatches(
       (team) => team.team_number !== player.initial_team_number,
     );
     if (!ours || !theirs) continue;
+    const details = detailSchema.parse(player);
     out.push({
       finishedAt: new Date(time).toISOString(),
       dataSource: source,
@@ -125,6 +151,7 @@ export function toLeetifyMatches(
           ? null
           : Math.round(player.leetify_rating * 10000) / 100,
       kad: [player.total_kills, player.total_assists, player.total_deaths],
+      ...(Object.keys(details).length ? { details } : {}),
     });
   }
   return out.sort((a, b) => b.finishedAt.localeCompare(a.finishedAt));

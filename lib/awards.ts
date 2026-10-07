@@ -3,6 +3,7 @@ export interface AwardStat {
   steamId: string;
   rounds: number | null;
   kills: number | null;
+  headshotKills?: number | null;
   deaths: number | null;
   assists: number | null;
   adr: number | null;
@@ -12,6 +13,10 @@ export interface AwardStat {
   enemiesFlashed: number | null;
   multi4: number | null;
   multi5: number | null;
+  matchId?: string;
+  team?: "A" | "B";
+  scoreA?: number;
+  scoreB?: number;
 }
 
 export type AwardKey =
@@ -19,12 +24,15 @@ export type AwardKey =
   | "pacifist"
   | "assistKing"
   | "tourist"
+  | "headhunter"
+  | "sprayAndPray"
   | "doorOpener"
   | "clutchMinister"
   | "grenadier"
   | "sunglasses"
   | "exterminator"
-  | "soClose";
+  | "soClose"
+  | "loneWolf";
 
 export interface MatchAward {
   key: AwardKey;
@@ -52,6 +60,10 @@ export function matchAwards(
       steamId: line.steamId,
       rounds: sum(previous.rounds, line.rounds),
       kills: sum(previous.kills, line.kills),
+      headshotKills: sum(
+        previous.headshotKills ?? null,
+        line.headshotKills ?? null,
+      ),
       deaths: sum(previous.deaths, line.deaths),
       assists: sum(previous.assists, line.assists),
       adr: null,
@@ -128,6 +140,28 @@ export function matchAwards(
     (v) => v < 0.45,
     (v) => 0.45 / Math.max(v, 0.01),
   );
+  const headshotPercent = (line: AwardStat) =>
+    line.kills !== null &&
+    line.kills >= 15 &&
+    line.headshotKills != null &&
+    Number.isFinite(line.kills) &&
+    Number.isFinite(line.headshotKills) &&
+    line.headshotKills >= 0 &&
+    line.headshotKills <= line.kills
+      ? (100 * line.headshotKills) / line.kills
+      : null;
+  award(
+    "headhunter",
+    headshotPercent,
+    (v) => v >= 65,
+    (v) => v / 65,
+  );
+  award(
+    "sprayAndPray",
+    headshotPercent,
+    (v) => v <= 25,
+    (v) => 25 / Math.max(v, 0.01),
+  );
   award(
     "doorOpener",
     (line) => line.firstKills,
@@ -164,6 +198,60 @@ export function matchAwards(
     (v) => v >= 2,
     (v) => v / 2,
   );
+
+  const byMatch = new Map<string, AwardStat[]>();
+  for (const line of lines) {
+    if (!line.matchId) continue;
+    const map = byMatch.get(line.matchId) ?? [];
+    map.push(line);
+    byMatch.set(line.matchId, map);
+  }
+  const loneWolves = [...byMatch.values()].flatMap((map) => {
+    const { scoreA, scoreB } = map[0];
+    if (
+      scoreA === undefined ||
+      scoreB === undefined ||
+      !Number.isFinite(scoreA) ||
+      !Number.isFinite(scoreB) ||
+      Math.abs(scoreA - scoreB) < 5 ||
+      map.some((line) => line.scoreA !== scoreA || line.scoreB !== scoreB)
+    )
+      return [];
+    const losingTeam = scoreA < scoreB ? "A" : "B";
+    const losers = map.filter((line) => line.team === losingTeam);
+    if (
+      losers.length !== 5 ||
+      new Set(losers.map((line) => line.steamId)).size !== 5 ||
+      losers.some((line) => line.kills === null || !Number.isFinite(line.kills))
+    )
+      return [];
+    const topKills = Math.max(...losers.map((line) => line.kills!));
+    const top = losers
+      .filter((line) => line.kills === topKills)
+      .sort(
+        (a, b) =>
+          (order.get(a.steamId) ?? Infinity) -
+          (order.get(b.steamId) ?? Infinity),
+      )[0];
+    return [
+      {
+        steamId: top.steamId,
+        value: topKills,
+        severity: Math.abs(scoreA - scoreB) / 5,
+      },
+    ];
+  });
+  loneWolves.sort(
+    (a, b) =>
+      b.severity - a.severity ||
+      (order.get(a.steamId) ?? Infinity) - (order.get(b.steamId) ?? Infinity),
+  );
+  if (loneWolves[0])
+    candidates.push({
+      key: "loneWolf",
+      ...loneWolves[0],
+      order: order.get(loneWolves[0].steamId) ?? Infinity,
+    });
 
   const counts = new Map<string, number>();
   return candidates

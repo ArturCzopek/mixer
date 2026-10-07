@@ -44,6 +44,28 @@ function render(child: ReactNode) {
 }
 
 describe("Leetify views", () => {
+  it("shows supplied detail counts including zero, omits missing values and keeps previews compact", () => {
+    const detailed = [
+      {
+        ...matches[0],
+        details: { flash_assist: 0, mvps: null, total_hs_kills: 7 },
+      },
+    ];
+    const html = render(
+      createElement(LeetifyMatchTable, { matches: detailed }),
+    );
+    expect(html).toContain("<details>");
+    expect(html).toContain("Flash assists");
+    expect(html).toContain("Headshot kills");
+    expect(html).not.toContain("MVPs");
+    expect(html).toContain(">0</dd>");
+    expect(
+      render(
+        createElement(LeetifyMatchTable, { matches: detailed, fixedRows: 8 }),
+      ),
+    ).not.toContain("<details>");
+  });
+
   it("renders each supplied match field and the required attribution", () => {
     const html = render(
       createElement(
@@ -262,7 +284,10 @@ describe("Leetify views", () => {
         data,
       }),
     );
-    expect(html).toContain("Current FACEIT ELO");
+    expect(html).not.toContain("Current FACEIT ELO");
+    expect(html.indexOf('aria-label="Profile source"')).toBeLessThan(
+      html.indexOf("Average Mixer Rating"),
+    );
     expect(html).toContain("20 of 22 rated maps");
     expect(html).toContain("Average Mixer Rating · 20 maps");
     expect(html).toContain(">1.10</b>");
