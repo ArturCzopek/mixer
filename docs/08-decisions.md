@@ -385,3 +385,10 @@ selector; one shared summary layout below it displays that source's ranking and 
 mean. Mix includes its record, overall Mixer Rating, ADR and K/D/A there. FACEIT and Premier retain
 their own ranks and Leetify statistics. Expanded per-match count fields keep the supplied values
 and remain display-only under D41; absent fields are hidden rather than inferred.
+
+Owner refinement (2026-10-07): chart markers show immediate custom hover/focus details and have no
+navigation. FACEIT/Premier rows expand from an arrow beside the linked date. Detail fields are
+limited to total damage, ADR, MVPs, aces, headshot kills, enemies/teammates flashed and flash
+assists. ADR is a separately named display calculation: supplied damage divided by supplied
+positive rounds, rounded to one decimal; missing inputs omit it. This explicitly allows that
+calculation without changing Leetify Rating, persistence or balancing.

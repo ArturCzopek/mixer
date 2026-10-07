@@ -26,21 +26,19 @@ function render(
 }
 
 describe("RatingTrend", () => {
-  it("labels the precise min, reference, and max values and keeps point links and dates", () => {
+  it("labels values and dates with focusable, non-navigating points", () => {
     const html = render([
       {
         id: "old",
         rating: 0.72,
         title: "04 Oct 2026 · de_mirage · 13:8 · Mixer Rating 0.72",
         dateLabel: "04 Oct 2026",
-        href: "/g/crew/m/old",
       },
       {
         id: "new",
         rating: 1.31,
         title: "06 Oct 2026 · de_inferno · 13:11 · Mixer Rating 1.31",
         dateLabel: "06 Oct 2026",
-        href: "/g/crew/m/new",
       },
     ]);
 
@@ -49,8 +47,9 @@ describe("RatingTrend", () => {
     expect(html).toContain("Max 1.31");
     expect(html).toContain("04 Oct 2026");
     expect(html).toContain("06 Oct 2026");
-    expect(html).toContain('href="/g/crew/m/old"');
-    expect(html).toContain('href="/g/crew/m/new"');
+    expect(html).not.toContain("href=");
+    expect(html.match(/tabindex="0"/g)).toHaveLength(2);
+    expect(html).not.toContain("<title>");
     expect(html).toContain("de_mirage · 13:8 · Mixer Rating 0.72");
     expect(html).toContain("de_inferno · 13:11 · Mixer Rating 1.31");
     expect(html).toContain('stroke-dasharray="4 4"');

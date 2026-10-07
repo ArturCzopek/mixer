@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { useId, useState } from "react";
 import { useLang, useT } from "@/components/i18n";
 
 export type RatingTrendPoint = {
@@ -8,7 +8,6 @@ export type RatingTrendPoint = {
   rating: number;
   title: string;
   dateLabel?: string;
-  href?: string;
 };
 
 const CHART_TOP = 10;
@@ -25,6 +24,8 @@ export function RatingTrend({
 }) {
   const t = useT();
   const lang = useLang();
+  const tooltipId = useId();
+  const [active, setActive] = useState<number | null>(null);
   const finitePoints = points.filter((point) => Number.isFinite(point.rating));
   if (!finitePoints.length) return null;
 
@@ -99,69 +100,97 @@ export function RatingTrend({
             </span>
           ))}
         </div>
-        <svg
-          viewBox="0 0 600 160"
-          role="img"
-          aria-label={label}
-          className="h-40 w-full"
-          preserveAspectRatio="none"
-        >
-          <line
-            x1="26"
-            x2="574"
-            y1={y(maximum)}
-            y2={y(maximum)}
-            stroke="var(--color-row)"
-          />
-          <line
-            x1="26"
-            x2="574"
-            y1={y(reference)}
-            y2={y(reference)}
-            stroke="currentColor"
-            className="text-dim"
-            strokeDasharray="4 4"
-          />
-          <line
-            x1="26"
-            x2="574"
-            y1={y(minimum)}
-            y2={y(minimum)}
-            stroke="var(--color-row)"
-          />
-          <path
-            d={path}
-            fill="none"
-            stroke="var(--color-gold)"
-            strokeWidth="2.5"
-          />
-          {finitePoints.map((point, index) => {
-            const marker = (
-              <>
-                <title>{point.title}</title>
-                <circle
-                  cx={x(index)}
-                  cy={y(point.rating)}
-                  r="5"
-                  fill="var(--color-gold)"
-                />
-              </>
-            );
-
-            return point.href ? (
-              <Link
-                key={point.id}
-                href={point.href}
-                aria-label={point.title}
-                className="focus-visible:outline-gold focus-visible:outline-2 focus-visible:outline-offset-2"
-              >
-                {marker}
-              </Link>
-            ) : (
-              <g key={point.id}>{marker}</g>
-            );
-          })}
-        </svg>
+        <div className="relative min-w-0">
+          <svg
+            viewBox="0 0 600 160"
+            role="img"
+            aria-label={label}
+            className="h-40 w-full"
+            preserveAspectRatio="none"
+          >
+            <line
+              x1="26"
+              x2="574"
+              y1={y(maximum)}
+              y2={y(maximum)}
+              stroke="var(--color-row)"
+            />
+            <line
+              x1="26"
+              x2="574"
+              y1={y(reference)}
+              y2={y(reference)}
+              stroke="currentColor"
+              className="text-dim"
+              strokeDasharray="4 4"
+            />
+            <line
+              x1="26"
+              x2="574"
+              y1={y(minimum)}
+              y2={y(minimum)}
+              stroke="var(--color-row)"
+            />
+            <path
+              d={path}
+              fill="none"
+              stroke="var(--color-gold)"
+              strokeWidth="2.5"
+            />
+            {finitePoints.map((point, index) => {
+              return (
+                <g
+                  key={point.id}
+                  tabIndex={0}
+                  role="img"
+                  aria-label={point.title}
+                  aria-describedby={active === index ? tooltipId : undefined}
+                  onPointerEnter={() => setActive(index)}
+                  onPointerLeave={() => setActive(null)}
+                  onFocus={() => setActive(index)}
+                  onBlur={() => setActive(null)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Escape") setActive(null);
+                  }}
+                  className="focus-visible:outline-gold cursor-default focus-visible:outline-2"
+                >
+                  <ellipse
+                    cx={x(index)}
+                    cy={y(point.rating)}
+                    rx="14"
+                    ry="12"
+                    fill="transparent"
+                  />
+                  <circle
+                    cx={x(index)}
+                    cy={y(point.rating)}
+                    r="5"
+                    fill="var(--color-gold)"
+                    stroke={active === index ? "var(--color-text)" : "none"}
+                    strokeWidth="2"
+                  />
+                </g>
+              );
+            })}
+          </svg>
+          {active !== null && finitePoints[active] && (
+            <div
+              id={tooltipId}
+              role="tooltip"
+              className="bevel bg-sheet text-text pointer-events-none absolute z-20 w-56 max-w-full px-2 py-1.5 text-xs shadow-lg"
+              style={{
+                left: `clamp(0px, calc(${x(active) / 6}% - 7rem), calc(100% - min(14rem, 100%)))`,
+                top: `${y(finitePoints[active].rating)}px`,
+                transform:
+                  y(finitePoints[active].rating) < 60
+                    ? "translateY(14px)"
+                    : "translateY(calc(-100% - 14px))",
+              }}
+            >
+              {finitePoints[active].title}
+            </div>
+          )}
+        </div>
       </div>
       {(firstDate || lastDate) && (
         <div className="text-dim mt-1 ml-13 flex justify-between gap-2 text-[11px]">

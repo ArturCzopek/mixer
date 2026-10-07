@@ -46,7 +46,6 @@ export function PlayerProfileView({
         `${point.scoreA}:${point.scoreB}`,
         point.rating.toFixed(2),
       ),
-      href: `/g/${groupSlug}/m/${point.mixId}?match=${encodeURIComponent(point.id)}`,
     }));
   return (
     <main className="mx-auto w-full max-w-[1180px] flex-1 px-2 pb-12">

@@ -8,6 +8,7 @@ import {
   averageLeetifyRating,
   LeetifyAttribution,
   LeetifyMatchTable,
+  leetifyMatchDetails,
 } from "./match-table";
 import { PlayerProfileView } from "@/components/profile/player-profile-view";
 import { RatingTrend } from "@/components/profile/rating-trend";
@@ -54,16 +55,50 @@ describe("Leetify views", () => {
     const html = render(
       createElement(LeetifyMatchTable, { matches: detailed }),
     );
-    expect(html).toContain("<details>");
-    expect(html).toContain("Flash assists");
-    expect(html).toContain("Headshot kills");
-    expect(html).not.toContain("MVPs");
-    expect(html).toContain(">0</dd>");
+    expect(html).toContain('aria-expanded="false"');
+    expect(html).toContain(
+      'aria-label="More match stats · 01 Oct 2026 · de_mirage"',
+    );
+    expect(html).not.toContain("<dl");
+    expect(leetifyMatchDetails(detailed[0])).toEqual([
+      { field: "total_hs_kills", value: 7 },
+      { field: "flash_assist", value: 0 },
+    ]);
     expect(
       render(
         createElement(LeetifyMatchTable, { matches: detailed, fixedRows: 8 }),
       ),
-    ).not.toContain("<details>");
+    ).not.toContain("aria-expanded");
+  });
+
+  it("calculates ADR only with valid damage and positive rounds, and limits details to the chosen fields", () => {
+    const match = {
+      ...matches[0],
+      details: {
+        total_damage: 1573,
+        rounds_count: 20,
+        mvps: 2,
+        multi5k: 0,
+        shots_fired: 150,
+      },
+    };
+    expect(leetifyMatchDetails(match)).toEqual([
+      { field: "total_damage", value: 1573 },
+      { field: "adr", value: 78.7 },
+      { field: "mvps", value: 2 },
+      { field: "multi5k", value: 0 },
+    ]);
+    for (const rounds_count of [0, -1, null, undefined, Number.NaN]) {
+      expect(
+        leetifyMatchDetails({
+          ...match,
+          details: { ...match.details, rounds_count },
+        }).some(({ field }) => field === "adr"),
+      ).toBe(false);
+    }
+    expect(
+      leetifyMatchDetails({ ...match, details: { rounds_count: 20 } }),
+    ).toEqual([]);
   });
 
   it("renders each supplied match field and the required attribution", () => {
@@ -292,7 +327,7 @@ describe("Leetify views", () => {
     expect(html).toContain("Average Mixer Rating · 20 maps");
     expect(html).toContain(">1.10</b>");
     expect(html.match(/<circle/g)).toHaveLength(20);
-    expect(html).toContain('href="/g/crew/m/mix-0?match=match-0"');
+    expect(html).not.toContain('href="/g/crew/m/mix-0?match=match-0"');
     expect(html).not.toContain('href="/g/crew/m/mix-20?match=match-20"');
     expect(html).toContain("de_mirage · 13:8 · Mixer Rating 1.00");
   });

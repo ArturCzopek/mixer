@@ -234,7 +234,6 @@ function MixProfileColumn({
         `${point.scoreA}:${point.scoreB}`,
         point.rating.toFixed(2),
       ),
-      href: `/g/${groupSlug}/m/${point.mixId}?match=${encodeURIComponent(point.id)}`,
     }));
   return (
     <section className="min-w-0">

@@ -354,7 +354,7 @@ export default async function GroupPage({
                         rel="noopener noreferrer"
                         className={groupPageLinkClassName}
                       >
-                        FACEIT · {m.faceitNickname}
+                        FACEIT
                       </a>
                     ) : (
                       <span>{t.roster.noFaceit}</span>

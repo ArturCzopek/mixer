@@ -126,6 +126,30 @@ it("links each other roster member to compare with the active viewer", async () 
   ]);
 });
 
+it("labels FACEIT roster links without repeating the external nickname", async () => {
+  mocks.groupBySlug.mockResolvedValue({
+    ...group,
+    members: group.members.map((member) => ({
+      ...member,
+      faceitNickname: "external-name",
+    })),
+  });
+  const page = (await GroupPage({
+    params: Promise.resolve({ slug: "crew" }),
+    searchParams: Promise.resolve({}),
+  })) as ReactElement<{ members: ReactNode }>;
+  const links = elements(page.props.members).filter((element) =>
+    element.props.href?.includes("faceit.com/en/players/"),
+  );
+  expect(links).toHaveLength(2);
+  for (const link of links) {
+    expect(link.props.href).toBe(
+      "https://www.faceit.com/en/players/external-name",
+    );
+    expect((link.props as { children: ReactNode }).children).toBe("FACEIT");
+  }
+});
+
 it.each([
   ["visitors", null],
   [

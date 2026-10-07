@@ -66,6 +66,18 @@ Next, in order:
    including memory, compressed input and parity, before promising browser support.
 3. Further profile/source statistics and owner UX feedback. Balance settings and live scores wait.
 
+Owner UX refinement (2026-10-07): roster FACEIT links omit the external nickname. Shared chart
+points are non-navigating, with immediate custom hover/focus details. FACEIT/Premier history uses
+an expand arrow beside the date, showing total damage, derived ADR (damage / positive rounds),
+MVPs, aces, headshot kills, enemies/teammates flashed and flash assists only. Date navigation stays.
+
+**Group statistics proposal (not implemented or a new owner decision):** continue M3-4 (full
+leaderboard) with all players and sorting by Mixer Rating, ADR, K/D and win rate, retaining sample
+counts and minimum-map eligibility. Then add per-map group/player performance, teammate pairs
+with sample size, and award totals. Use only stored group Mix data, including clearly marked
+archives; do not import ordinary FACEIT/Premier matches into group totals. Filters for period and
+archive/source scope should precede larger tables. No new balancing inputs.
+
 **2026-10-07 continuation:** thirteen award types are implemented (new: Head hunter, Spray and
 Pray, Lone wolf), plus three result-based quips. Missing data excludes an award; existing two per
 player / six per evening limits remain. Leetify FACEIT/Premier history can expand 18 supplied count

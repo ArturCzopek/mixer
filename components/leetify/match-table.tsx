@@ -1,9 +1,45 @@
 "use client";
 
-import { Fragment } from "react";
+import { Fragment, useId, useState } from "react";
+import { ChevronRight } from "lucide-react";
 import { useLang, useT } from "@/components/i18n";
 import { Well } from "@/components/vgui";
 import type { LeetifyMatch, LeetifyDetailField } from "@/lib/external/leetify";
+
+const detailFields: LeetifyDetailField[] = [
+  "total_damage",
+  "mvps",
+  "multi5k",
+  "total_hs_kills",
+  "flashbang_hit_foe",
+  "flashbang_hit_friend",
+  "flash_assist",
+];
+
+export function leetifyMatchDetails(match: LeetifyMatch) {
+  const details: { field: LeetifyDetailField | "adr"; value: number }[] = [];
+  for (const field of detailFields) {
+    const value = match.details?.[field];
+    if (typeof value === "number" && Number.isFinite(value) && value >= 0)
+      details.push({ field, value });
+    if (field === "total_damage") {
+      const rounds = match.details?.rounds_count;
+      if (
+        typeof value === "number" &&
+        Number.isFinite(value) &&
+        value >= 0 &&
+        typeof rounds === "number" &&
+        Number.isFinite(rounds) &&
+        rounds > 0
+      )
+        details.push({
+          field: "adr",
+          value: Math.round((value / rounds) * 10) / 10,
+        });
+    }
+  }
+  return details;
+}
 
 export function averageLeetifyRating(matches: LeetifyMatch[], count: number) {
   const ratings = matches
@@ -35,6 +71,8 @@ export function LeetifyMatchTable({
 }) {
   const t = useT();
   const lang = useLang();
+  const tableId = useId();
+  const [expanded, setExpanded] = useState<string[]>([]);
   const shown = matches.slice(0, fixedRows ?? 20);
   const rowCount = fixedRows ?? shown.length;
   const rating = (value: number | null) =>
@@ -93,9 +131,10 @@ export function LeetifyMatchTable({
                 timeZone: "Europe/Warsaw",
               },
             ).format(new Date(match.finishedAt));
-            const details = Object.entries(match.details ?? {}).filter(
-              ([, value]) => value !== null && Number.isFinite(value),
-            );
+            const details = leetifyMatchDetails(match);
+            const expandable = fixedRows === undefined && details.length > 0;
+            const rowId = `${match.dataSource}-${match.finishedAt}-${index}`;
+            const open = expanded.includes(rowId);
             return (
               <Fragment key={`${match.finishedAt}-${index}`}>
                 <tr
@@ -103,18 +142,42 @@ export function LeetifyMatchTable({
                   className="border-row h-[30px] border-t"
                 >
                   <td className="text-dim px-2">
-                    {match.matchUrl ? (
-                      <a
-                        href={match.matchUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-gold underline"
-                      >
-                        {date}
-                      </a>
-                    ) : (
-                      date
-                    )}
+                    <span className="inline-flex items-center gap-1">
+                      {expandable && (
+                        <button
+                          type="button"
+                          aria-label={`${t.leetify.detailsTitle} · ${date} · ${match.map}`}
+                          aria-expanded={open}
+                          aria-controls={`${tableId}-details-${index}`}
+                          onClick={() =>
+                            setExpanded((rows) =>
+                              rows.includes(rowId)
+                                ? rows.filter((row) => row !== rowId)
+                                : [...rows, rowId],
+                            )
+                          }
+                          className="text-gold hover:bg-hover focus-visible:outline-gold inline-flex h-6 w-6 shrink-0 items-center justify-center focus-visible:outline-2"
+                        >
+                          <ChevronRight
+                            aria-hidden="true"
+                            size={14}
+                            className={open ? "rotate-90" : ""}
+                          />
+                        </button>
+                      )}
+                      {match.matchUrl ? (
+                        <a
+                          href={match.matchUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-gold underline"
+                        >
+                          {date}
+                        </a>
+                      ) : (
+                        date
+                      )}
+                    </span>
                   </td>
                   <td>
                     {match.matchUrl ? (
@@ -160,24 +223,22 @@ export function LeetifyMatchTable({
                     {rating(match.leetifyRating)}
                   </td>
                 </tr>
-                {fixedRows === undefined && details.length > 0 && (
-                  <tr className="border-row border-t">
+                {expandable && open && (
+                  <tr
+                    id={`${tableId}-details-${index}`}
+                    className="border-row border-t"
+                  >
                     <td colSpan={6} className="px-2 py-1">
-                      <details>
-                        <summary className="text-gold cursor-pointer underline">
-                          {t.leetify.detailsTitle}
-                        </summary>
-                        <dl className="grid max-w-[calc(100vw-4rem)] grid-cols-2 gap-x-4 gap-y-2 py-2 sm:max-w-none sm:grid-cols-3">
-                          {details.map(([field, value]) => (
-                            <div key={field}>
-                              <dt className="text-dim">
-                                {t.leetify.details[field as LeetifyDetailField]}
-                              </dt>
-                              <dd className="tabular-nums">{value}</dd>
-                            </div>
-                          ))}
-                        </dl>
-                      </details>
+                      <dl className="grid max-w-[calc(100vw-4rem)] grid-cols-2 gap-x-4 gap-y-2 py-2 sm:max-w-none sm:grid-cols-3">
+                        {details.map(({ field, value }) => (
+                          <div key={field}>
+                            <dt className="text-dim">
+                              {t.leetify.details[field]}
+                            </dt>
+                            <dd className="tabular-nums">{value}</dd>
+                          </div>
+                        ))}
+                      </dl>
                     </td>
                   </tr>
                 )}

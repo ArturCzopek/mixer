@@ -87,7 +87,6 @@ export function LeetifyProfilePanel({
           `${match.score[0]}:${match.score[1]}`,
           rating,
         ),
-        href: match.matchUrl ?? undefined,
       },
     ];
   });

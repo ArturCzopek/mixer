@@ -112,6 +112,7 @@ const en = {
     detailsTitle: "More match stats",
     details: {
       total_damage: "Total damage",
+      adr: "ADR",
       rounds_count: "Rounds played",
       rounds_survived: "Rounds survived",
       total_hs_kills: "Headshot kills",
@@ -810,6 +811,7 @@ const pl: Dict = {
     detailsTitle: "Więcej statystyk meczu",
     details: {
       total_damage: "Łączne obrażenia",
+      adr: "ADR",
       rounds_count: "Rozegrane rundy",
       rounds_survived: "Przeżyte rundy",
       total_hs_kills: "Zabójstwa w głowę",
