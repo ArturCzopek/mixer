@@ -355,11 +355,11 @@ describe("Leetify views", () => {
     expect(html).toContain("FACEIT room");
     expect(html).toContain(">98</td>");
     expect(html).toContain(
-      'href="/g/crew/m/mix-1?match=match-1">01 Oct 2026</a>',
+      'href="/g/crew/m/mix-1?match=match-1">Friday mix</a>',
     );
-    expect(html).toContain(
-      'href="/g/crew/m/mix-1?match=match-1">de_inferno</a>',
-    );
+    expect(html).toContain("01 Oct 2026 · de_inferno</span>");
+    expect(html).not.toContain(">01 Oct 2026</a>");
+    expect(html).not.toContain(">de_inferno</a>");
 
     const withoutExternalData = render(
       createElement(PlayerProfileView, {

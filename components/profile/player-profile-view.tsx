@@ -162,24 +162,13 @@ export function PlayerProfileView({
                               <td className="p-2">
                                 <Link
                                   className="text-gold underline"
-                                  href={`/g/${groupSlug}/m/${map.mixId}`}
+                                  href={`/g/${groupSlug}/m/${map.mixId}?match=${encodeURIComponent(map.matchId)}`}
                                 >
                                   {map.mixTitle}
                                 </Link>
                                 <span className="text-dim block">
-                                  <Link
-                                    className="text-gold underline"
-                                    href={`/g/${groupSlug}/m/${map.mixId}?match=${encodeURIComponent(map.matchId)}`}
-                                  >
-                                    {date(map.playedAt)}
-                                  </Link>{" "}
-                                  ·{" "}
-                                  <Link
-                                    className="text-gold underline"
-                                    href={`/g/${groupSlug}/m/${map.mixId}?match=${encodeURIComponent(map.matchId)}`}
-                                  >
-                                    {map.mapName ?? `#${map.mapNumber}`}
-                                  </Link>
+                                  {date(map.playedAt)} ·{" "}
+                                  {map.mapName ?? `#${map.mapNumber}`}
                                 </span>
                                 {map.faceitRoomUrl && (
                                   <a

@@ -173,11 +173,11 @@ describe("PlayerCompareView", () => {
     expect(html).toContain(">1.12</b>");
     expect(html).toContain('href="/g/crew/m/mix-1?match=match-against"');
     expect(html).toContain(
-      'href="/g/crew/m/mix-1?match=match-against">01 Oct 2026</a>',
+      'href="/g/crew/m/mix-1?match=match-against">Friday mix</a>',
     );
-    expect(html).toContain(
-      'href="/g/crew/m/mix-1?match=match-against">de_mirage</a>',
-    );
+    expect(html).toContain("01 Oct 2026 · de_mirage</span>");
+    expect(html).not.toContain(">01 Oct 2026</a>");
+    expect(html).not.toContain(">de_mirage</a>");
     expect(html).toContain("2");
     expect(html).toContain("1</b>");
     expect(html).toContain("Against each other");

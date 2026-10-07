@@ -375,6 +375,9 @@ plain text. FACEIT ELO and level come directly from FACEIT; an unavailable looku
 rather than a potentially stale Leetify copy. A roster shortcut compares the signed-in member
 with the clicked member, excluding the viewer's own row.
 
+Owner refinement (2026-10-07): Mix map-history rows link only the evening title to the concrete
+map; their date and map name are plain text. Applies to profiles and comparison history.
+
 ## D43. Source-specific profile summaries, Accepted (2026-10-07)
 
 Artur requests Mix statistics only inside the Mix tab. Profile identity stays above the source
