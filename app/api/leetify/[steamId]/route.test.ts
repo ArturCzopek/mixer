@@ -3,6 +3,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const api = vi.hoisted(() => ({
   getProfile: vi.fn(),
   getMatches: vi.fn(),
+  getFaceitPlayer: vi.fn(),
+}));
+
+vi.mock("@/lib/external/faceit", () => ({
+  getPlayerBySteamId: api.getFaceitPlayer,
 }));
 
 vi.mock("@/lib/external/leetify", async (importOriginal) => {
@@ -62,6 +67,7 @@ beforeEach(() => {
       finished_at: "2026-10-02T20:00:00.000Z",
     }),
   ]);
+  api.getFaceitPlayer.mockReset().mockResolvedValue({ level: 9, elo: 2250 });
 });
 afterEach(() => vi.useRealTimers());
 
@@ -77,12 +83,15 @@ describe("Leetify route", () => {
     const response = await GET(request("profile"), context());
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toContain("s-maxage=300");
-    await expect(response.json()).resolves.toMatchObject({
+    const body = await response.json();
+    expect(body).toMatchObject({
       privacyMode: false,
-      ranks: { faceit: 10, faceit_elo: 2169, premier: 18693 },
-      faceitMatches: [expect.objectContaining({ dataSource: "faceit" })],
+      ranks: { faceit: 9, faceit_elo: 2250, premier: 18693 },
       premierMatches: [expect.objectContaining({ dataSource: "matchmaking" })],
     });
+    expect(body.faceitMatches).toContainEqual(
+      expect.objectContaining({ dataSource: "faceit" }),
+    );
   });
 
   it("returns only last-30-day FACEIT matches for the preview", async () => {
@@ -93,6 +102,7 @@ describe("Leetify route", () => {
         {
           finishedAt: "2026-10-01T20:00:00.000Z",
           dataSource: "faceit",
+          matchUrl: null,
           map: "de_mirage",
           score: [13, 8],
           leetifyRating: 2.34,
@@ -100,6 +110,23 @@ describe("Leetify route", () => {
         },
       ],
     });
+    expect(api.getFaceitPlayer).not.toHaveBeenCalled();
+  });
+
+  it("keeps match data when FACEIT is unavailable and clears stale Leetify FACEIT ranks", async () => {
+    api.getFaceitPlayer.mockRejectedValueOnce(
+      new Error("upstream unavailable"),
+    );
+    const response = await GET(request("profile"), context());
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body).toMatchObject({
+      ranks: { faceit: null, faceit_elo: null, premier: 18693 },
+      premierMatches: [expect.objectContaining({ dataSource: "matchmaking" })],
+    });
+    expect(body.faceitMatches).toContainEqual(
+      expect.objectContaining({ dataSource: "faceit" }),
+    );
   });
 
   it("returns private profile state without fetching match history", async () => {

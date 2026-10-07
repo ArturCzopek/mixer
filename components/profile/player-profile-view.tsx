@@ -33,6 +33,7 @@ export function PlayerProfileView({
     }).format(new Date(value));
   const trendPoints = [...summary.trend]
     .reverse()
+    .filter((point) => Number.isFinite(point.rating))
     .slice(-20)
     .map((point) => ({
       id: point.id,
@@ -44,8 +45,13 @@ export function PlayerProfileView({
         `${point.scoreA}:${point.scoreB}`,
         point.rating.toFixed(2),
       ),
-      href: `/g/${groupSlug}/m/${point.mixId}`,
+      href: `/g/${groupSlug}/m/${point.mixId}?match=${encodeURIComponent(point.id)}`,
     }));
+  const ratingAverage =
+    trendPoints.length > 0
+      ? trendPoints.reduce((sum, point) => sum + point.rating, 0) /
+        trendPoints.length
+      : null;
   return (
     <main className="mx-auto w-full max-w-[1180px] flex-1 px-2 pb-12">
       <p className="text-dim mb-2 text-xs">
@@ -115,6 +121,14 @@ export function PlayerProfileView({
               <span className="text-dim block">{t.profile.rating}</span>
               <b>{summary.rating === null ? "—" : summary.rating.toFixed(2)}</b>
             </div>
+            {ratingAverage !== null && (
+              <div>
+                <span className="text-dim block">
+                  {t.profile.ratingTrendAverage(trendPoints.length)}
+                </span>
+                <b className="tabular-nums">{ratingAverage.toFixed(2)}</b>
+              </div>
+            )}
             <div>
               <span className="text-dim block">K / D / A</span>
               <b>
@@ -158,7 +172,7 @@ export function PlayerProfileView({
                   <Well>
                     <p className="text-dim mb-1 px-1 text-[11px]">
                       {t.profile.ratingTrendCount(
-                        Math.min(summary.trend.length, 20),
+                        trendPoints.length,
                         summary.trend.length,
                       )}
                     </p>
@@ -201,8 +215,19 @@ export function PlayerProfileView({
                                 {map.mixTitle}
                               </Link>
                               <span className="text-dim block">
-                                {date(map.playedAt)} ·{" "}
-                                {map.mapName ?? `#${map.mapNumber}`}
+                                <Link
+                                  className="text-gold underline"
+                                  href={`/g/${groupSlug}/m/${map.mixId}?match=${encodeURIComponent(map.matchId)}`}
+                                >
+                                  {date(map.playedAt)}
+                                </Link>{" "}
+                                ·{" "}
+                                <Link
+                                  className="text-gold underline"
+                                  href={`/g/${groupSlug}/m/${map.mixId}?match=${encodeURIComponent(map.matchId)}`}
+                                >
+                                  {map.mapName ?? `#${map.mapNumber}`}
+                                </Link>
                               </span>
                               {map.faceitRoomUrl && (
                                 <a

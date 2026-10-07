@@ -169,7 +169,15 @@ describe("PlayerCompareView", () => {
     expect(html).toContain("Wins / losses / draws");
     expect(html).toContain("20 / 12 / 5");
     expect(html).toContain("87.2");
-    expect(html).toContain('href="/g/crew/m/mix-1"');
+    expect(html).toContain("Average Mixer Rating · 2 maps");
+    expect(html).toContain(">1.12</b>");
+    expect(html).toContain('href="/g/crew/m/mix-1?match=match-against"');
+    expect(html).toContain(
+      'href="/g/crew/m/mix-1?match=match-against">01 Oct 2026</a>',
+    );
+    expect(html).toContain(
+      'href="/g/crew/m/mix-1?match=match-against">de_mirage</a>',
+    );
     expect(html).toContain("2");
     expect(html).toContain("1</b>");
     expect(html).toContain("Against each other");

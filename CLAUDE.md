@@ -8,7 +8,7 @@ Read `docs/` before making design changes. The decision log (`docs/08-decisions.
 ## Hard constraints
 
 - Free tiers only (Vercel Hobby + Supabase free). Keep the daily keep-alive cron.
-- **Leetify API data must never be stored, recalculated or renamed**, and must show "Data Provided by Leetify". Display only.
+- **Leetify API data must never be stored or used in balancing**; original metrics retain their names and scales, with "Data Provided by Leetify" attribution. D42 permits a separately labelled, display-only mean of the visible rating window at the owner's explicit request.
 - Balancing uses FACEIT data (ELO + 30-day form rating, not K/D) + our own mix stats (`docs/04-team-balancing.md`).
 - One database (Supabase Postgres); document-style data goes in `jsonb` (`match_payloads`), no second DB.
 - Demos are never uploaded to our server: parse in the browser, send stats JSON only.

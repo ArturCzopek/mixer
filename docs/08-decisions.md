@@ -27,6 +27,7 @@ performance in our own mixes matters most once we have data. All in ELO units fo
 ## D5. Leetify for display only, Accepted
 Leetify API terms: no storing, no recalculating, no renaming metrics, attribution required.
 So Leetify cannot feed stored balancing snapshots or our rating. It powers the FACEIT/Premier tabs on profiles, live.
+D42 later adds an owner-requested, separately labelled mean of the visible rating window.
 
 ## D6. Our own demo parsing instead of uploading demos to Leetify, Accepted
 Leetify manual uploads are Pro-only, visible only to the uploader, not counted in profiles, and
@@ -357,3 +358,19 @@ Next's server HTTP cache for 300 seconds (`revalidate: 300`). It is never writte
 as a balance input, or mixed into Mixer Rating. Profile tabs show Mix, FACEIT and Premier; the preview
 shows only FACEIT matches from the last 30 days. A live `/v3/profile/matches` response checked on
 2026-10-06 used `data_source = matchmaking` for Premier.
+
+## D42. Visible-window rating averages and match navigation, Accepted (2026-10-07)
+
+Owner requests a separate arithmetic mean beside the source's ranking, based only on ratings in
+the displayed window: latest 20 rated Mix maps, latest 20 FACEIT/Premier matches, or the eight
+visible FACEIT preview rows. Missing ratings are excluded, not replaced by zero; the label names
+the metric and actual number of rated matches. This explicitly amends the project's previous
+no-averages UI choice in D5: original per-match Leetify metrics retain their names and scales, and
+the additional mean is calculated only for display, never persisted or used for balancing.
+
+Date and map names link to the concrete match when its identity is available. External matches
+link to their Leetify details; Mix history opens its stored map via `?match=<matches.id>`.
+Unknown match identities remain
+plain text. FACEIT ELO and level come directly from FACEIT; an unavailable lookup shows no value
+rather than a potentially stale Leetify copy. A roster shortcut compares the signed-in member
+with the clicked member, excluding the viewer's own row.

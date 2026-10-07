@@ -116,6 +116,8 @@ const en = {
     result: "Result",
     rawRatingByMatch: "Raw Leetify Rating by match",
     lastMatches: "Last 20 matches",
+    averageRating: (source: string, count: number) =>
+      `Average Leetify Rating · ${count} ${source} matches`,
     ratingPoint: (date: string, map: string, score: string, rating: string) =>
       `${date} · ${map} · ${score} · Leetify Rating ${rating}`,
     placeholder: (name: string) =>
@@ -595,6 +597,7 @@ const en = {
     playerB: "Player B",
     selectPlayer: "Choose a player",
     compareAction: "Compare players",
+    compareWithMe: "Compare with me",
     chooseBothPlayers: "Choose two group members to see their comparison.",
     chooseDifferentPlayers: "Choose two different players.",
     chooseGroupMembers: "Choose two current members of this group.",
@@ -629,6 +632,8 @@ const en = {
     currentFaceitElo: "Current FACEIT ELO",
     ratingTrendCount: (shown: number, total: number) =>
       `${shown} of ${total} rated maps`,
+    ratingTrendAverage: (count: number) =>
+      `Average Mixer Rating · ${count} maps`,
     ratingTrendMin: "Min",
     ratingTrendReference: (value: string) => `Reference ${value}`,
     ratingTrendMax: "Max",
@@ -780,6 +785,8 @@ const pl: Dict = {
     rating: "Leetify Rating",
     rawRatingByMatch: "Surowy Leetify Rating na mecz",
     lastMatches: "Ostatnie 20 meczów",
+    averageRating: (source, count) =>
+      `Średni Leetify Rating · ${count} ${plural(count, "mecz", "mecze", "meczów")} (${source})`,
     ratingPoint: (date, map, score, rating) =>
       `${date} · ${map} · ${score} · Leetify Rating ${rating}`,
     result: "Rezultat",
@@ -1212,6 +1219,7 @@ const pl: Dict = {
     playerB: "Gracz B",
     selectPlayer: "Wybierz gracza",
     compareAction: "Porównaj graczy",
+    compareWithMe: "Porównaj ze mną",
     chooseBothPlayers: "Wybierz dwóch członków grupy, aby zobaczyć porównanie.",
     chooseDifferentPlayers: "Wybierz dwóch różnych graczy.",
     chooseGroupMembers: "Wybierz dwóch aktywnych członków tej grupy.",
@@ -1244,6 +1252,8 @@ const pl: Dict = {
     faceitElo: "ELO FACEIT",
     currentFaceitElo: "Aktualne ELO FACEIT",
     ratingTrendCount: (shown, total) => `${shown} z ${total} ocenionych map`,
+    ratingTrendAverage: (count) =>
+      `Średni Mixer Rating · ${count} ${plural(count, "mapa", "mapy", "map")}`,
     ratingTrendMin: "Min",
     ratingTrendReference: (value) => `Odniesienie ${value}`,
     ratingTrendMax: "Maks.",

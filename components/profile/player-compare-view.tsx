@@ -220,6 +220,7 @@ function MixProfileColumn({
   const t = useT();
   const { summary } = profile;
   const trendPoints: RatingTrendPoint[] = [...summary.trend]
+    .filter((point) => Number.isFinite(point.rating))
     .slice(0, 20)
     .reverse()
     .map((point) => ({
@@ -232,9 +233,14 @@ function MixProfileColumn({
         `${point.scoreA}:${point.scoreB}`,
         point.rating.toFixed(2),
       ),
-      href: `/g/${groupSlug}/m/${point.mixId}`,
+      href: `/g/${groupSlug}/m/${point.mixId}?match=${encodeURIComponent(point.id)}`,
     }));
-  const metrics = [
+  const ratingAverage =
+    trendPoints.length > 0
+      ? trendPoints.reduce((sum, point) => sum + point.rating, 0) /
+        trendPoints.length
+      : null;
+  const metrics: [string, string | number][] = [
     [t.profile.maps, summary.mapCount],
     [
       t.profile.record,
@@ -256,6 +262,11 @@ function MixProfileColumn({
         : "—",
     ],
   ];
+  if (ratingAverage !== null)
+    metrics.splice(4, 0, [
+      t.profile.ratingTrendAverage(trendPoints.length),
+      ratingAverage.toFixed(2),
+    ]);
 
   return (
     <section className="min-w-0">
@@ -277,11 +288,8 @@ function MixProfileColumn({
         {t.profile.ratingTrend}
       </h3>
       <Well className="px-2 py-1.5">
-        <p className="text-dim mb-1 text-[11px]">
-          {t.profile.ratingTrendCount(
-            Math.min(summary.trend.length, 20),
-            summary.trend.length,
-          )}
+        <p className="text-dim mb-1 px-1 text-[11px]">
+          {t.profile.ratingTrendCount(trendPoints.length, summary.trend.length)}
         </p>
         {trendPoints.length ? (
           <RatingTrend points={trendPoints} label={t.profile.ratingTrend} />
@@ -320,8 +328,19 @@ function MixProfileColumn({
                       {map.mixTitle}
                     </Link>
                     <span className="text-dim block">
-                      {date(map.playedAt)} ·{" "}
-                      {map.mapName ?? `#${map.mapNumber}`}
+                      <Link
+                        className="text-gold underline"
+                        href={`/g/${groupSlug}/m/${map.mixId}?match=${encodeURIComponent(map.matchId)}`}
+                      >
+                        {date(map.playedAt)}
+                      </Link>{" "}
+                      ·{" "}
+                      <Link
+                        className="text-gold underline"
+                        href={`/g/${groupSlug}/m/${map.mixId}?match=${encodeURIComponent(map.matchId)}`}
+                      >
+                        {map.mapName ?? `#${map.mapNumber}`}
+                      </Link>
                     </span>
                   </td>
                   <td>
@@ -450,7 +469,19 @@ function HeadToHeadSection({
                         {map.mixTitle}
                       </Link>
                       <span className="text-dim block">
-                        {date(map.playedAt)} · {map.mapName}
+                        <Link
+                          className="text-gold underline"
+                          href={`/g/${groupSlug}/m/${map.mixId}?match=${encodeURIComponent(map.matchId)}`}
+                        >
+                          {date(map.playedAt)}
+                        </Link>{" "}
+                        ·{" "}
+                        <Link
+                          className="text-gold underline"
+                          href={`/g/${groupSlug}/m/${map.mixId}?match=${encodeURIComponent(map.matchId)}`}
+                        >
+                          {map.mapName}
+                        </Link>
                       </span>
                     </td>
                     <td>

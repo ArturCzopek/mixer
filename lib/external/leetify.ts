@@ -15,6 +15,7 @@ export type LeetifyDataSource = "faceit" | typeof LEETIFY_PREMIER_SOURCE;
 export interface LeetifyMatch {
   finishedAt: string;
   dataSource: LeetifyDataSource;
+  matchUrl?: string | null;
   map: string;
   score: [number, number];
   leetifyRating: number | null;
@@ -32,6 +33,7 @@ const profileSchema = z.object({
 });
 
 const matchSchema = z.object({
+  id: z.string().nullable().optional(),
   finished_at: z.string(),
   data_source: z.string(),
   map_name: z.string(),
@@ -111,6 +113,11 @@ export function toLeetifyMatches(
     out.push({
       finishedAt: new Date(time).toISOString(),
       dataSource: source,
+      matchUrl:
+        match.id &&
+        /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(match.id)
+          ? `https://leetify.com/app/match-details/${match.id}`
+          : null,
       map: match.map_name,
       score: [ours.score, theirs.score],
       leetifyRating:

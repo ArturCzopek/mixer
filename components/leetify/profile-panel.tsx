@@ -5,7 +5,11 @@ import { useLang, useT } from "@/components/i18n";
 import { Well } from "@/components/vgui";
 import { RatingTrend } from "@/components/profile/rating-trend";
 import type { LeetifyMatch, LeetifyProfile } from "@/lib/external/leetify";
-import { LeetifyAttribution, LeetifyMatchTable } from "./match-table";
+import {
+  averageLeetifyRating,
+  LeetifyAttribution,
+  LeetifyMatchTable,
+} from "./match-table";
 
 type ProfileResponse = LeetifyProfile & {
   faceitMatches: LeetifyMatch[];
@@ -54,37 +58,38 @@ export function LeetifyProfilePanel({
           [t.profile.faceitElo, data?.ranks.faceit_elo],
         ]
       : [[t.profile.premierRating, data?.ranks.premier]];
-  const ratingPoints = [...matches.slice(0, 20)]
-    .reverse()
-    .flatMap((match, index) => {
-      const value = match.leetifyRating;
-      if (value === null) return [];
-      const rating =
-        value > 0
-          ? `+${value.toFixed(2)}`
-          : value < 0
-            ? `−${Math.abs(value).toFixed(2)}`
-            : "0.00";
-      const date = new Intl.DateTimeFormat(lang === "pl" ? "pl-PL" : "en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-        timeZone: "Europe/Warsaw",
-      }).format(new Date(match.finishedAt));
-      return [
-        {
-          id: `${match.finishedAt}-${index}`,
-          rating: value,
-          dateLabel: date,
-          title: t.leetify.ratingPoint(
-            date,
-            match.map,
-            `${match.score[0]}:${match.score[1]}`,
-            rating,
-          ),
-        },
-      ];
-    });
+  const shownMatches = matches.slice(0, 20);
+  const ratingAverage = averageLeetifyRating(shownMatches, shownMatches.length);
+  const ratingPoints = [...shownMatches].reverse().flatMap((match, index) => {
+    const value = match.leetifyRating;
+    if (typeof value !== "number" || !Number.isFinite(value)) return [];
+    const rating =
+      value > 0
+        ? `+${value.toFixed(2)}`
+        : value < 0
+          ? `−${Math.abs(value).toFixed(2)}`
+          : "0.00";
+    const date = new Intl.DateTimeFormat(lang === "pl" ? "pl-PL" : "en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      timeZone: "Europe/Warsaw",
+    }).format(new Date(match.finishedAt));
+    return [
+      {
+        id: `${match.finishedAt}-${index}`,
+        rating: value,
+        dateLabel: date,
+        title: t.leetify.ratingPoint(
+          date,
+          match.map,
+          `${match.score[0]}:${match.score[1]}`,
+          rating,
+        ),
+        href: match.matchUrl ?? undefined,
+      },
+    ];
+  });
   const emptyMessage = failed
     ? t.leetify.notAnswering(name)
     : data?.privacyMode
@@ -110,6 +115,21 @@ export function LeetifyProfilePanel({
               <b className="text-gold text-lg">{value ?? "—"}</b>
             </div>
           ))}
+          {ratingAverage && (
+            <div>
+              <span className="text-dim block">
+                {t.leetify.averageRating(
+                  source === "faceit"
+                    ? t.profile.faceitTab
+                    : t.profile.premierTab,
+                  ratingAverage.count,
+                )}
+              </span>
+              <b className="text-gold text-lg tabular-nums">
+                {ratingAverage.value.toFixed(2)}
+              </b>
+            </div>
+          )}
         </Well>
       ) : null}
       {!pending && ratingPoints.length > 0 && (
@@ -125,7 +145,7 @@ export function LeetifyProfilePanel({
         </Well>
       )}
       <LeetifyMatchTable
-        matches={matches.slice(0, 20)}
+        matches={shownMatches}
         fixedRows={pending ? 5 : undefined}
         loading={pending}
         emptyMessage={pending ? undefined : emptyMessage}

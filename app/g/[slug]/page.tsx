@@ -296,6 +296,14 @@ export default async function GroupPage({
             )}
             {group.members.map((m) => {
               const name = m.displayName ?? m.steamId;
+              const compareHref =
+                session?.steamId && me && session.steamId !== m.steamId
+                  ? `/g/${group.slug}/compare?${new URLSearchParams({
+                      a: session.steamId,
+                      b: m.steamId,
+                      source: "mix",
+                    })}`
+                  : null;
               return (
                 <div
                   key={m.playerId}
@@ -321,6 +329,14 @@ export default async function GroupPage({
                       {name}
                     </Link>
                     {m.role === "admin" && <Badge>{t.groups.admin}</Badge>}
+                    {compareHref && (
+                      <Link
+                        href={compareHref}
+                        className="bevel bg-sheet text-gold hover:bg-hover shrink-0 px-1.5 py-0.5 text-[10px] font-bold whitespace-nowrap"
+                      >
+                        {t.profile.compareWithMe}
+                      </Link>
+                    )}
                   </div>
                   <div className="text-dim mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
                     <a

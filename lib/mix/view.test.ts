@@ -28,6 +28,40 @@ beforeAll(async () => {
 });
 
 describe("multi-map results", () => {
+  it("opens a requested map and falls back to the evening for an invalid pick", () => {
+    const view: MixViewData = {
+      ...data,
+      showcase: undefined,
+      result: {
+        source: "manual",
+        maps: [
+          { map: "1. Mirage", a: 13, b: 8, lines: [] },
+          { map: "2. Nuke", a: 7, b: 13, lines: [] },
+        ],
+      },
+    };
+    const render = (initialPick?: number) =>
+      renderToStaticMarkup(
+        I18nProvider({
+          lang: "en",
+          children: createElement(MixView, {
+            state: "played",
+            data: view,
+            initialPick,
+          }),
+        }),
+      );
+    expect(render(2)).toMatch(
+      /aria-selected="true"[^>]*>2\. Nuke · 7:13<\/button>/,
+    );
+    expect(render(2)).toContain("20 rounds");
+    for (const html of [render(), render(99)]) {
+      expect(html).toMatch(/aria-selected="true"[^>]*>All maps<\/button>/);
+      expect(html).toContain("Evening result · 2 maps");
+      expect(html).toContain("41 rounds");
+    }
+  });
+
   it("summarizes one and five score-only maps including a draw", () => {
     const one = [{ map: "Mirage", a: 13, b: 9, lines: [] }];
     expect(mapResultSummary(one)).toEqual({

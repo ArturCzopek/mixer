@@ -159,10 +159,12 @@ export function MixView({
   state,
   data,
   groupSlug,
+  initialPick = 0,
 }: {
   state: MixState;
   data: MixViewData;
   groupSlug?: string;
+  initialPick?: number;
 }) {
   const mix = React.useMemo(() => resolve(data, groupSlug), [data, groupSlug]);
   const t = useT();
@@ -281,7 +283,7 @@ export function MixView({
             )}
 
             {state === "locked" && <Locked />}
-            {state === "played" && <Played />}
+            {state === "played" && <Played initialPick={initialPick} />}
 
             {!data.showcase && <SwapHistory />}
             {data.viewerIsAdmin &&
@@ -1879,10 +1881,12 @@ function VoteBar({
   );
 }
 
-function Played() {
+function Played({ initialPick }: { initialPick: number }) {
   const { result, data, winner } = useMix();
   const t = useT();
-  const [pick, setPick] = React.useState(0);
+  const [pick, setPick] = React.useState(
+    initialPick > 0 && initialPick <= result.maps.length ? initialPick : 0,
+  );
   const { wonA, wonB, rounds } = mapResultSummary(data.result.maps);
   const map = result.maps[pick - 1] ?? null;
   const scoreA = map?.a ?? wonA;

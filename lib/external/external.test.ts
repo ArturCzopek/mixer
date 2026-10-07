@@ -350,6 +350,7 @@ describe("leetify client (invented sample, Leetify data is never stored)", () =>
       {
         finishedAt: "2026-09-20T20:00:00.000Z",
         dataSource: "faceit",
+        matchUrl: null,
         map: "de_nuke",
         score: [9, 13],
         leetifyRating: -2.91,
@@ -377,12 +378,31 @@ describe("leetify client (invented sample, Leetify data is never stored)", () =>
       {
         finishedAt: "2026-09-20T20:00:00.000Z",
         dataSource: "matchmaking",
+        matchUrl: null,
         map: "de_nuke",
         score: [9, 13],
         leetifyRating: 12.23,
         kad: [14, 3, 17],
       },
     ]);
+  });
+
+  it("links both match sources only when Leetify provides a valid match ID", () => {
+    const id = "6afda335-3147-4626-af66-e6241d4a6211";
+    const withId = match({ id });
+    expect(toLeetifyMatches([withId], me, "faceit")[0].matchUrl).toBe(
+      `https://leetify.com/app/match-details/${id}`,
+    );
+    expect(
+      toLeetifyMatches(
+        [{ ...withId, data_source: "matchmaking" }],
+        me,
+        LEETIFY_PREMIER_SOURCE,
+      )[0].matchUrl,
+    ).toBe(`https://leetify.com/app/match-details/${id}`);
+    expect(
+      toLeetifyMatches([match({ id: "not-a-uuid" })], me, "faceit")[0].matchUrl,
+    ).toBeNull();
   });
 
   it("sends the _leetify_key header and uses the five-minute Next cache", async () => {

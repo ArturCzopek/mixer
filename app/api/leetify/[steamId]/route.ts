@@ -4,6 +4,7 @@ import {
   LEETIFY_PREMIER_SOURCE,
   toLeetifyMatches,
 } from "@/lib/external/leetify";
+import { getPlayerBySteamId } from "@/lib/external/faceit";
 
 export const revalidate = 300;
 
@@ -34,8 +35,22 @@ export async function GET(
   try {
     const profile = await getLeetifyProfile(steamId);
     if (!profile) return json({ error: "not_found" }, 404, false);
+    const ranks =
+      view === "profile"
+        ? await getPlayerBySteamId(steamId)
+            .then((faceit) => ({
+              ...profile.ranks,
+              faceit: faceit?.level ?? null,
+              faceit_elo: faceit?.elo ?? null,
+            }))
+            .catch(() => ({
+              ...profile.ranks,
+              faceit: null,
+              faceit_elo: null,
+            }))
+        : profile.ranks;
     if (profile.privacyMode) {
-      return json({ privacyMode: true, matches: [], ranks: profile.ranks });
+      return json({ privacyMode: true, matches: [], ranks });
     }
 
     const body = await getLeetifyMatches(steamId);
@@ -54,7 +69,7 @@ export async function GET(
 
     return json({
       privacyMode: false,
-      ranks: profile.ranks,
+      ranks,
       faceitMatches,
       premierMatches: toLeetifyMatches(body, steamId, LEETIFY_PREMIER_SOURCE),
     });

@@ -4,7 +4,11 @@ import { useEffect, useState } from "react";
 import { useT } from "@/components/i18n";
 import { Badge, Well, Window } from "@/components/vgui";
 import type { LeetifyMatch } from "@/lib/external/leetify";
-import { LeetifyAttribution, LeetifyMatchTable } from "./match-table";
+import {
+  averageLeetifyRating,
+  LeetifyAttribution,
+  LeetifyMatchTable,
+} from "./match-table";
 
 type Preview = { privacyMode: boolean; matches: LeetifyMatch[] };
 
@@ -35,6 +39,8 @@ export function LeetifyPreviewCard({
 
   const pending = preview === null && !failed;
   const matches = preview?.matches ?? [];
+  const shownMatches = matches.slice(0, 8);
+  const ratingAverage = averageLeetifyRating(shownMatches, shownMatches.length);
   const wins = matches.filter(
     (match) => match.score[0] > match.score[1],
   ).length;
@@ -62,6 +68,12 @@ export function LeetifyPreviewCard({
       >
         <Badge>{matches.length}</Badge>
         <span className="min-w-0 truncate">{message}</span>
+        {ratingAverage && (
+          <span className="text-text min-w-0 break-words">
+            {t.leetify.averageRating(t.profile.faceitTab, ratingAverage.count)}:{" "}
+            <b className="tabular-nums">{ratingAverage.value.toFixed(2)}</b>
+          </span>
+        )}
       </Well>
       <LeetifyMatchTable matches={matches} fixedRows={8} loading={pending} />
       <LeetifyAttribution />

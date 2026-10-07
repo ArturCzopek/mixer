@@ -69,6 +69,15 @@ Owner readability follow-up (2026-10-06): score headers say only "Score" / "Wyni
 headers are visually hidden. Rating charts show a value scale, endpoint dates and an explicit label
 for the fixed reference line (Mixer Rating 1.00; Leetify 0.00), which is not a computed average.
 
+**Owner profile follow-up (2026-10-07, D42):** date/map match links, separately labelled means for
+the visible rating window, direct FACEIT ELO/level, and a roster "Compare with me" shortcut.
+This updates the previous no-computed-Leetify-statistics display choice; individual ratings stay
+unchanged and no Leetify data is stored or used in balancing.
+Validation: 406 tests, lint, typecheck, format check and production build passed; real Mix and
+FACEIT/Premier comparisons checked locally, including desktop/mobile layout and exact Mix map
+selection. The roster shortcut's signed-in identity rules are tested; a real Steam browser session
+remains part of the existing roster verification above.
+
 **M3-3 implemented (Codex, 2026-10-06):** `/g/[slug]/compare` is linked from the group roster and has
 shareable selections of two distinct active members and Mix/FACEIT/Premier. Profiles stack on mobile;
 shared mix history counts maps and evenings separately, with opponent and teammate results and mix

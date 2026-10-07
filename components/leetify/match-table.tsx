@@ -4,6 +4,23 @@ import { useLang, useT } from "@/components/i18n";
 import { Well } from "@/components/vgui";
 import type { LeetifyMatch } from "@/lib/external/leetify";
 
+export function averageLeetifyRating(matches: LeetifyMatch[], count: number) {
+  const ratings = matches
+    .slice(0, count)
+    .flatMap(({ leetifyRating }) =>
+      typeof leetifyRating === "number" && Number.isFinite(leetifyRating)
+        ? [leetifyRating]
+        : [],
+    );
+  return ratings.length
+    ? {
+        value:
+          ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length,
+        count: ratings.length,
+      }
+    : null;
+}
+
 export function LeetifyMatchTable({
   matches,
   fixedRows,
@@ -20,7 +37,7 @@ export function LeetifyMatchTable({
   const shown = matches.slice(0, fixedRows ?? 20);
   const rowCount = fixedRows ?? shown.length;
   const rating = (value: number | null) =>
-    value === null
+    value === null || !Number.isFinite(value)
       ? "—"
       : value > 0
         ? `+${value.toFixed(2)}`
@@ -66,20 +83,48 @@ export function LeetifyMatchTable({
                 : match.score[0] < match.score[1]
                   ? "loss"
                   : "draw";
+            const date = new Intl.DateTimeFormat(
+              lang === "pl" ? "pl-PL" : "en-GB",
+              {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+                timeZone: "Europe/Warsaw",
+              },
+            ).format(new Date(match.finishedAt));
             return (
               <tr
                 key={`${match.finishedAt}-${index}`}
                 className="border-row h-[30px] border-t"
               >
                 <td className="text-dim px-2">
-                  {new Intl.DateTimeFormat(lang === "pl" ? "pl-PL" : "en-GB", {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric",
-                    timeZone: "Europe/Warsaw",
-                  }).format(new Date(match.finishedAt))}
+                  {match.matchUrl ? (
+                    <a
+                      href={match.matchUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gold underline"
+                    >
+                      {date}
+                    </a>
+                  ) : (
+                    date
+                  )}
                 </td>
-                <td>{match.map}</td>
+                <td>
+                  {match.matchUrl ? (
+                    <a
+                      href={match.matchUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gold underline"
+                    >
+                      {match.map}
+                    </a>
+                  ) : (
+                    match.map
+                  )}
+                </td>
                 <td className="text-right">
                   {match.score[0]}:{match.score[1]}
                 </td>
@@ -99,7 +144,8 @@ export function LeetifyMatchTable({
                 <td className="text-right">{match.kad.join("/")}</td>
                 <td
                   className={`px-2 text-right ${
-                    match.leetifyRating === null
+                    match.leetifyRating === null ||
+                    !Number.isFinite(match.leetifyRating)
                       ? "text-dim"
                       : match.leetifyRating > 0
                         ? "text-gold"

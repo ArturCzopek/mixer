@@ -123,6 +123,12 @@ the threshold. Names are UI copy (English), tone per PRODUCT.md.
 
 **Owner-approved UX follow-up (2026-10-06):** Batches 1–5 are complete before M3-3 and M4-7: header profile entry and distinct balance/ELO labels; profile Mixer Rating chart with 20-map cap, tooltips and mix links; raw last-20 Leetify Rating charts with attribution and no computed Leetify statistics; available FACEIT ADR/room links, mix profile links and verified score colors; group page in one shared VGUI window with an internal responsive split, active-mix-aware creation, collapsible leaders and linked Discord profiles. The group page exception is documented in [DESIGN.md](../DESIGN.md).
 
+**Owner profile follow-up (2026-10-07, D42):** date and map links to concrete match details,
+separately labelled arithmetic means over the displayed source/window (excluding missing ratings),
+FACEIT level/ELO from FACEIT directly, and roster shortcuts comparing the viewer with another member.
+This amends the previous no-computed-Leetify-statistics UI choice; original per-match ratings and
+the balancing algorithm are unchanged.
+
 ## Phase 4: optional
 
 | ID | Task | Deps |

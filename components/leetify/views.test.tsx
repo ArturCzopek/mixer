@@ -4,7 +4,11 @@ import { describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "@/components/i18n";
 import { LeetifyProfilePanel } from "./profile-panel";
 import { LeetifyPreviewCard } from "./preview-card";
-import { LeetifyAttribution, LeetifyMatchTable } from "./match-table";
+import {
+  averageLeetifyRating,
+  LeetifyAttribution,
+  LeetifyMatchTable,
+} from "./match-table";
 import { PlayerProfileView } from "@/components/profile/player-profile-view";
 import { RatingTrend } from "@/components/profile/rating-trend";
 import type { LeetifyMatch } from "@/lib/external/leetify";
@@ -18,6 +22,7 @@ const matches: LeetifyMatch[] = [
   {
     finishedAt: "2026-10-01T20:00:00.000Z",
     dataSource: "faceit",
+    matchUrl: null,
     map: "de_mirage",
     score: [13, 8],
     leetifyRating: 2.34,
@@ -26,6 +31,7 @@ const matches: LeetifyMatch[] = [
   {
     finishedAt: "2026-09-30T20:00:00.000Z",
     dataSource: "matchmaking",
+    matchUrl: null,
     map: "de_dust2",
     score: [7, 13],
     leetifyRating: -1.2,
@@ -54,6 +60,49 @@ describe("Leetify views", () => {
     expect(html).toContain("Data Provided by Leetify");
     expect(html).toContain('<span class="sr-only">Result</span>');
     expect(html).toContain('href="https://leetify.com/"');
+  });
+
+  it("links Leetify dates and maps to a supplied match URL", () => {
+    const html = render(
+      createElement(LeetifyMatchTable, {
+        matches: [
+          {
+            ...matches[0],
+            matchUrl: "https://leetify.com/app/match-details/match-id",
+          },
+        ],
+      }),
+    );
+    expect(
+      html.match(/href="https:\/\/leetify.com\/app\/match-details\/match-id"/g),
+    ).toHaveLength(2);
+    expect(html.match(/rel="noopener noreferrer"/g)).toHaveLength(2);
+    expect(html).toContain(">01 Oct 2026</a>");
+    expect(html).toContain(">de_mirage</a>");
+  });
+
+  it("averages only finite ratings among the exact displayed matches", () => {
+    const history: LeetifyMatch[] = Array.from({ length: 22 }, (_, index) => ({
+      ...matches[0],
+      finishedAt: new Date(
+        Date.parse("2026-10-06T20:00:00.000Z") - index * 86_400_000,
+      ).toISOString(),
+      leetifyRating: index,
+    }));
+    history[1].leetifyRating = null;
+    history[2].leetifyRating = Number.NaN;
+    Object.assign(history[3], { leetifyRating: undefined });
+    history[20].leetifyRating = 1000;
+
+    expect(averageLeetifyRating(history, 20)).toEqual({
+      value: 184 / 17,
+      count: 17,
+    });
+    expect(averageLeetifyRating(history, 8)).toEqual({
+      value: 22 / 5,
+      count: 5,
+    });
+    expect(averageLeetifyRating(history.slice(1, 3), 2)).toBeNull();
   });
 
   it("shows the latest 20 matches and plots each non-null raw Leetify Rating", () => {
@@ -110,7 +159,6 @@ describe("Leetify views", () => {
     expect(html).toContain('class="px-2 text-right text-gold"');
     expect(html).toContain('class="px-2 text-right text-text"');
     expect(html).not.toContain("map-20");
-    expect(html.toLowerCase()).not.toContain("average");
   });
 
   it("shows VGUI pending panels for profile tabs and player previews", () => {
@@ -216,9 +264,11 @@ describe("Leetify views", () => {
     );
     expect(html).toContain("Current FACEIT ELO");
     expect(html).toContain("20 of 22 rated maps");
+    expect(html).toContain("Average Mixer Rating · 20 maps");
+    expect(html).toContain(">1.10</b>");
     expect(html.match(/<circle/g)).toHaveLength(20);
-    expect(html).toContain('href="/g/crew/m/mix-0"');
-    expect(html).not.toContain('href="/g/crew/m/mix-20"');
+    expect(html).toContain('href="/g/crew/m/mix-0?match=match-0"');
+    expect(html).not.toContain('href="/g/crew/m/mix-20?match=match-20"');
     expect(html).toContain("de_mirage · 13:8 · Mixer Rating 1.00");
   });
 
@@ -279,6 +329,12 @@ describe("Leetify views", () => {
     expect(html).toContain('href="https://www.faceit.com/en/cs2/room/1-room"');
     expect(html).toContain("FACEIT room");
     expect(html).toContain(">98</td>");
+    expect(html).toContain(
+      'href="/g/crew/m/mix-1?match=match-1">01 Oct 2026</a>',
+    );
+    expect(html).toContain(
+      'href="/g/crew/m/mix-1?match=match-1">de_inferno</a>',
+    );
 
     const withoutExternalData = render(
       createElement(PlayerProfileView, {

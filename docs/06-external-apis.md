@@ -104,7 +104,8 @@ and for the **Leetify preview** (M3-2): a small card fetched when someone select
 or a variant. Owner (2026-09-25): **FACEIT matches of the last 30 days only**
 (`/v3/profile/matches`, `data_source = "faceit"`, `finished_at` within 30 days): each match shows its W/L
 result, date, map, score and the player's **Leetify Rating** exactly as Leetify displays it, with K/A/D
-and the required attribution. No averages or other scores are computed from Leetify data.
+and the required attribution. D42 (owner request, 2026-10-07) adds a separately labelled arithmetic
+mean of the ratings in the displayed window; it does not replace the original per-match scores.
 `/api/leetify/[steamId]` uses Next's five-minute server fetch cache (`revalidate: 300`); data is never
 written to the database or used for balancing or Mixer Rating. privacy_mode on means the UI says the
 profile is private.
@@ -125,7 +126,8 @@ From https://leetify.com/blog/leetify-api-developer-guidelines/:
 
 Consequences for the design:
 - Leetify numbers are never an input to our stored `skill_snapshot` and never mixed with our Mixer Rating.
-- Profile "FACEIT" and "Premier" tabs render Leetify data as-is in a clearly labelled section.
+- Profile "FACEIT" and "Premier" tabs render original Leetify metrics as-is in a clearly labelled section;
+  D42 adds a separate display-only visible-window mean. FACEIT ELO/level comes directly from FACEIT.
 - Our own mix stats use our own metric names (Mixer Rating, ADR, KAST…) and never reuse Leetify metric names for different calculations.
 
 ## FACEIT live match signals (S6 desk research, 2026-10-02)

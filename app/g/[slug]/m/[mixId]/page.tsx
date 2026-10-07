@@ -34,8 +34,11 @@ function withinHours(iso: string, hours: number) {
 /** Public lobby. The server decides who can see each action; every action checks again. */
 export default async function MixLobbyPage({
   params,
+  searchParams,
 }: PageProps<"/g/[slug]/m/[mixId]">) {
   const { slug, mixId } = await params;
+  const { match } = await searchParams;
+  const requestedMatchId = typeof match === "string" ? match : "";
   if (!z.uuid().safeParse(mixId).success) notFound();
 
   const [group, mix, session] = await Promise.all([
@@ -90,6 +93,7 @@ export default async function MixLobbyPage({
       (mix.status === "locked" ||
         (!data.archiveSource &&
           withinHours(data.matchStartedAt ?? data.mixAt, 12)));
+    let initialPick = 0;
     if (mix.status === "played") {
       const { data: maps, error } = await adminDb()
         .from("matches")
@@ -99,6 +103,8 @@ export default async function MixLobbyPage({
         .eq("mix_id", mix.id)
         .order("map_number", { ascending: true });
       if (error) throw new Error(`Mix results: ${error.message}`);
+      initialPick =
+        (maps ?? []).findIndex((map) => map.id === requestedMatchId) + 1;
       const matchIds = (maps ?? []).map((map) => map.id);
       const { data: storedStats, error: statsError } = matchIds.length
         ? await adminDb()
@@ -189,7 +195,13 @@ export default async function MixLobbyPage({
     return (
       <>
         <LobbyRealtime mixId={mix.id} />
-        <MixView state={mix.status} data={data} groupSlug={group.slug} />
+        <MixView
+          key={requestedMatchId}
+          state={mix.status}
+          data={data}
+          groupSlug={group.slug}
+          initialPick={initialPick}
+        />
       </>
     );
   }
