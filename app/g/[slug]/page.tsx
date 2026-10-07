@@ -197,7 +197,15 @@ export default async function GroupPage({
             )}
 
           <Well>
-            <ListHead>{t.groups.statsTitle}</ListHead>
+            <ListHead>
+              <span className="flex-1">{t.groups.statsTitle}</span>
+              <Link
+                href={`/g/${group.slug}/stats`}
+                className={`${groupPageLinkClassName} shrink-0`}
+              >
+                {t.groups.statistics.open}
+              </Link>
+            </ListHead>
             <div className="grid grid-cols-3 gap-1 px-1.5 py-2 text-center">
               {(
                 [

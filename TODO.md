@@ -71,12 +71,18 @@ points are non-navigating, with immediate custom hover/focus details. FACEIT/Pre
 an expand arrow beside the date, showing total damage, derived ADR (damage / positive rounds),
 MVPs, aces, headshot kills, enemies/teammates flashed and flash assists only. Date navigation stays.
 
-**Group statistics proposal (not implemented or a new owner decision):** continue M3-4 (full
-leaderboard) with all players and sorting by Mixer Rating, ADR, K/D and win rate, retaining sample
-counts and minimum-map eligibility. Then add per-map group/player performance, teammate pairs
-with sample size, and award totals. Use only stored group Mix data, including clearly marked
-archives; do not import ordinary FACEIT/Premier matches into group totals. Filters for period and
-archive/source scope should precede larger tables. No new balancing inputs.
+**Group statistics implemented (2026-10-07, D44):** M3-4 (full leaderboard) now has
+public `/g/[slug]/stats`, linked from the group summary. All historical players can be sorted by
+Mixer Rating, ADR, K/D, win rate or map count. Each metric shows its observed sample; ranking
+requires five maps with data for the selected metric. Expandable sections cover per-map group
+and player performance, actual teammate pairs (five-map eligibility), and existing award totals
+with recipient counts. Period and archive filters are shareable; periods include whole evenings
+by their last played map. Only stored played group Mixes count. Score-only maps contribute results
+without invented metrics; rating and ADR use available rounds. Existing evening award rules apply.
+Validation: 427 tests, lint, typecheck, format check and production build passed; real group
+filters, empty ranges, map/player expansion and desktop/mobile layout checked locally.
+New PostgREST reads use separate tables without embeds; existing group embeds retain explicit FKs.
+No migration or balancing change. Data delegation: `gpt-6-sol` / medium; UI: `gpt-6-luna` / xhigh.
 
 **2026-10-07 continuation:** thirteen award types are implemented (new: Head hunter, Spray and
 Pray, Lone wolf), plus three result-based quips. Missing data excludes an award; existing two per

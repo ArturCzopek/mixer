@@ -126,6 +126,18 @@ it("links each other roster member to compare with the active viewer", async () 
   ]);
 });
 
+it("links the group result summary to full group statistics", async () => {
+  const page = (await GroupPage({
+    params: Promise.resolve({ slug: "crew" }),
+    searchParams: Promise.resolve({}),
+  })) as ReactElement<{ main: ReactNode }>;
+  expect(
+    elements(page.props.main).some(
+      (element) => element.props.href === "/g/crew/stats",
+    ),
+  ).toBe(true);
+});
+
 it("labels FACEIT roster links without repeating the external nickname", async () => {
   mocks.groupBySlug.mockResolvedValue({
     ...group,

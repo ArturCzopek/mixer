@@ -392,3 +392,14 @@ limited to total damage, ADR, MVPs, aces, headshot kills, enemies/teammates flas
 assists. ADR is a separately named display calculation: supplied damage divided by supplied
 positive rounds, rounded to one decimal; missing inputs omit it. This explicitly allows that
 calculation without changing Leetify Rating, persistence or balancing.
+
+## D44. Group Mix statistics expansion, Accepted (2026-10-07)
+
+Artur approves the proposed full player leaderboard, map performance, teammate pairs and award
+totals. Scope is the group's own stored played mixes, including explicitly marked archives;
+ordinary external FACEIT/Premier history is excluded. A separate public statistics page keeps the
+group lobby/member view compact. Period and archive filters are shareable, with visible sample
+sizes and minimum-map ranking eligibility. Missing statistics are not fabricated. Mixer Rating
+and ADR keep the existing round-weighted aggregation; awards reuse the capped per-evening
+engine, and pair records refer to players actually observed on the same team. No balancing
+formula or database schema change is authorized or required by this display feature.
