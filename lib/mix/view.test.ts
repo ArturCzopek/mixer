@@ -338,7 +338,7 @@ describe("mix page profile and score cues", () => {
     expect(html).toMatch(
       /class="text-text">7<\/span><span class="text-dim">:<\/span><span class="text-gold">13/,
     );
-    expect(html).toContain(">ADR</span>");
+    expect(html).toContain(">ADR</th>");
     expect(html).toContain(line.adr.toFixed(0));
   });
 });

@@ -245,132 +245,147 @@ export function DemoAttachment({
 
   if (!viewerCanAttach) return null;
   return (
-    <Well className="mt-2 p-2 text-[11px]">
-      <h3 className="text-gold font-bold">{t.demo.title}</h3>
-      <>
-        {!mapName && <p className="text-dim mt-1">{t.demo.mapNameRequired}</p>}
-        <p className="text-dim mt-1">{t.demo.intro}</p>
-        <p className="text-dim mt-0.5">{t.demo.supportedFiles}</p>
-        <input
-          ref={fileInput}
-          type="file"
-          accept=".dem,.dem.zst"
-          aria-hidden="true"
-          tabIndex={-1}
-          className="sr-only"
-          onChange={selectFile}
-        />
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {!parsed && (
-            <VButton
-              type="button"
-              disabled={parsing || saving}
-              onClick={chooseFile}
-            >
-              {parsing ? t.demo.parsing : t.demo.chooseFile}
-            </VButton>
+    <details
+      className="border-lo mt-3 border-t text-[11px]"
+      onToggle={(event) => {
+        if (!event.currentTarget.open && parsing) cancel();
+      }}
+    >
+      <summary className="text-gold hover:bg-hover cursor-pointer px-1 py-2 font-bold">
+        {t.demo.uploadOpen}
+      </summary>
+      <Well className="p-2 text-[11px]">
+        <>
+          {!mapName && (
+            <p className="text-dim mt-1">{t.demo.mapNameRequired}</p>
+          )}
+          <p className="text-dim mt-1">{t.demo.intro}</p>
+          <p className="text-dim mt-0.5">{t.demo.supportedFiles}</p>
+          <input
+            ref={fileInput}
+            type="file"
+            accept=".dem,.dem.zst"
+            aria-hidden="true"
+            tabIndex={-1}
+            className="sr-only"
+            onChange={selectFile}
+          />
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {!parsed && (
+              <VButton
+                type="button"
+                disabled={parsing || saving}
+                onClick={chooseFile}
+              >
+                {parsing ? t.demo.parsing : t.demo.chooseFile}
+              </VButton>
+            )}
+            {parsed && (
+              <VButton
+                type="button"
+                disabled={parsing || saving}
+                onClick={chooseFile}
+              >
+                {t.demo.chooseAnother}
+              </VButton>
+            )}
+            {(parsing || parsed) && (
+              <VButton type="button" disabled={saving} onClick={cancel}>
+                {t.demo.cancel}
+              </VButton>
+            )}
+          </div>
+          {fileName && (
+            <p className="text-dim mt-1 break-all" aria-live="polite">
+              {fileName}
+            </p>
+          )}
+          {parsing && progress && (
+            <div className="mt-2" aria-live="polite" aria-busy="true">
+              <div className="text-text mb-1 flex justify-between gap-2">
+                <span>{t.demo.parseStages[progress.stage]}</span>
+                {typeof progress.percent === "number" && (
+                  <span>{Math.round(progress.percent)}%</span>
+                )}
+              </div>
+              <div
+                role="progressbar"
+                aria-label={t.demo.parseStages[progress.stage]}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={progress.percent}
+                className="bg-lo h-2"
+              >
+                <span
+                  className="bg-gold block h-full"
+                  style={{
+                    width:
+                      typeof progress.percent === "number"
+                        ? `${Math.max(0, Math.min(100, progress.percent))}%`
+                        : "0%",
+                  }}
+                />
+              </div>
+            </div>
+          )}
+          {parsed && validation && (
+            <div className="mt-2">
+              <h4 className="text-text mb-1 font-bold">
+                {t.demo.previewTitle}
+              </h4>
+              <dl className="border-lo bg-well grid grid-cols-2 gap-x-2 gap-y-0.5 p-1.5">
+                <dt className="text-dim">{t.demo.previewMap}</dt>
+                <dd className="min-w-0 truncate text-right">
+                  {parsed.payload.mapName}
+                </dd>
+                <dt className="text-dim">{t.demo.targetMap}</dt>
+                <dd className="text-right">{mapLabel}</dd>
+                <dt className="text-dim">{t.demo.targetResult}</dt>
+                <dd className="text-right">
+                  {t.lists.team("A")} {scoreA}:{scoreB} {t.lists.team("B")}
+                </dd>
+                <dt className="text-dim">{t.demo.previewResult}</dt>
+                <dd className="text-right">
+                  {validation.score
+                    ? `${t.lists.team("A")} ${validation.score.a}:${validation.score.b} ${t.lists.team("B")}`
+                    : "—"}
+                </dd>
+                <dt className="text-dim">{t.demo.previewRoster}</dt>
+                <dd className="text-right">
+                  {parsed.payload.players.length}/10
+                </dd>
+              </dl>
+              <DemoPreviewTable
+                parsed={parsed}
+                validation={validation}
+                targetPlayers={players}
+              />
+            </div>
+          )}
+          {visibleIssue && (
+            <p role="alert" className="text-loss mt-2">
+              {t.demo.errors[visibleIssue]}
+            </p>
+          )}
+          {saved && (
+            <p role="status" className="text-text mt-2">
+              {t.demo.saved}
+            </p>
           )}
           {parsed && (
             <VButton
               type="button"
-              disabled={parsing || saving}
-              onClick={chooseFile}
+              primary
+              className="mt-2 w-full"
+              disabled={!validation?.valid || saving || parsing}
+              onClick={() => void save()}
             >
-              {t.demo.chooseAnother}
+              {saving ? t.demo.saving : t.demo.save}
             </VButton>
           )}
-          {(parsing || parsed) && (
-            <VButton type="button" disabled={saving} onClick={cancel}>
-              {t.demo.cancel}
-            </VButton>
-          )}
-        </div>
-        {fileName && (
-          <p className="text-dim mt-1 break-all" aria-live="polite">
-            {fileName}
-          </p>
-        )}
-        {parsing && progress && (
-          <div className="mt-2" aria-live="polite" aria-busy="true">
-            <div className="text-text mb-1 flex justify-between gap-2">
-              <span>{t.demo.parseStages[progress.stage]}</span>
-              {typeof progress.percent === "number" && (
-                <span>{Math.round(progress.percent)}%</span>
-              )}
-            </div>
-            <div
-              role="progressbar"
-              aria-label={t.demo.parseStages[progress.stage]}
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={progress.percent}
-              className="bg-lo h-2"
-            >
-              <span
-                className="bg-gold block h-full"
-                style={{
-                  width:
-                    typeof progress.percent === "number"
-                      ? `${Math.max(0, Math.min(100, progress.percent))}%`
-                      : "0%",
-                }}
-              />
-            </div>
-          </div>
-        )}
-        {parsed && validation && (
-          <div className="mt-2">
-            <h4 className="text-text mb-1 font-bold">{t.demo.previewTitle}</h4>
-            <dl className="border-lo bg-well grid grid-cols-2 gap-x-2 gap-y-0.5 p-1.5">
-              <dt className="text-dim">{t.demo.previewMap}</dt>
-              <dd className="min-w-0 truncate text-right">
-                {parsed.payload.mapName}
-              </dd>
-              <dt className="text-dim">{t.demo.targetMap}</dt>
-              <dd className="text-right">{mapLabel}</dd>
-              <dt className="text-dim">{t.demo.targetResult}</dt>
-              <dd className="text-right">
-                {t.lists.team("A")} {scoreA}:{scoreB} {t.lists.team("B")}
-              </dd>
-              <dt className="text-dim">{t.demo.previewResult}</dt>
-              <dd className="text-right">
-                {validation.score
-                  ? `${t.lists.team("A")} ${validation.score.a}:${validation.score.b} ${t.lists.team("B")}`
-                  : "—"}
-              </dd>
-              <dt className="text-dim">{t.demo.previewRoster}</dt>
-              <dd className="text-right">{parsed.payload.players.length}/10</dd>
-            </dl>
-            <DemoPreviewTable
-              parsed={parsed}
-              validation={validation}
-              targetPlayers={players}
-            />
-          </div>
-        )}
-        {visibleIssue && (
-          <p role="alert" className="text-loss mt-2">
-            {t.demo.errors[visibleIssue]}
-          </p>
-        )}
-        {saved && (
-          <p role="status" className="text-text mt-2">
-            {t.demo.saved}
-          </p>
-        )}
-        {parsed && (
-          <VButton
-            type="button"
-            primary
-            className="mt-2 w-full"
-            disabled={!validation?.valid || saving || parsing}
-            onClick={() => void save()}
-          >
-            {saving ? t.demo.saving : t.demo.save}
-          </VButton>
-        )}
-      </>
-    </Well>
+        </>
+      </Well>
+    </details>
   );
 }
 

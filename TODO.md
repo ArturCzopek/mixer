@@ -26,7 +26,7 @@ before the first real mix.
 - [ ] **S5 FACEIT Club:** Club exists and is linked to the group (2026-09-27); still to do: the private
       queue (D17: private Club queue) and, after the first mix, send the match room link(s) to the partner working with you.
 - [ ] *(optional)* FACEIT developer terms: if you see a clause against storing match stats, tell the partner working with you (D20: FACEIT data policy).
-- [ ] *(optional, for M4-6)* S4 browser test of the demo parser once the spike page exists.
+- [ ] *(for M4-6)* Attach a matching real Mix demo in an authenticated browser; the supplied random FACEIT replay already passes the product worker and presentation checks.
 - [x] Discord application + bot (D-1, done 2026-10-05; credentials in `.env.local` and Vercel).
 - [x] Discord bot token reset, `FACEIT_WEBHOOK_SECRET` in Vercel, FACEIT App Studio webhook to
       `https://mixer-gray.vercel.app/api/webhooks/faceit` (done 2026-10-06).
@@ -45,7 +45,7 @@ before the first real mix.
 
 ## Next session (Codex or Claude): start here
 
-**2026-10-08 continuation — local demo integration ready, release pending:** M4-6 (demo extras)
+**2026-10-08 continuation — demo integration and presentation ready:** M4-6 (demo extras)
 now has a real browser file picker/worker, ten-player preview, exact map/team/score checks,
 server recalculation, atomic enrichment, KAST/full Mixer Rating, expandable details, and a round
 strip including overtime. Thirteen demo awards bring the implemented total to 31; Wasted Nades
@@ -54,12 +54,14 @@ accepted the supplied 34-round, 19:15 replay with all ten controller totals matc
 tests cover authorization, mismatch rollback, previous-data preservation, and duplicate attachment.
 The original demo stays local; only bounded evidence is sent on an authorized save.
 
-**Release gate:** automatic approval review rejected applying migration `20261008100000` because
-it interpreted the earlier database deferral as still active. No live migration or push was made.
-Ask Artur to authorize this feature migration and release; pushing its migration to `main` also
-triggers the DB migrate workflow, so do not use push to bypass the rejection. Database separation
-(P0-6) remains deferred independently. After approval, apply/verify the migration, check the
-affected PostgREST reads, and push. Authenticated browser attachment requires a matching real Mix
+**Release authorization resolved:** Artur explicitly approved this feature migration and release
+on 2026-10-08. Migration `20261008100000` is applied; all eight live SQL suites, publishable-key
+access checks and six affected PostgREST reads passed. Database separation (P0-6) remains deferred
+independently. Impeccable refinement now separates Scoreboard/Rounds views, pairs team tables on
+desktop, groups expandable player statistics, and shows every round in a responsive grid with
+observed side changes and cumulative score. Fresh visual review found no material defects.
+All 496 tests, lint, typecheck, format check and the production build pass.
+Authenticated browser attachment requires a matching real Mix
 demo; do not attach the random sample to an unrelated archived map. Whole-renderer peak-memory
 measurement remains open; sampling missed part of the parse. Sol was requested at medium after
 Artur's correction; Luna at xhigh. Runtime model selection was not independently exposed.
@@ -80,15 +82,16 @@ webhook auto-return (`app/api/webhooks/faceit`, unverified until a real Club mat
 Next, in order:
 
 1. **M2-8 (match awards):** the API-based award set is complete (18 types, 2026-10-08).
-   Next expand situational quips where observations support them; demo-only awards wait for M4-6.
+   Thirteen demo awards are also implemented (31 total). Next expand situational quips where observations support them; Wasted Nades needs throw events.
 2. **S4 / M4-6 (browser demo parser / demo extras):** Artur supplied an overtime FACEIT demo;
    native parsing confirms 34 rounds, 19:15 and all ten K/D/A/ADR lines (2026-10-08). A patched
    current WASM build plus streaming fzstd now passes the original compressed file in the browser
    (9.64 seconds; score, sides and ten-player scoreboard parity). WASM capacity is 390 MiB plus
    382 MiB input. Pure event stats now also pass the same replay in native and browser workers
    (9.61 seconds): K/D/A and HP-derived damage match all ten controllers; KAST, openings, trades,
-   clutches, utility, flashes and multikills have implementation parity. Whole-process memory,
-   reproducible app packaging, product preview and validated atomic enrichment remain open. See
+   clutches, utility, flashes and multikills have implementation parity. Whole-process memory
+   measurement remains open. Reproducible packaging, product preview, validated atomic enrichment
+   and its live SQL verification are complete; authenticated attachment needs a matching Mix demo. See
    [the overtime spike](docs/09-demo-overtime-spike.md).
 3. Further profile/source statistics and owner UX feedback. Balance settings and live scores wait.
 

@@ -48,6 +48,9 @@ const playerStats = z.object({
   savedLostRounds: count,
 });
 const round = z.object({
+  sideByTeam: z
+    .record(z.string(), z.union([z.literal(2), z.literal(3)]))
+    .optional(),
   number: z.number().int().min(1).max(100),
   startTick: count,
   endTick: count,
@@ -98,7 +101,14 @@ export function normalizeStoredDemo(
     value.stats.some(
       (p) => nativeTeams.get(p.teamId) !== teamsBySteam.get(p.steamid),
     ) ||
-    value.rounds.some((r) => !nativeTeams.has(r.winnerTeamId))
+    value.rounds.some(
+      (r) =>
+        !nativeTeams.has(r.winnerTeamId) ||
+        (r.sideByTeam &&
+          (Object.keys(r.sideByTeam).length !== 2 ||
+            Object.keys(r.sideByTeam).some((id) => !nativeTeams.has(id)) ||
+            new Set(Object.values(r.sideByTeam)).size !== 2)),
+    )
   )
     return null;
   return {
@@ -112,6 +122,14 @@ export function normalizeStoredDemo(
     rounds: value.rounds.map((r) => ({
       ...r,
       winnerTeamId: nativeTeams.get(r.winnerTeamId)!,
+      sideByTeam: r.sideByTeam
+        ? Object.fromEntries(
+            Object.entries(r.sideByTeam).map(([id, side]) => [
+              nativeTeams.get(id)!,
+              side,
+            ]),
+          )
+        : undefined,
     })),
     stats: value.stats.map((p) => ({
       ...p,

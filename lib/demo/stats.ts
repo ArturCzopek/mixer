@@ -79,6 +79,8 @@ export type DemoPlayerStats = {
 };
 
 export type DemoRoundSummary = {
+  /** Observed team sides, retained so the UI never guesses halftime boundaries. */
+  sideByTeam?: Record<string, 2 | 3>;
   number: number;
   startTick: number;
   endTick: number;
@@ -154,6 +156,9 @@ export function summarizeDemoRounds(
             ? "regulation"
             : "overtime",
       opening,
+      sideByTeam: Object.fromEntries(
+        round.players.map((player) => [player.teamId, player.side]),
+      ),
       clutches: [...clutches].map(([steamid, opponents]) => ({
         steamid,
         opponents,

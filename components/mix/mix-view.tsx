@@ -16,7 +16,6 @@ import { DemoAttachment } from "@/components/demo/demo-attachment";
 import { DemoRoundStrip } from "@/components/demo/round-strip";
 import { DemoPlayerDetails } from "@/components/demo/player-details";
 import type { DemoStoredData } from "@/lib/demo/payload";
-import type { DemoPlayerStats } from "@/lib/demo/stats";
 import {
   Badge,
   ListHead,
@@ -1900,6 +1899,14 @@ function Played({ initialPick }: { initialPick: number }) {
   );
   const { wonA, wonB, rounds } = mapResultSummary(data.result.maps);
   const map = result.maps[pick - 1] ?? null;
+  const [demoSection, setDemoSection] = React.useState<{
+    map: string;
+    view: "scoreboard" | "rounds";
+  } | null>(null);
+  const mapKey = map?.id ?? map?.map ?? "";
+  const roundsSelected = Boolean(
+    map?.demo && demoSection?.map === mapKey && demoSection.view === "rounds",
+  );
   const viewerCanAttachDemo =
     (data as MixViewData & { viewerCanAttachDemo?: boolean })
       .viewerCanAttachDemo === true;
@@ -2012,69 +2019,99 @@ function Played({ initialPick }: { initialPick: number }) {
             </span>
           </div>
         )}
-        <p className="text-dim mt-2.5 mb-1 px-0.5 text-[11px]">
-          {map ? t.played.mapStats : t.played.totalStats}
-        </p>
-        {map && (map.roomUrl || map.demoUrl) && (
-          <div className="mb-2 flex gap-3 px-0.5 text-[11px]">
-            {map.roomUrl && (
-              <a
-                href={map.roomUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gold underline"
-              >
-                {t.played.faceitRoom}
-              </a>
-            )}
-            {map.demoUrl && (
-              <a
-                href={map.demoUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gold underline"
-              >
-                {t.played.downloadDemo}
-              </a>
-            )}
+        {map?.demo && (
+          <div className="mt-3 mb-2">
+            <Tabs
+              label={t.played.scoreboardFor}
+              value={roundsSelected ? "rounds" : "scoreboard"}
+              onChange={(view: "scoreboard" | "rounds") =>
+                setDemoSection({ map: mapKey, view })
+              }
+              items={[
+                { value: "scoreboard", label: t.demo.scoreboardTab },
+                {
+                  value: "rounds",
+                  label: t.demo.roundsTab(map.demo.rounds.length),
+                },
+              ]}
+            />
           </div>
         )}
-        {map?.statsOrigin === "popflash" && (
-          <p className="text-dim mb-2 px-0.5 text-[11px]">
-            {t.played.historicalStats}
+        <div
+          hidden={roundsSelected}
+          role={map?.demo ? "tabpanel" : undefined}
+          aria-label={map?.demo ? t.demo.scoreboardTab : undefined}
+        >
+          <p className="text-dim mt-2.5 mb-1 px-0.5 text-[11px]">
+            {map ? t.played.mapStats : t.played.totalStats}
           </p>
-        )}
-        {(map ? map.lines : result.all).length > 0 ? (
-          <Scoreboard lines={map ? map.lines : result.all} />
-        ) : (
-          <Well className="p-3 text-[11px]">
-            <p className="text-dim mb-2">{t.played.noStats}</p>
-            {winner && (
-              <div className="grid gap-2 sm:grid-cols-2">
-                {(["A", "B"] as const).map((team) => (
-                  <div key={team}>
-                    <b className="text-gold">{t.lists.team(team)}</b>
-                    <p className="text-text">
-                      {(team === "A" ? winner.teamA : winner.teamB).map(
-                        (player, index) => (
-                          <React.Fragment key={player.steamId}>
-                            {index > 0 && ", "}
-                            <PlayerProfileName player={player} />
-                          </React.Fragment>
-                        ),
-                      )}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Well>
-        )}
+          {map && (map.roomUrl || map.demoUrl) && (
+            <div className="mb-2 flex gap-3 px-0.5 text-[11px]">
+              {map.roomUrl && (
+                <a
+                  href={map.roomUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gold underline"
+                >
+                  {t.played.faceitRoom}
+                </a>
+              )}
+              {map.demoUrl && (
+                <a
+                  href={map.demoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gold underline"
+                >
+                  {t.played.downloadDemo}
+                </a>
+              )}
+            </div>
+          )}
+          {map?.statsOrigin === "popflash" && (
+            <p className="text-dim mb-2 px-0.5 text-[11px]">
+              {t.played.historicalStats}
+            </p>
+          )}
+          {(map ? map.lines : result.all).length > 0 ? (
+            <Scoreboard lines={map ? map.lines : result.all} />
+          ) : (
+            <Well className="p-3 text-[11px]">
+              <p className="text-dim mb-2">{t.played.noStats}</p>
+              {winner && (
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {(["A", "B"] as const).map((team) => (
+                    <div key={team}>
+                      <b className="text-gold">{t.lists.team(team)}</b>
+                      <p className="text-text">
+                        {(team === "A" ? winner.teamA : winner.teamB).map(
+                          (player, index) => (
+                            <React.Fragment key={player.steamId}>
+                              {index > 0 && ", "}
+                              <PlayerProfileName player={player} />
+                            </React.Fragment>
+                          ),
+                        )}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Well>
+          )}
+        </div>
         {map?.demo && (
-          <DemoRoundStrip
-            rounds={map.demo.rounds}
-            playerName={(steamId) => mix.nameOf(steamId)}
-          />
+          <div
+            hidden={!roundsSelected}
+            role="tabpanel"
+            aria-label={t.demo.roundsTab(map.demo.rounds.length)}
+          >
+            <DemoRoundStrip
+              rounds={map.demo.rounds}
+              playerName={(steamId) => mix.nameOf(steamId)}
+            />
+          </div>
         )}
         {map && map.id && map.teams && !map.demo && viewerCanAttachDemo && (
           <DemoAttachment
@@ -2208,132 +2245,186 @@ function MapArtwork({ name }: { name: string }) {
   );
 }
 
-const SCORE_COLS =
-  "grid-cols-[minmax(0,1fr)_repeat(3,1.75rem)_2.8rem_3.2rem_2.8rem]";
-
 function Scoreboard({ lines }: { lines: Line[] }) {
   const t = useT();
   const tableId = React.useId();
   const [expanded, setExpanded] = React.useState<string | null>(null);
-  const best = Math.max(...lines.map((l) => l.rating));
+  const best = Math.max(...lines.map((line) => line.rating));
+  const hasKast = lines.some(
+    (line) => line.demo?.kastPercent != null || line.kast != null,
+  );
+  const columns = hasKast ? 7 : 6;
+  const cell = "px-1 py-2 text-right";
   return (
-    <Well className="overflow-x-auto p-0">
-      <div className="min-w-[340px]">
-        <div
-          className={cn(
-            "border-lo bg-window text-dim grid border-b px-1.5 py-1 text-[10px] tracking-[0.06em] uppercase",
-            SCORE_COLS,
-          )}
-        >
-          <span>{t.lists.player}</span>
-          <span className="text-right" title={t.demo.statTitles.kills}>
-            K
-          </span>
-          <span className="text-right" title={t.demo.statTitles.assists}>
-            A
-          </span>
-          <span className="text-right" title={t.demo.statTitles.deaths}>
-            D
-          </span>
-          <span className="text-right" title={t.demo.statTitles.adr}>
-            ADR
-          </span>
-          <span className="text-right" title={t.demo.statTitles.kast}>
-            KAST
-          </span>
-          <span className="text-right" title={t.played.mr}>
-            MR
-          </span>
-        </div>
-        {(["A", "B"] as const).map((team) => (
-          <React.Fragment key={team}>
-            <div className="bg-window text-gold px-1.5 py-1 text-[11px] font-bold tracking-[0.05em] uppercase">
-              {t.lists.team(team)}
-            </div>
-            {lines
-              .filter((line) => line.team === team)
-              .sort((a, b) => b.rating - a.rating)
-              .map((line) => {
-                const extended = line as Line & {
-                  demo?: DemoPlayerStats | null;
-                  kast?: number | null;
-                };
-                const detail = extended.demo ?? null;
-                const open = expanded === line.player.steamId;
-                const detailId = `${tableId}-details-${line.player.steamId}`;
-                const kast = detail?.kastPercent ?? extended.kast ?? null;
-                return (
-                  <React.Fragment key={line.player.steamId}>
-                    <div
-                      className={cn(
-                        "border-row grid items-center border-b px-1.5 py-1",
-                        SCORE_COLS,
-                        line.rating === best && "bg-row",
-                      )}
-                    >
-                      <span className="flex min-w-0 items-center gap-1">
-                        {detail && (
-                          <button
-                            type="button"
-                            aria-label={t.demo.details.playerDetailsFor(
-                              line.player.name,
-                            )}
-                            aria-expanded={open}
-                            aria-controls={detailId}
-                            onClick={() =>
-                              setExpanded(open ? null : line.player.steamId)
-                            }
-                            className="text-gold hover:bg-hover focus-visible:outline-gold inline-flex size-6 shrink-0 items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-[-2px]"
-                          >
-                            <ChevronRight
-                              aria-hidden="true"
-                              size={14}
-                              className={open ? "rotate-90" : ""}
-                            />
-                          </button>
-                        )}
-                        <Avatar player={line.player} />
-                        <PlayerProfileName player={line.player} />
-                      </span>
-                      <span className="text-right">{line.k}</span>
-                      <span className="text-dim text-right">{line.a}</span>
-                      <span className="text-right">{line.d}</span>
-                      <span className="text-right">{line.adr.toFixed(0)}</span>
-                      <span className="text-right">
-                        {kast === null ? "—" : `${kast.toFixed(1)}%`}
-                      </span>
-                      <b
+    <div className="grid items-start gap-2 lg:grid-cols-2">
+      {(["A", "B"] as const).map((team) => (
+        <Well key={team} className="overflow-x-auto p-0">
+          <table
+            className="w-full min-w-[320px] table-fixed text-[11px] tabular-nums"
+            aria-label={`${t.played.scoreboardFor} ${t.lists.team(team)}`}
+          >
+            <colgroup>
+              <col />
+              <col className="w-6" />
+              <col className="w-6" />
+              <col className="w-6" />
+              <col className="w-9" />
+              {hasKast && <col className="w-12" />}
+              <col className="w-11" />
+            </colgroup>
+            <thead className="border-lo bg-window text-dim border-b text-[10px]">
+              <tr>
+                <th scope="col" className="px-2 py-2 text-left font-normal">
+                  {t.lists.player}
+                </th>
+                <th
+                  scope="col"
+                  className={cell}
+                  title={t.demo.statTitles.kills}
+                >
+                  K
+                </th>
+                <th
+                  scope="col"
+                  className={cell}
+                  title={t.demo.statTitles.assists}
+                >
+                  A
+                </th>
+                <th
+                  scope="col"
+                  className={cell}
+                  title={t.demo.statTitles.deaths}
+                >
+                  D
+                </th>
+                <th scope="col" className={cell} title={t.demo.statTitles.adr}>
+                  ADR
+                </th>
+                {hasKast && (
+                  <th
+                    scope="col"
+                    className={cell}
+                    title={t.demo.statTitles.kast}
+                  >
+                    KAST
+                  </th>
+                )}
+                <th scope="col" className={cell} title={t.played.mr}>
+                  MR
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th
+                  scope="rowgroup"
+                  colSpan={columns}
+                  className="border-lo bg-window text-gold border-y px-2 py-1.5 text-left font-bold"
+                >
+                  {t.lists.team(team)}
+                </th>
+              </tr>
+              {lines
+                .filter((line) => line.team === team)
+                .sort((a, b) => b.rating - a.rating)
+                .map((line) => {
+                  const detail = line.demo ?? null;
+                  const open = expanded === line.player.steamId;
+                  const detailId = `${tableId}-${line.player.steamId}`;
+                  const kast = detail?.kastPercent ?? line.kast ?? null;
+                  return (
+                    <React.Fragment key={line.player.steamId}>
+                      <tr
                         className={cn(
-                          "text-right",
-                          line.rating >= 1 ? "text-gold" : "text-text",
+                          "border-row hover:bg-hover border-b",
+                          line.rating === best && "bg-row",
+                          open && "bg-sheet",
                         )}
                       >
-                        {line.rating.toFixed(2)}
-                      </b>
-                    </div>
-                    {detail && (
-                      <div
-                        id={detailId}
-                        hidden={!open}
-                        role="region"
-                        aria-label={t.demo.details.playerDetailsFor(
-                          line.player.name,
+                        <th
+                          scope="row"
+                          className="px-1 py-1 text-left font-normal"
+                        >
+                          <span
+                            className="flex min-w-0 items-center gap-1"
+                            title={line.player.name}
+                          >
+                            {detail ? (
+                              <button
+                                type="button"
+                                aria-label={t.demo.details.playerDetailsFor(
+                                  line.player.name,
+                                )}
+                                aria-expanded={open}
+                                aria-controls={detailId}
+                                onClick={() =>
+                                  setExpanded(open ? null : line.player.steamId)
+                                }
+                                className="text-gold hover:bg-sheet focus-visible:outline-gold inline-flex size-8 shrink-0 items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-[-2px]"
+                              >
+                                <ChevronRight
+                                  size={14}
+                                  aria-hidden
+                                  className={open ? "rotate-90" : ""}
+                                />
+                              </button>
+                            ) : (
+                              <span className="inline-flex">
+                                <Avatar player={line.player} size={16} />
+                              </span>
+                            )}
+                            <PlayerProfileName player={line.player} />
+                          </span>
+                        </th>
+                        <td className={cell}>{line.k}</td>
+                        <td className={cn(cell, "text-dim")}>{line.a}</td>
+                        <td className={cell}>{line.d}</td>
+                        <td className={cell}>{line.adr.toFixed(0)}</td>
+                        {hasKast && (
+                          <td className={cell}>
+                            {kast === null ? "—" : `${kast.toFixed(1)}%`}
+                          </td>
                         )}
-                        className="border-row bg-well border-b px-8 py-2"
-                      >
-                        <DemoPlayerDetails
-                          stats={detail}
-                          playerName={line.player.name}
-                        />
-                      </div>
-                    )}
-                  </React.Fragment>
-                );
-              })}
-          </React.Fragment>
-        ))}
-      </div>
-    </Well>
+                        <td
+                          className={cn(
+                            cell,
+                            "font-bold",
+                            line.rating >= 1 ? "text-gold" : "text-text",
+                          )}
+                        >
+                          {line.rating.toFixed(2)}
+                        </td>
+                      </tr>
+                      {detail && (
+                        <tr hidden={!open}>
+                          <td
+                            colSpan={columns}
+                            className="border-row bg-well border-b px-3 py-3"
+                          >
+                            <div
+                              id={detailId}
+                              role="region"
+                              aria-label={t.demo.details.playerDetailsFor(
+                                line.player.name,
+                              )}
+                            >
+                              <DemoPlayerDetails
+                                stats={detail}
+                                playerName={line.player.name}
+                              />
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+            </tbody>
+          </table>
+        </Well>
+      ))}
+    </div>
   );
 }
 

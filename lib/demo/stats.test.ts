@@ -142,6 +142,7 @@ describe("calculateDemoStats", () => {
       number: 1,
       winnerTeamId: "A",
       phase: "regulation",
+      sideByTeam: { A: 2, B: 3 },
       opening: { killer: "x", victim: "b" },
       multikills: [{ steamid: "a", kills: 2 }],
     });

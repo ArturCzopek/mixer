@@ -63,6 +63,7 @@ const payload = {
       endTick: 100,
       winnerTeamId: "3",
       phase: "regulation",
+      sideByTeam: { "2": 2, "3": 3 },
       opening: { killer: steam(5), victim: steam(0) },
       clutches: [],
       multikills: [],
@@ -78,12 +79,22 @@ describe("normalizeStoredDemo", () => {
     expect(result?.players[0].teamId).toBe("A");
     expect(result?.stats[5].teamId).toBe("B");
     expect(result?.rounds[0].winnerTeamId).toBe("B");
+    expect(result?.rounds[0].sideByTeam).toEqual({ A: 2, B: 3 });
     expect(result?.rounds[0].opening).toEqual(payload.rounds[0].opening);
     expect(result).not.toHaveProperty("evidence");
     expect(result).not.toHaveProperty("_previous");
   });
 
   it("rejects legacy or inconsistent data", () => {
+    expect(
+      normalizeStoredDemo(
+        {
+          ...payload,
+          rounds: [{ ...payload.rounds[0], sideByTeam: { "2": 2, "9": 3 } }],
+        },
+        teams,
+      ),
+    ).toBeNull();
     expect(normalizeStoredDemo({ version: 1, evidence: {} }, teams)).toBeNull();
     expect(
       normalizeStoredDemo(

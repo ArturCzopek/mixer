@@ -177,3 +177,18 @@ Automatic approval review rejected the live migration because it interpreted the
 deferral as still active. No migration or push was made. Owner approval is required before applying
 migration 20261008100000 and releasing it; pushing the migration also triggers the DB workflow.
 A matching real Mix demo is still needed for authenticated browser save verification.
+
+## Approved release and presentation follow-up (2026-10-08)
+
+Artur explicitly approved the feature migration and publication, resolving the earlier approval
+rejection. Migration 20261008100000 is applied. Eight live SQL suites, publishable-key access
+checks and six affected PostgREST reads passed.
+
+Impeccable refinement preserves the CS 1.6/VGUI direction: selected-map Scoreboard/Rounds tabs,
+paired team tables on desktop, stacked tables on phones, grouped expandable player details,
+and responsive round grids segmented by phase and observed side changes. Selected rounds show
+cumulative score and opening/clutch/multikill events. Desktop and 375 px mobile confirmation
+and a fresh independent visual review found no material defects. Presentation and side-metadata
+tests bring the suite to 496 passing tests; lint, typecheck, format check and the production build
+also pass. Authenticated save with a matching real Mix demo and
+whole-renderer peak-memory measurement remain open.

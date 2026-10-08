@@ -48,7 +48,10 @@ an independent external reference. See the report for exact input requirements a
 The pinned-source Docker rebuild passed on 2026-10-08; provenance and hashes are in
 [public/demo](../../public/demo/README.md). The actual product worker also parsed the supplied
 compressed replay and enabled its matching preview. SQL tests pass locally in PGlite. The live
-migration and authenticated save remain pending owner approval and a matching real Mix demo.
+migration was explicitly approved and applied on 2026-10-08. All eight live SQL suites,
+publishable-key checks and six affected PostgREST reads passed. Authenticated browser save still
+requires a matching real Mix demo. The played view separates team scoreboards and a responsive
+round grid, with grouped player details and observed side-change segments.
 Whole-renderer peak memory remains unverified: process sampling did not cover the entire parse.
 Input and decoded sizes are capped at 512 MiB; `fzstd` has a 32 MiB backreference limit.
 Only complete GOTV demos are accepted; POV accuracy and `.bz2` decoding remain outside this flow.
