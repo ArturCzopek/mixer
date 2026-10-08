@@ -160,9 +160,10 @@ sequenceDiagram
 Warmup and knife rounds are excluded (use `is_warmup_period`, and only count rounds after the
 first `round_freeze_end` of the live match).
 
-**Browser feasibility:** demoparser2 is written for speed. A desktop browser holds a 100–300 MB file in
-memory without trouble, and parsing runs in a Web Worker so the page does not freeze. Spike S4 confirms this.
-Phones are not supported for uploads.
+**Browser feasibility remains unverified.** A Web Worker keeps parsing off the UI thread, but
+compatibility, decompression, copies into WASM memory and peak memory must be measured. The
+[2026-10-08 overtime spike](09-demo-overtime-spike.md) found that the old prebuilt WASM fails on
+the supplied replay. Desktop upload support is gated on S4; phones are not planned for uploads.
 
 **Fallback if WASM is a problem:** no server needed. The same logic runs in a small Python script
 (`pip install demoparser2`) that the admin runs locally on demand. It uploads the same JSON payload.

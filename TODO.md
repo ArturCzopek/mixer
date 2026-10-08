@@ -62,8 +62,11 @@ Next, in order:
 
 1. **M2-8 (match awards):** the API-based award set is complete (18 types, 2026-10-08).
    Next expand situational quips where observations support them; demo-only awards wait for M4-6.
-2. **S4 / M4-6 (browser demo parser / demo extras):** verify a recent CS2 demo in a worker,
-   including memory, compressed input and parity, before promising browser support.
+2. **S4 / M4-6 (browser demo parser / demo extras):** Artur supplied an overtime FACEIT demo;
+   native parsing confirms 34 rounds, 19:15 and all ten K/D/A/ADR lines (2026-10-08). Browser
+   prebuilt WASM fails compatibility and native browser zstd is unavailable. Build current WASM
+   and repeat this sample before the upload flow; memory/parity remain open. See
+   [the overtime spike](docs/09-demo-overtime-spike.md).
 3. Further profile/source statistics and owner UX feedback. Balance settings and live scores wait.
 
 Owner UX refinement (2026-10-07): roster FACEIT links omit the external nickname. Shared chart
