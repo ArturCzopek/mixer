@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Private replay fixtures and third-party parser build artifacts.
+    "backtest/.local/**",
   ]),
 ]);
 

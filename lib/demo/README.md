@@ -11,3 +11,9 @@ The 2026-10-08 [overtime spike](../../docs/09-demo-overtime-spike.md) establishe
 34-round/19:15 baseline with exact FACEIT K/D/A and rounded ADR parity. The tested browser lacks
 native zstd decompression, and prebuilt WASM 0.15.0 fails with EntityNotFound on decompressed input.
 Build current WASM and retest before product upload support; browser memory and parity are open.
+
+Follow-up: current upstream WASM, with [a profiling clock compatibility patch](upstream-profiling.patch),
+now passes the original zstd replay in an actual browser worker using streaming fzstd: 34 rounds,
+19:15, all ten scoreboard rows match native output, about 9.64 seconds. This is still a spike:
+whole-renderer peak memory and reproducible app packaging remain open. See the report for exact
+versions, source commits, decoder limits and memory scope.

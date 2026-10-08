@@ -43,7 +43,7 @@ reads the File directly. No external hosting or demo transmission was used.
 - No completed browser/native statistics parity or browser high-water memory measurement exists.
   S4 remains open. Do not ship this prebuilt WASM as CS2 demo support.
 
-## Next smallest step
+## Initial next step (completed in the follow-up below)
 
 Build the current upstream WASM source and rerun this exact replay before building the product
 upload flow. Then add browser zstd support, measure memory and compare extracted events/statistics
@@ -53,3 +53,54 @@ enrichment requires identity/map/score validation against the actual stored Mix.
 Upstream primary sources: [parser](https://github.com/LaihoE/demoparser),
 [WASM worker example](https://github.com/LaihoE/demoparser-wasm-demo/blob/master/worker.js),
 [WASM API](https://github.com/LaihoE/demoparser-wasm-demo/blob/master/pkg/demoparser2.d.ts).
+
+
+## Current WASM build follow-up (2026-10-08)
+
+Built upstream commit `45ca85aeac8fb0de9d385124d2c7fe0e7b8ff0c8` with Rust's
+`wasm32-unknown-unknown` target in an isolated official Rust Docker image. The build regenerated
+protocol bindings from GameTracking-CS2 `ac1278dbbff39b7fe5030fba42a010e455c011f6`.
+`wasm-bindgen` 0.2.100 generated no-modules worker bindings. Final WASM size: 3,219,350 bytes.
+
+The unmodified current build trapped during event parsing (`RuntimeError: unreachable`).
+Inspection found unconditional native `std::time::Instant::now()` calls in profiling paths.
+The [compatibility patch](../lib/demo/upstream-profiling.patch) only creates those clocks when
+profiling is enabled; it does not change replay parsing or statistics. A local diagnostic panic
+hook was also added to the test build. After the patch, the actual browser worker completed.
+Current bindings return Maps for event rows; normalize those explicitly instead of assuming
+plain objects. SteamID64 values in tick rows are strings and were checked without numeric coercion.
+
+### Compressed-input result
+
+- Streaming `fzstd` 0.1.1 decoded the original supplied zstd file locally in the worker.
+- Node decoder check: 3.40 seconds, 400,898,483 decoded bytes. SHA-256 matches the native output:
+  `f167b98fa013e7234a73f4da9257e7c4d8c16a1c07b513ddc105a50842251904`.
+- Actual desktop browser: decompression/read about 3.55 seconds; full round/scoreboard validation
+  about 9.64 seconds. 34 live rounds, regulation 12:12, final 19:15. Winner mapping uses actual
+  freeze-end player sides, including both overtimes. All ten final K/D/A/damage/team rows match
+  native output; native output previously matched FACEIT, including rounded ADR.
+- Final WASM linear memory capacity: 409,010,176 bytes (390.06 MiB). This is allocator capacity,
+  not measured whole-renderer peak RSS. The decompressed input adds 382.33 MiB while retained;
+  decoder state, JS outputs and temporary copies add further memory. Whole-browser peak memory
+  and lower-memory optimizations remain open.
+- `fzstd` has a documented 32 MiB backreference limit. This replay passes; arbitrary larger
+  windows are not established. `zstd-wasm-decoder` 0.2.3 was also tested and rejects this frame
+  as `win 2 large` because of its 10,000,000-byte window limit.
+
+The local harness asserts score, regulation, round count, ten-player identity and scoreboard
+parity. Replay data and generated binaries remain in ignored `backtest/.local/demo-spike/`.
+Only the minimal upstream compatibility patch and this report are committed. Streaming decoder
+research was delegated with requested `gpt-6-luna` / xhigh; the child runtime did not independently
+expose model confirmation. No application dependency, upload route or database write was added.
+
+This establishes browser compatibility for this sample with a patched current build, replacing
+the earlier prebuilt-WASM failure. S4 remains partial until whole-process memory is measured and
+the build/decoder are packaged reproducibly for the app. M4-6 still needs stat calculation,
+identity/map/score validation and atomic result enrichment; KAST/trades/clutches are not yet
+implemented by this spike.
+
+Decoder primary source: [fzstd](https://github.com/101arrowz/fzstd).
+
+Validation: native and browser parity assertions passed; 439 repository tests, lint, typecheck,
+format check and production build passed. ESLint now excludes ignored private backtest fixtures
+and third-party build artifacts, matching their existing Git exclusion.

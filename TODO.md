@@ -63,9 +63,10 @@ Next, in order:
 1. **M2-8 (match awards):** the API-based award set is complete (18 types, 2026-10-08).
    Next expand situational quips where observations support them; demo-only awards wait for M4-6.
 2. **S4 / M4-6 (browser demo parser / demo extras):** Artur supplied an overtime FACEIT demo;
-   native parsing confirms 34 rounds, 19:15 and all ten K/D/A/ADR lines (2026-10-08). Browser
-   prebuilt WASM fails compatibility and native browser zstd is unavailable. Build current WASM
-   and repeat this sample before the upload flow; memory/parity remain open. See
+   native parsing confirms 34 rounds, 19:15 and all ten K/D/A/ADR lines (2026-10-08). A patched
+   current WASM build plus streaming fzstd now passes the original compressed file in the browser
+   (9.64 seconds; score, sides and ten-player scoreboard parity). WASM capacity is 390 MiB plus
+   382 MiB input; whole-process memory, reproducible app packaging and richer stats remain open. See
    [the overtime spike](docs/09-demo-overtime-spike.md).
 3. Further profile/source statistics and owner UX feedback. Balance settings and live scores wait.
 
