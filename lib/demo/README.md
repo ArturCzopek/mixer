@@ -21,7 +21,22 @@ trades and clutches use events through the round end. Scoreboard events continue
 `round_start`, which is an exclusive boundary. Survival for KAST is measured at round end, so a
 post-round death does not erase survival.
 
-Product demo upload, result preview, and saving/enriching a match are not implemented. The browser
+The product flow is implemented: a group member selects a demo for one recorded map, previews
+its ten-player scoreboard, and saves only when the map, exact teams, and score match. A missing
+manual map name can be filled by the matching demo. `client.ts` runs `worker.ts`, cancels stale
+work, and terminates the worker after every outcome. Original replay bytes remain local.
+
+`payload.ts` bounds and validates event evidence; `actions.ts` recalculates statistics and checks
+controller K/D/A and damage before calling the atomic `attach_demo_to_match` transaction. The RPC
+locks the mix and map, checks active membership and the recorded lineup, preserves result source
+and previous payload/stat evidence, and rejects duplicate attachments or mismatches. Only the
+service role can execute it. Client evidence establishes consistency, not authenticity of a replay.
+
+The selected map shows KAST, expandable player details, and round events with observed overtime.
+Evening KAST requires complete coverage and is weighted by rounds; per-map details are not summed
+into the evening. Thirteen event-based award types extend the existing eighteen awards.
+
+The browser
 spike in [the overtime report](../../docs/09-demo-overtime-spike.md) successfully parsed one
 compressed replay in a local worker with a patched current WASM build and streaming `fzstd`: 34
 rounds, a 19:15 result, and all ten scoreboard rows matching native output in about 9.64 seconds.
@@ -30,7 +45,10 @@ HP-derived damage totals match controller values, and every calculated statistic
 event baseline. This establishes implementation parity on this sample; advanced metrics do not have
 an independent external reference. See the report for exact input requirements and limits.
 
-S4 remains open for whole-renderer peak-memory measurement and reproducible packaging of the WASM
-build and decoder. `fzstd`'s documented 32 MiB backreference limit also remains a known input limit.
-Do not describe M4-6 or product demo support as complete until the stats, validation, and product
-flow are integrated.
+The pinned-source Docker rebuild passed on 2026-10-08; provenance and hashes are in
+[public/demo](../../public/demo/README.md). The actual product worker also parsed the supplied
+compressed replay and enabled its matching preview. SQL tests pass locally in PGlite. The live
+migration and authenticated save remain pending owner approval and a matching real Mix demo.
+Whole-renderer peak memory remains unverified: process sampling did not cover the entire parse.
+Input and decoded sizes are capped at 512 MiB; `fzstd` has a 32 MiB backreference limit.
+Only complete GOTV demos are accepted; POV accuracy and `.bz2` decoding remain outside this flow.

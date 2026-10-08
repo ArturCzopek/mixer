@@ -3,6 +3,8 @@
 
 import type { BalanceConfig, SkillBreakdown, Variant } from "@/lib/balance";
 import type { MatchAward } from "@/lib/awards";
+import type { DemoPlayerStats } from "@/lib/demo/stats";
+import type { DemoStoredData } from "@/lib/demo/payload";
 import type { GroupMember } from "@/lib/groups/queries";
 import type { SkillSnapshotInput } from "./generation";
 import type { MixVariantPage } from "./queries";
@@ -37,9 +39,16 @@ export interface ViewLine {
   rounds: number;
   /** Mixer Rating of the line. */
   rating: number;
+  /** Observed KAST percentage; unknown when the source does not provide it. */
+  kast?: number | null;
+  demo?: DemoPlayerStats | null;
 }
 
 export interface ViewMap {
+  id?: string;
+  mapName?: string | null;
+  teams?: { A: string[]; B: string[] };
+  demo?: DemoStoredData | null;
   map: string;
   a: number;
   b: number;
@@ -86,6 +95,7 @@ export interface MixViewData {
   alwaysTogether: [string, string][];
   /** The viewer is an admin of the mix's group (shows the admin panel). */
   viewerIsAdmin: boolean;
+  viewerCanAttachDemo?: boolean;
   /** A signed-in participant may vote; guests and other group members may only read. */
   viewerCanVote?: boolean;
   chosenVariantNumber?: number;
@@ -372,10 +382,17 @@ export function totals(maps: ViewMap[]): ViewLine[] {
   for (const line of maps.flatMap((m) => m.lines)) {
     const t = byId.get(line.steamId);
     if (!t) {
-      byId.set(line.steamId, { ...line });
+      byId.set(line.steamId, { ...line, kast: line.kast ?? null, demo: null });
       continue;
     }
     const rounds = t.rounds + line.rounds;
+    t.kast =
+      t.kast !== null &&
+      t.kast !== undefined &&
+      line.kast !== null &&
+      line.kast !== undefined
+        ? (t.kast * t.rounds + line.kast * line.rounds) / rounds
+        : null;
     t.adr = (t.adr * t.rounds + line.adr * line.rounds) / rounds;
     t.rating = (t.rating * t.rounds + line.rating * line.rounds) / rounds;
     t.k += line.k;

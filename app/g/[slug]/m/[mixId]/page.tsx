@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import { matchAwards, type AwardStat } from "@/lib/awards";
 import { adminDb } from "@/lib/db/admin";
+import { demoAwardFields, normalizeStoredDemo } from "@/lib/demo/view";
 import { LobbyRealtime } from "@/components/mix/lobby-realtime";
 import { MixLobbyView } from "@/components/mix/lobby-view";
 import { MixView } from "@/components/mix/mix-view";
@@ -86,6 +87,7 @@ export default async function MixLobbyPage({
       groupMembers: group.members,
     });
     data.faceitClubUrl = group.faceitClubUrl;
+    data.viewerCanAttachDemo = membership !== undefined;
     data.unlinkedDiscordPlayers = unlinkedDiscordPlayers;
     // Voice controls only until the evening is over, not on old or archived mixes.
     data.discordGuildConnected =
@@ -110,62 +112,117 @@ export default async function MixLobbyPage({
         ? await adminDb()
             .from("match_player_stats")
             .select(
-              "match_id, player_id, team, kills, deaths, assists, adr, rounds, rating, hs_kills, first_kills, entry_attempts, entry_wins, clutch_attempts, flashes_thrown, flashes_successful, sniper_kills, mvps, clutch_wins, utility_damage, enemies_flashed, multi_4k, multi_5k",
+              "match_id, player_id, team, kills, deaths, assists, adr, rounds, rating, hs_kills, kast_rounds, first_kills, entry_attempts, entry_wins, clutch_attempts, flashes_thrown, flashes_successful, sniper_kills, mvps, clutch_wins, utility_damage, enemies_flashed, multi_4k, multi_5k, raw",
             )
             .in("match_id", matchIds)
         : { data: [], error: null };
       if (statsError) throw new Error(`Mix stats: ${statsError.message}`);
+      const demoIds = (maps ?? [])
+        .filter((map) => map.stats_origin === "demo")
+        .map((map) => map.id);
+      const { data: payloads, error: payloadError } = demoIds.length
+        ? await adminDb()
+            .from("match_payloads")
+            .select("match_id, payload")
+            .in("match_id", demoIds)
+        : { data: [], error: null };
+      if (payloadError) throw new Error(`Mix demo: ${payloadError.message}`);
+      const payloadByMatch = new Map(
+        (payloads ?? []).map((row) => [row.match_id, row.payload]),
+      );
       const steamIds = new Map(
         page.participants.map((player) => [player.playerId, player.steamId]),
       );
       const mapsById = new Map((maps ?? []).map((map) => [map.id, map]));
       data.result = {
-        maps: (maps ?? []).map((map) => ({
-          map: map.map_name
-            ? `${map.map_number}. ${map.map_name}`
-            : `#${map.map_number}`,
-          a: map.score_a,
-          b: map.score_b,
-          roomUrl: map.faceit_match_id
-            ? `https://www.faceit.com/en/cs2/room/${encodeURIComponent(map.faceit_match_id)}`
-            : null,
-          demoUrl: map.faceit_demo_url,
-          statsOrigin: map.stats_origin,
-          lines: (storedStats ?? []).flatMap((stat) => {
-            const steamId = steamIds.get(stat.player_id);
-            if (
-              stat.match_id !== map.id ||
-              !steamId ||
-              !["A", "B"].includes(stat.team) ||
-              stat.kills === null ||
-              stat.deaths === null ||
-              stat.assists === null ||
-              stat.adr === null ||
-              stat.rounds === null ||
-              stat.rating === null
-            )
-              return [];
-            return [
-              {
-                steamId,
-                team: stat.team as "A" | "B",
-                k: stat.kills,
-                d: stat.deaths,
-                a: stat.assists,
-                adr: Number(stat.adr),
-                rounds: stat.rounds,
-                rating: Number(stat.rating),
-              },
-            ];
-          }),
-        })),
-        source: maps?.every((map) => map.stats_origin === "popflash")
-          ? "popflash"
-          : maps?.every((map) => map.source === "manual")
-            ? "manual"
-            : maps?.every((map) => map.source === "faceit")
-              ? "faceit"
-              : "mixed",
+        maps: (maps ?? []).map((map) => {
+          const observed = (storedStats ?? []).filter(
+            (stat) => stat.match_id === map.id,
+          );
+          const teams = { A: [] as string[], B: [] as string[] };
+          if (observed.length === 10) {
+            for (const stat of observed) {
+              const steamId = steamIds.get(stat.player_id);
+              if (steamId && (stat.team === "A" || stat.team === "B"))
+                teams[stat.team as "A" | "B"].push(steamId);
+            }
+          } else {
+            const chosen = data.variants.find(
+              (variant) => variant.number === data.chosenVariantNumber,
+            );
+            teams.A.push(...(chosen?.teamA ?? []));
+            teams.B.push(...(chosen?.teamB ?? []));
+          }
+          const teamsBySteam = new Map<string, "A" | "B">([
+            ...teams.A.map((steamId) => [steamId, "A"] as const),
+            ...teams.B.map((steamId) => [steamId, "B"] as const),
+          ]);
+          const demo =
+            map.stats_origin === "demo"
+              ? normalizeStoredDemo(payloadByMatch.get(map.id), teamsBySteam)
+              : null;
+          const demoStats = new Map(
+            demo?.stats.map((stat) => [stat.steamid, stat]),
+          );
+          return {
+            id: map.id,
+            mapName: map.map_name,
+            teams,
+            demo,
+            map: map.map_name
+              ? `${map.map_number}. ${map.map_name}`
+              : `#${map.map_number}`,
+            a: map.score_a,
+            b: map.score_b,
+            roomUrl: map.faceit_match_id
+              ? `https://www.faceit.com/en/cs2/room/${encodeURIComponent(map.faceit_match_id)}`
+              : null,
+            demoUrl: map.faceit_demo_url,
+            statsOrigin: map.stats_origin,
+            lines: observed.flatMap((stat) => {
+              const steamId = steamIds.get(stat.player_id);
+              if (
+                !steamId ||
+                !["A", "B"].includes(stat.team) ||
+                stat.kills === null ||
+                stat.deaths === null ||
+                stat.assists === null ||
+                stat.adr === null ||
+                stat.rounds === null ||
+                stat.rating === null
+              )
+                return [];
+              return [
+                {
+                  steamId,
+                  team: stat.team as "A" | "B",
+                  k: stat.kills,
+                  d: stat.deaths,
+                  a: stat.assists,
+                  adr: Number(stat.adr),
+                  rounds: stat.rounds,
+                  rating: Number(stat.rating),
+                  kast:
+                    stat.kast_rounds === null || stat.rounds <= 0
+                      ? null
+                      : (100 * stat.kast_rounds) / stat.rounds,
+                  demo: demoStats.get(steamId) ?? null,
+                },
+              ];
+            }),
+          };
+        }),
+        source: maps?.every((map) => map.stats_origin === "demo")
+          ? "demo"
+          : maps?.some((map) => map.stats_origin === "demo")
+            ? "mixed"
+            : maps?.every((map) => map.stats_origin === "popflash")
+              ? "popflash"
+              : maps?.every((map) => map.source === "manual")
+                ? "manual"
+                : maps?.every((map) => map.source === "faceit")
+                  ? "faceit"
+                  : "mixed",
         awards: matchAwards(
           (storedStats ?? []).flatMap((stat): AwardStat[] => {
             const steamId = steamIds.get(stat.player_id);
@@ -200,6 +257,7 @@ export default async function MixLobbyPage({
                     enemiesFlashed: stat.enemies_flashed,
                     multi4: stat.multi_4k,
                     multi5: stat.multi_5k,
+                    ...demoAwardFields(stat.raw),
                   },
                 ]
               : [];

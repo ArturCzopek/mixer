@@ -11,3 +11,6 @@ lib/external/__fixtures__/
 .impeccable/
 # Backtest fixtures (written by scripts/backtest-data.mjs, raw popflash pages)
 lib/balance/__fixtures__/
+# Generated third-party WASM bindings
+public/demo/demoparser2.js
+public/demo/demoparser2.d.ts

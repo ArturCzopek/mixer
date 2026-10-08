@@ -16,6 +16,9 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Private replay fixtures and third-party parser build artifacts.
     "backtest/.local/**",
+    // Generated third-party WASM bindings, kept byte-for-byte with their provenance.
+    "public/demo/demoparser2.js",
+    "public/demo/demoparser2.d.ts",
   ]),
 ]);
 

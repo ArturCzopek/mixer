@@ -11,7 +11,12 @@ import { DiscordVoice } from "./discord-voice";
 import { LeetifyPreviewCard } from "@/components/leetify/preview-card";
 import { resultQuip } from "@/lib/mix/result-quip";
 import { useRouter } from "next/navigation";
-import { ChevronDown, ExternalLink, Lock } from "lucide-react";
+import { ChevronDown, ChevronRight, ExternalLink, Lock } from "lucide-react";
+import { DemoAttachment } from "@/components/demo/demo-attachment";
+import { DemoRoundStrip } from "@/components/demo/round-strip";
+import { DemoPlayerDetails } from "@/components/demo/player-details";
+import type { DemoStoredData } from "@/lib/demo/payload";
+import type { DemoPlayerStats } from "@/lib/demo/stats";
 import {
   Badge,
   ListHead,
@@ -61,10 +66,14 @@ export type MixState = "lobby" | "balancing" | "voting" | "locked" | "played";
 type Player = ViewPlayer;
 type Line = Omit<ViewLine, "steamId"> & { player: Player };
 type MapResult = {
+  id?: string;
   map: string;
+  mapName?: string | null;
   a: number;
   b: number;
   lines: Line[];
+  teams?: { A: string[]; B: string[] };
+  demo?: DemoStoredData | null;
   roomUrl?: string | null;
   demoUrl?: string | null;
   statsOrigin?: string | null;
@@ -1883,13 +1892,17 @@ function VoteBar({
 }
 
 function Played({ initialPick }: { initialPick: number }) {
-  const { result, data, winner } = useMix();
+  const mix = useMix();
+  const { result, data, winner } = mix;
   const t = useT();
   const [pick, setPick] = React.useState(
     initialPick > 0 && initialPick <= result.maps.length ? initialPick : 0,
   );
   const { wonA, wonB, rounds } = mapResultSummary(data.result.maps);
   const map = result.maps[pick - 1] ?? null;
+  const viewerCanAttachDemo =
+    (data as MixViewData & { viewerCanAttachDemo?: boolean })
+      .viewerCanAttachDemo === true;
   const scoreA = map?.a ?? wonA;
   const scoreB = map?.b ?? wonB;
   const winnerText =
@@ -2057,13 +2070,48 @@ function Played({ initialPick }: { initialPick: number }) {
             )}
           </Well>
         )}
+        {map?.demo && (
+          <DemoRoundStrip
+            rounds={map.demo.rounds}
+            playerName={(steamId) => mix.nameOf(steamId)}
+          />
+        )}
+        {map && map.id && map.teams && !map.demo && viewerCanAttachDemo && (
+          <DemoAttachment
+            key={map.id}
+            matchId={map.id}
+            mapName={map.mapName ?? null}
+            mapLabel={map.map}
+            scoreA={map.a}
+            scoreB={map.b}
+            players={[
+              ...map.teams.A.map((steamId) => ({
+                steamId,
+                team: "A" as const,
+                name: mix.nameOf(steamId),
+              })),
+              ...map.teams.B.map((steamId) => ({
+                steamId,
+                team: "B" as const,
+                name: mix.nameOf(steamId),
+              })),
+            ]}
+            viewerCanAttach={viewerCanAttachDemo}
+          />
+        )}
       </div>
       {!!data.result.awards?.length && (
         <Well className="mt-2">
           <ListHead>{t.played.awardsTitle}</ListHead>
           <div className="grid sm:grid-cols-2">
             {data.result.awards.map((award) => {
-              const [title, unit] = t.played.awardLabels[award.key];
+              const [title, defaultUnit] = t.played.awardLabels[award.key];
+              const unit =
+                award.key === "selfDestruct" && award.metric
+                  ? t.played.awardUnits[
+                      award.metric === "damage" ? "selfDamage" : "suicides"
+                    ]
+                  : defaultUnit;
               const player = data.players.find(
                 (item) => item.steamId === award.steamId,
               );
@@ -2077,6 +2125,7 @@ function Played({ initialPick }: { initialPick: number }) {
                 "kamikaze",
                 "flashBangWhiff",
                 "scopeAddict",
+                "baitMaster",
               ].includes(award.key);
               return (
                 <div
@@ -2159,65 +2208,131 @@ function MapArtwork({ name }: { name: string }) {
   );
 }
 
-const SCORE_COLS = "grid-cols-[1fr_repeat(4,2.3rem)_2.8rem]";
+const SCORE_COLS =
+  "grid-cols-[minmax(0,1fr)_repeat(3,1.75rem)_2.8rem_3.2rem_2.8rem]";
 
 function Scoreboard({ lines }: { lines: Line[] }) {
   const t = useT();
+  const tableId = React.useId();
+  const [expanded, setExpanded] = React.useState<string | null>(null);
   const best = Math.max(...lines.map((l) => l.rating));
   return (
-    <Well>
-      <div
-        className={cn(
-          "border-lo bg-window text-dim grid border-b px-1.5 py-1 text-[10px] tracking-[0.06em] uppercase",
-          SCORE_COLS,
-        )}
-      >
-        <span>{t.lists.player}</span>
-        <span className="text-right">K</span>
-        <span className="text-right">A</span>
-        <span className="text-right">D</span>
-        <span className="text-right">ADR</span>
-        <span className="text-right" title={t.played.mr}>
-          MR
-        </span>
+    <Well className="overflow-x-auto p-0">
+      <div className="min-w-[340px]">
+        <div
+          className={cn(
+            "border-lo bg-window text-dim grid border-b px-1.5 py-1 text-[10px] tracking-[0.06em] uppercase",
+            SCORE_COLS,
+          )}
+        >
+          <span>{t.lists.player}</span>
+          <span className="text-right" title={t.demo.statTitles.kills}>
+            K
+          </span>
+          <span className="text-right" title={t.demo.statTitles.assists}>
+            A
+          </span>
+          <span className="text-right" title={t.demo.statTitles.deaths}>
+            D
+          </span>
+          <span className="text-right" title={t.demo.statTitles.adr}>
+            ADR
+          </span>
+          <span className="text-right" title={t.demo.statTitles.kast}>
+            KAST
+          </span>
+          <span className="text-right" title={t.played.mr}>
+            MR
+          </span>
+        </div>
+        {(["A", "B"] as const).map((team) => (
+          <React.Fragment key={team}>
+            <div className="bg-window text-gold px-1.5 py-1 text-[11px] font-bold tracking-[0.05em] uppercase">
+              {t.lists.team(team)}
+            </div>
+            {lines
+              .filter((line) => line.team === team)
+              .sort((a, b) => b.rating - a.rating)
+              .map((line) => {
+                const extended = line as Line & {
+                  demo?: DemoPlayerStats | null;
+                  kast?: number | null;
+                };
+                const detail = extended.demo ?? null;
+                const open = expanded === line.player.steamId;
+                const detailId = `${tableId}-details-${line.player.steamId}`;
+                const kast = detail?.kastPercent ?? extended.kast ?? null;
+                return (
+                  <React.Fragment key={line.player.steamId}>
+                    <div
+                      className={cn(
+                        "border-row grid items-center border-b px-1.5 py-1",
+                        SCORE_COLS,
+                        line.rating === best && "bg-row",
+                      )}
+                    >
+                      <span className="flex min-w-0 items-center gap-1">
+                        {detail && (
+                          <button
+                            type="button"
+                            aria-label={t.demo.details.playerDetailsFor(
+                              line.player.name,
+                            )}
+                            aria-expanded={open}
+                            aria-controls={detailId}
+                            onClick={() =>
+                              setExpanded(open ? null : line.player.steamId)
+                            }
+                            className="text-gold hover:bg-hover focus-visible:outline-gold inline-flex size-6 shrink-0 items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-[-2px]"
+                          >
+                            <ChevronRight
+                              aria-hidden="true"
+                              size={14}
+                              className={open ? "rotate-90" : ""}
+                            />
+                          </button>
+                        )}
+                        <Avatar player={line.player} />
+                        <PlayerProfileName player={line.player} />
+                      </span>
+                      <span className="text-right">{line.k}</span>
+                      <span className="text-dim text-right">{line.a}</span>
+                      <span className="text-right">{line.d}</span>
+                      <span className="text-right">{line.adr.toFixed(0)}</span>
+                      <span className="text-right">
+                        {kast === null ? "—" : `${kast.toFixed(1)}%`}
+                      </span>
+                      <b
+                        className={cn(
+                          "text-right",
+                          line.rating >= 1 ? "text-gold" : "text-text",
+                        )}
+                      >
+                        {line.rating.toFixed(2)}
+                      </b>
+                    </div>
+                    {detail && (
+                      <div
+                        id={detailId}
+                        hidden={!open}
+                        role="region"
+                        aria-label={t.demo.details.playerDetailsFor(
+                          line.player.name,
+                        )}
+                        className="border-row bg-well border-b px-8 py-2"
+                      >
+                        <DemoPlayerDetails
+                          stats={detail}
+                          playerName={line.player.name}
+                        />
+                      </div>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+          </React.Fragment>
+        ))}
       </div>
-      {(["A", "B"] as const).map((team) => (
-        <React.Fragment key={team}>
-          <div className="bg-window text-gold px-1.5 py-1 text-[11px] font-bold tracking-[0.05em] uppercase">
-            {t.lists.team(team)}
-          </div>
-          {lines
-            .filter((l) => l.team === team)
-            .sort((x, y) => y.rating - x.rating)
-            .map((r) => (
-              <div
-                key={r.player.steamId}
-                className={cn(
-                  "border-row grid items-center border-b px-1.5 py-1",
-                  SCORE_COLS,
-                  r.rating === best && "bg-row",
-                )}
-              >
-                <span className="flex min-w-0 items-center gap-2">
-                  <Avatar player={r.player} />
-                  <PlayerProfileName player={r.player} />
-                </span>
-                <span className="text-right">{r.k}</span>
-                <span className="text-dim text-right">{r.a}</span>
-                <span className="text-right">{r.d}</span>
-                <span className="text-right">{r.adr.toFixed(0)}</span>
-                <b
-                  className={cn(
-                    "text-right",
-                    r.rating >= 1 ? "text-gold" : "text-text",
-                  )}
-                >
-                  {r.rating.toFixed(2)}
-                </b>
-              </div>
-            ))}
-        </React.Fragment>
-      ))}
     </Well>
   );
 }

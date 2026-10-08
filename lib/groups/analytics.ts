@@ -82,7 +82,7 @@ export async function groupAnalytics(
   ]);
   const stats = await related<AnalyticsStat>(
     "match_player_stats",
-    "match_id, player_id, team, kills, deaths, assists, adr, rounds, rating, hs_kills, first_kills, entry_attempts, entry_wins, clutch_attempts, flashes_thrown, flashes_successful, sniper_kills, mvps, clutch_wins, utility_damage, enemies_flashed, multi_4k, multi_5k",
+    "match_id, player_id, team, kills, deaths, assists, adr, rounds, rating, hs_kills, first_kills, entry_attempts, entry_wins, clutch_attempts, flashes_thrown, flashes_successful, sniper_kills, mvps, clutch_wins, utility_damage, enemies_flashed, multi_4k, multi_5k, raw",
     "match_id",
     maps.map((map) => map.id),
     "player_id",

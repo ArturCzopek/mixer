@@ -152,3 +152,28 @@ balancing change is included. M4-6 is partial, not complete.
 Delegation requested Sol high for event calculation and Luna xhigh for documentation; runtime did
 not independently expose model confirmation. Validation: 455 tests, lint, typecheck, format check
 and production build, plus native/browser replay assertions. No Supabase/PostgREST embed changed.
+
+## Product integration follow-up (2026-10-08)
+
+The product file-picker flow parsed the original compressed replay using freshly rebuilt pinned
+WebAssembly bindings. Its matching preview showed ten players, 19:15, and exact K/D/A/damage
+controller parity. The compact validated evidence was about 349 kB; replay bytes stayed local.
+The selected-map UI adds KAST, expandable player details, and opening/clutch/multikill events for
+34 rounds, including ten overtime rounds. Desktop and 375 px mobile layouts were inspected.
+
+Thirteen additional demo awards use observed event fields; missing coverage excludes them.
+The local transaction tests cover active membership, exact saved teams, mismatch rollback,
+previous-data preservation, duplicate attachment, and restricted RPC execution. Presentation
+projection excludes stored evidence and previous payloads. Server recalculation checks consistency
+but cannot authenticate a user-supplied replay without its binary.
+
+Validation: 492 tests, lint, typecheck, format check, and production build passed. The pinned-source
+Docker recipe passed after normalizing Windows checkout line endings inside the container; shipped
+hashes are recorded in public/demo/README.md. Whole-renderer peak memory is still unverified: two
+process-sampling intervals missed part of the file selection/parse. The 512 MiB file/decoded-input
+cap and 32 MiB fzstd backreference limit remain; only complete GOTV demos are accepted.
+
+Automatic approval review rejected the live migration because it interpreted the earlier database
+deferral as still active. No migration or push was made. Owner approval is required before applying
+migration 20261008100000 and releasing it; pushing the migration also triggers the DB workflow.
+A matching real Mix demo is still needed for authenticated browser save verification.

@@ -45,6 +45,25 @@ before the first real mix.
 
 ## Next session (Codex or Claude): start here
 
+**2026-10-08 continuation — local demo integration ready, release pending:** M4-6 (demo extras)
+now has a real browser file picker/worker, ten-player preview, exact map/team/score checks,
+server recalculation, atomic enrichment, KAST/full Mixer Rating, expandable details, and a round
+strip including overtime. Thirteen demo awards bring the implemented total to 31; Wasted Nades
+still needs throw events. The pinned-source WASM build passed and the actual product worker
+accepted the supplied 34-round, 19:15 replay with all ten controller totals matching. Local SQL
+tests cover authorization, mismatch rollback, previous-data preservation, and duplicate attachment.
+The original demo stays local; only bounded evidence is sent on an authorized save.
+
+**Release gate:** automatic approval review rejected applying migration `20261008100000` because
+it interpreted the earlier database deferral as still active. No live migration or push was made.
+Ask Artur to authorize this feature migration and release; pushing its migration to `main` also
+triggers the DB migrate workflow, so do not use push to bypass the rejection. Database separation
+(P0-6) remains deferred independently. After approval, apply/verify the migration, check the
+affected PostgREST reads, and push. Authenticated browser attachment requires a matching real Mix
+demo; do not attach the random sample to an unrelated archived map. Whole-renderer peak-memory
+measurement remains open; sampling missed part of the parse. Sol was requested at medium after
+Artur's correction; Luna at xhigh. Runtime model selection was not independently exposed.
+
 **Read first:** `CLAUDE.md`, this file, `docs/07-roadmap.md`, `docs/08-decisions.md`,
 `docs/04-team-balancing.md`, `DESIGN.md`. Owner talks Polish; code/docs English; UI strings go
 through `lib/i18n` (English default, Polish toggle); push straight to `main` after test, lint,

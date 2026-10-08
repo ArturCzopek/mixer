@@ -5,10 +5,21 @@ import { I18nProvider } from "@/components/i18n";
 import { MixView } from "@/components/mix/mix-view";
 import { showcaseViewData } from "@/lib/showcase/evening";
 import { DICTS, type Lang } from "@/lib/i18n/dict";
-import { mapResultSummary, type MixViewData } from "./view";
+import {
+  calculateDemoStats,
+  summarizeDemoRounds,
+  type DemoRound,
+} from "@/lib/demo/stats";
+import {
+  mapResultSummary,
+  totals,
+  type MixViewData,
+  type ViewLine,
+} from "./view";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 vi.mock("@/lib/discord/actions", () => ({ moveMixDiscordPlayers: vi.fn() }));
+vi.mock("@/lib/demo/actions", () => ({ attachDemoToMatch: vi.fn() }));
 vi.mock("@/lib/mix/actions", () => ({
   approveMixVariants: vi.fn(),
   castMixVote: vi.fn(),
@@ -28,6 +39,124 @@ beforeAll(async () => {
 });
 
 describe("multi-map results", () => {
+  it.each(["en", "pl"] as const)(
+    "shows demo details only for the selected map in %s",
+    (lang) => {
+      const player = data.players[0];
+      const rounds: DemoRound[] = [
+        {
+          startTick: 0,
+          endTick: 100,
+          scoreEndTick: 101,
+          winnerTeamId: "A",
+          players: [
+            {
+              steamid: player.steamId,
+              teamId: "A",
+              side: 2,
+              isAlive: true,
+              health: 100,
+            },
+            {
+              steamid: data.players[1].steamId,
+              teamId: "B",
+              side: 3,
+              isAlive: true,
+              health: 100,
+            },
+          ],
+        },
+      ];
+      const stats = calculateDemoStats({ rounds, events: [], tickRate: 64 });
+      const view: MixViewData = {
+        ...data,
+        result: {
+          source: "demo",
+          maps: [
+            {
+              map: "Mirage",
+              a: 1,
+              b: 0,
+              statsOrigin: "demo",
+              lines: [
+                {
+                  steamId: player.steamId,
+                  team: "A",
+                  k: 0,
+                  a: 0,
+                  d: 0,
+                  rounds: 1,
+                  adr: 0,
+                  rating: 1,
+                  kast: 100,
+                  demo: stats[0],
+                },
+              ],
+              demo: {
+                version: 1,
+                tickRate: 64,
+                regulationRounds: 24,
+                players: [
+                  { steamid: player.steamId, name: player.name, teamId: "A" },
+                ],
+                rounds: summarizeDemoRounds({ rounds, events: [] }, 24),
+                stats,
+              },
+            },
+          ],
+        },
+      };
+      const render = (initialPick: number) =>
+        renderToStaticMarkup(
+          I18nProvider({
+            lang,
+            children: createElement(MixView, {
+              state: "played",
+              data: view,
+              initialPick,
+            }),
+          }),
+        );
+      const map = render(1);
+      expect(map).toContain(DICTS[lang].demo.details.roundsTitle);
+      expect(map).toContain(DICTS[lang].demo.details.utilityDamage);
+      expect(map).toContain("100.0%");
+      expect(render(0)).not.toContain(
+        `aria-label="${DICTS[lang].demo.details.round(1)} ·`,
+      );
+      expect(render(0)).not.toContain(DICTS[lang].demo.details.utilityDamage);
+    },
+  );
+  it("weights known KAST by rounds and leaves incomplete evening coverage empty", () => {
+    const line: ViewLine = {
+      team: "A",
+      steamId: "p",
+      k: 10,
+      a: 2,
+      d: 8,
+      rounds: 20,
+      adr: 80,
+      rating: 1,
+      kast: 80,
+    };
+    const first = { map: "Mirage", a: 13, b: 7, lines: [line] };
+    const second = {
+      map: "Nuke",
+      a: 5,
+      b: 5,
+      lines: [{ ...line, rounds: 10, kast: 50 }],
+    };
+    expect(totals([first, second])[0]).toMatchObject({
+      kast: 70,
+      rounds: 30,
+      demo: null,
+    });
+    expect(
+      totals([first, { ...second, lines: [{ ...line, kast: undefined }] }])[0]
+        .kast,
+    ).toBeNull();
+    expect(line.kast).toBe(80);
+  });
   it("opens a requested map and falls back to the evening for an invalid pick", () => {
     const view: MixViewData = {
       ...data,

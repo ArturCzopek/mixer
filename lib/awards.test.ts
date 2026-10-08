@@ -266,6 +266,206 @@ describe("matchAwards", () => {
     ).toContainEqual({ key: "flashBangWhiff", steamId: "one", value: 0 });
   });
 
+  it.each<{
+    key: AwardKey;
+    field: keyof AwardStat;
+    pass: number;
+    fail: number;
+  }>([
+    { key: "friendlyFlasher", field: "friendlyFlashes", pass: 5, fail: 4 },
+    {
+      key: "friendlyFireEnthusiast",
+      field: "friendlyDamage",
+      pass: 100,
+      fail: 99,
+    },
+    { key: "chickenHunter", field: "chickenKills", pass: 1, fail: 0 },
+    { key: "knifeCollector", field: "knifeKills", pass: 1, fail: 0 },
+    { key: "zeusEnthusiast", field: "taserKills", pass: 1, fail: 0 },
+    { key: "xRay", field: "wallbangKills", pass: 3, fail: 2 },
+    { key: "smokeCriminal", field: "smokeKills", pass: 3, fail: 2 },
+    { key: "blindFury", field: "blindKills", pass: 1, fail: 0 },
+    { key: "airJordan", field: "airKills", pass: 1, fail: 0 },
+    { key: "noScopeArtist", field: "noScopeKills", pass: 1, fail: 0 },
+    { key: "saveArtist", field: "savedLostRounds", pass: 5, fail: 4 },
+  ])(
+    "$key needs an observed count at its threshold",
+    ({ key, field, pass, fail }) => {
+      const awards = (value?: number | null) =>
+        matchAwards([{ ...empty, [field]: value }], ["one"]);
+      expect(awards(pass)).toContainEqual({ key, steamId: "one", value: pass });
+      for (const value of [fail, null, undefined, -1, Infinity])
+        expect(awards(value).some((award) => award.key === key)).toBe(false);
+      expect(
+        matchAwards(
+          [
+            { ...empty, [field]: pass },
+            { ...empty, [field]: null },
+          ],
+          ["one"],
+        ).some((award) => award.key === key),
+      ).toBe(false);
+    },
+  );
+
+  it("requires complete trade and kill counts for Bait Master", () => {
+    const awards = (lines: AwardStat[]) => matchAwards(lines, ["one"]);
+    expect(awards([{ ...empty, kills: 10, tradeKills: 4 }])).toContainEqual({
+      key: "baitMaster",
+      steamId: "one",
+      value: 0.4,
+    });
+    for (const line of [
+      { kills: 10, tradeKills: 3 },
+      { kills: 9, tradeKills: 9 },
+      { kills: 10, tradeKills: 11 },
+      { kills: 10, tradeKills: null },
+    ])
+      expect(
+        awards([{ ...empty, ...line }]).some(
+          (award) => award.key === "baitMaster",
+        ),
+      ).toBe(false);
+    expect(
+      awards([
+        { ...empty, kills: 5, tradeKills: 2 },
+        { ...empty, kills: 5, tradeKills: null },
+      ]).some((award) => award.key === "baitMaster"),
+    ).toBe(false);
+  });
+
+  it("qualifies Self-Destruct by damage or suicide with the displayed unit", () => {
+    const awards = (stats: Partial<AwardStat>) =>
+      matchAwards([{ ...empty, ...stats }], ["one"]);
+    expect(awards({ selfDamage: 50 })).toContainEqual({
+      key: "selfDestruct",
+      steamId: "one",
+      value: 50,
+      metric: "damage",
+    });
+    expect(awards({ suicides: 1 })).toContainEqual({
+      key: "selfDestruct",
+      steamId: "one",
+      value: 1,
+      metric: "suicides",
+    });
+    expect(
+      awards({ selfDamage: 49, suicides: 0 }).some(
+        (a) => a.key === "selfDestruct",
+      ),
+    ).toBe(false);
+    expect(awards({ selfDamage: 100, suicides: 1 })).toContainEqual({
+      key: "selfDestruct",
+      steamId: "one",
+      value: 100,
+      metric: "damage",
+    });
+    expect(awards({ selfDamage: 50, suicides: 2 })).toContainEqual({
+      key: "selfDestruct",
+      steamId: "one",
+      value: 2,
+      metric: "suicides",
+    });
+    expect(
+      matchAwards(
+        [
+          { ...empty, selfDamage: 50, suicides: 0 },
+          { ...empty, selfDamage: null, suicides: 1 },
+        ],
+        ["one"],
+      ),
+    ).toContainEqual({
+      key: "selfDestruct",
+      steamId: "one",
+      value: 1,
+      metric: "suicides",
+    });
+    expect(
+      matchAwards(
+        [
+          { ...empty, selfDamage: 50, suicides: 0 },
+          { ...empty, selfDamage: null, suicides: null },
+        ],
+        ["one"],
+      ).some((a) => a.key === "selfDestruct"),
+    ).toBe(false);
+  });
+
+  it("breaks demo award ties by join order", () => {
+    expect(
+      matchAwards(
+        [
+          { ...empty, steamId: "one", chickenKills: 1 },
+          { ...empty, steamId: "two", chickenKills: 1 },
+        ],
+        ["two", "one"],
+      ),
+    ).toContainEqual({
+      key: "chickenHunter",
+      steamId: "two",
+      value: 1,
+    });
+  });
+
+  it("sums complete demo counts across maps and keeps the evening caps", () => {
+    expect(
+      matchAwards(
+        [
+          { ...empty, chickenKills: 0, friendlyFlashes: 2 },
+          { ...empty, chickenKills: 1, friendlyFlashes: 3 },
+        ],
+        ["one"],
+      ),
+    ).toContainEqual({
+      key: "friendlyFlasher",
+      steamId: "one",
+      value: 5,
+    });
+    const players = Array.from({ length: 10 }, (_, index) => ({
+      ...empty,
+      steamId: String(index),
+      chickenKills: 1,
+      knifeKills: 1,
+      taserKills: 1,
+      wallbangKills: 3,
+      smokeKills: 3,
+      blindKills: 1,
+    }));
+    const awards = matchAwards(
+      players,
+      players.map((p) => p.steamId),
+    );
+    expect(awards.length).toBeLessThanOrEqual(6);
+    for (const player of players)
+      expect(
+        awards.filter((a) => a.steamId === player.steamId).length,
+      ).toBeLessThanOrEqual(2);
+    const distinct = players.map((player, index) => ({
+      ...empty,
+      steamId: player.steamId,
+      [(
+        [
+          "chickenKills",
+          "knifeKills",
+          "taserKills",
+          "wallbangKills",
+          "smokeKills",
+          "blindKills",
+          "airKills",
+          "noScopeKills",
+          "savedLostRounds",
+          "friendlyFlashes",
+        ] as const
+      )[index]]: 10,
+    }));
+    expect(
+      matchAwards(
+        distinct,
+        distinct.map((p) => p.steamId),
+      ),
+    ).toHaveLength(6);
+  });
+
   it("chooses the losing map's top fragger only with a five-round loss and complete team stats", () => {
     const map = (scoreA: number, kills: (number | null)[]) => [
       ...kills.map((value, index) => ({

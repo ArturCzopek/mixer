@@ -1,4 +1,5 @@
 import { matchAwards, type AwardKey, type AwardStat } from "@/lib/awards";
+import { demoAwardFields } from "@/lib/demo/view";
 
 export type Period = "all" | "30" | "90" | "365";
 export type ArchiveScope = "all" | "current" | "archive";
@@ -23,6 +24,7 @@ export interface AnalyticsMap {
   stats_origin: string | null;
 }
 export interface AnalyticsStat {
+  raw?: unknown;
   match_id: string;
   player_id: string;
   team: "A" | "B";
@@ -362,6 +364,7 @@ export function analyticsSummary(
           enemiesFlashed: stat.enemies_flashed,
           multi4: stat.multi_4k,
           multi5: stat.multi_5k,
+          ...(map.stats_origin === "demo" ? demoAwardFields(stat.raw) : {}),
           matchId: map.id,
           team: stat.team,
           scoreA: map.score_a,

@@ -17,7 +17,7 @@ export type DemoRound = {
 };
 
 export type DemoEvent = {
-  event_name: "player_death" | "player_hurt" | "player_blind";
+  event_name: "player_death" | "player_hurt" | "player_blind" | "other_death";
   tick: number;
   attacker_steamid?: string | null;
   user_steamid?: string | null;
@@ -28,6 +28,12 @@ export type DemoEvent = {
   health?: number;
   weapon?: string;
   blind_duration?: number;
+  penetrated?: number;
+  thrusmoke?: boolean;
+  noscope?: boolean;
+  attackerblind?: boolean;
+  attackerinair?: boolean;
+  othertype?: string;
 };
 
 export type DemoPlayerStats = {
@@ -57,9 +63,108 @@ export type DemoPlayerStats = {
   enemiesFlashed: number;
   teammatesFlashed: number;
   flashAssists: number;
+  friendlyFlashes: number;
+  friendlyDamage: number;
+  selfDamage: number;
+  suicides: number;
+  chickenKills: number;
+  knifeKills: number;
+  taserKills: number;
+  wallbangKills: number;
+  smokeKills: number;
+  blindKills: number;
+  airKills: number;
+  noScopeKills: number;
+  savedLostRounds: number;
 };
 
-type MutableStats = DemoPlayerStats;
+export type DemoRoundSummary = {
+  number: number;
+  startTick: number;
+  endTick: number;
+  winnerTeamId: string;
+  phase: "regulation" | "overtime" | null;
+  opening: { killer: string; victim: string } | null;
+  clutches: { steamid: string; opponents: number; won: boolean }[];
+  multikills: { steamid: string; kills: number }[];
+};
+
+function detectClutches(
+  players: DemoRoundPlayer[],
+  alive: Set<string>,
+  clutches: Map<string, number>,
+) {
+  for (const player of players) {
+    if (!alive.has(player.steamid) || clutches.has(player.steamid)) continue;
+    const friends = players.filter(
+      (other) => alive.has(other.steamid) && other.teamId === player.teamId,
+    );
+    const enemies = players.filter(
+      (other) => alive.has(other.steamid) && other.teamId !== player.teamId,
+    );
+    if (friends.length === 1 && enemies.length > 0)
+      clutches.set(player.steamid, enemies.length);
+  }
+}
+
+/** Presentation data derived from live events; caller validates the complete replay first. */
+export function summarizeDemoRounds(
+  input: { rounds: DemoRound[]; events: DemoEvent[] },
+  regulationRounds: number | null,
+): DemoRoundSummary[] {
+  return input.rounds.map((round, index) => {
+    const roster = new Map(
+      round.players.map((player) => [player.steamid, player]),
+    );
+    const alive = new Set(
+      round.players
+        .filter((player) => player.isAlive)
+        .map((player) => player.steamid),
+    );
+    const clutches = new Map<string, number>();
+    const kills = new Map<string, number>();
+    let opening: DemoRoundSummary["opening"] = null;
+    detectClutches(round.players, alive, clutches);
+    for (const event of input.events) {
+      if (
+        event.event_name !== "player_death" ||
+        event.tick < round.startTick ||
+        event.tick > round.endTick
+      )
+        continue;
+      const victim = roster.get(event.user_steamid ?? "");
+      const attacker = roster.get(event.attacker_steamid ?? "");
+      if (!victim) throw new Error("Unknown round-summary victim");
+      alive.delete(victim.steamid);
+      if (attacker && attacker.teamId !== victim.teamId) {
+        opening ??= { killer: attacker.steamid, victim: victim.steamid };
+        kills.set(attacker.steamid, (kills.get(attacker.steamid) ?? 0) + 1);
+      }
+      detectClutches(round.players, alive, clutches);
+    }
+    return {
+      number: index + 1,
+      startTick: round.startTick,
+      endTick: round.endTick,
+      winnerTeamId: round.winnerTeamId,
+      phase:
+        regulationRounds === null
+          ? null
+          : index < regulationRounds
+            ? "regulation"
+            : "overtime",
+      opening,
+      clutches: [...clutches].map(([steamid, opponents]) => ({
+        steamid,
+        opponents,
+        won: roster.get(steamid)!.teamId === round.winnerTeamId,
+      })),
+      multikills: [...kills]
+        .filter(([, count]) => count >= 2)
+        .map(([steamid, count]) => ({ steamid, kills: count })),
+    };
+  });
+}
 
 const utilityWeapons = new Set([
   "hegrenade",
@@ -98,7 +203,7 @@ export function calculateDemoStats(input: {
     throw new Error("Invalid tickRate");
   if (input.rounds.length === 0) throw new Error("No completed rounds");
 
-  const stats = new Map<string, MutableStats>();
+  const stats = new Map<string, DemoPlayerStats>();
   let previousScoreEnd = -1;
   let firstRoster: Set<string> | undefined;
   const stableTeams = new Map<string, string>();
@@ -175,6 +280,19 @@ export function calculateDemoStats(input: {
           enemiesFlashed: 0,
           teammatesFlashed: 0,
           flashAssists: 0,
+          friendlyFlashes: 0,
+          friendlyDamage: 0,
+          selfDamage: 0,
+          suicides: 0,
+          chickenKills: 0,
+          knifeKills: 0,
+          taserKills: 0,
+          wallbangKills: 0,
+          smokeKills: 0,
+          blindKills: 0,
+          airKills: 0,
+          noScopeKills: 0,
+          savedLostRounds: 0,
         });
       }
     }
@@ -231,19 +349,7 @@ export function calculateDemoStats(input: {
       [];
     let opened = false;
 
-    const checkClutch = () => {
-      for (const player of round.players) {
-        if (!alive.has(player.steamid) || clutch.has(player.steamid)) continue;
-        const friends = round.players.filter(
-          (other) => alive.has(other.steamid) && other.teamId === player.teamId,
-        );
-        const enemies = round.players.filter(
-          (other) => alive.has(other.steamid) && other.teamId !== player.teamId,
-        );
-        if (friends.length === 1 && enemies.length > 0)
-          clutch.set(player.steamid, enemies.length);
-      }
-    };
+    const checkClutch = () => detectClutches(round.players, alive, clutch);
     checkClutch();
 
     while (
@@ -268,9 +374,17 @@ export function calculateDemoStats(input: {
         health.set(victim.steamid, event.health);
         if (!attackerId) continue;
         const attacker = requirePlayer(attackerId, roster, "hurt attacker");
-        if (attacker.teamId === victim.teamId) continue;
         // CS2 can round dmg_health one point below the authoritative health change.
         const amount = before - event.health;
+        if (attackerId === victim.steamid) {
+          if (utilityWeapons.has(event.weapon ?? ""))
+            stats.get(attackerId)!.selfDamage += amount;
+          continue;
+        }
+        if (attacker.teamId === victim.teamId) {
+          stats.get(attackerId)!.friendlyDamage += amount;
+          continue;
+        }
         stats.get(attackerId)!.enemyDamage += amount;
         if (utilityWeapons.has(event.weapon ?? ""))
           stats.get(attackerId)!.utilityDamage += amount;
@@ -291,6 +405,13 @@ export function calculateDemoStats(input: {
               ? "teammatesFlashed"
               : "enemiesFlashed";
           stats.get(attackerId)![field]++;
+          if (field === "teammatesFlashed" && event.blind_duration > 1)
+            stats.get(attackerId)!.friendlyFlashes++;
+        }
+      } else if (event.event_name === "other_death") {
+        if (event.othertype === "chicken" && attackerId) {
+          requirePlayer(attackerId, roster, "chicken attacker");
+          stats.get(attackerId)!.chickenKills++;
         }
       } else if (event.event_name === "player_death") {
         const victim = requirePlayer(victimId, roster, "death victim");
@@ -316,8 +437,19 @@ export function calculateDemoStats(input: {
           throw new Error("Duplicate death or missing alive state");
         health.set(victim.steamid, 0);
         stats.get(victim.steamid)!.deaths++;
+        if (attackerId === victim.steamid)
+          stats.get(victim.steamid)!.suicides++;
         if (enemyKill) {
           stats.get(attackerId!)!.kills++;
+          const result = stats.get(attackerId!)!;
+          if (event.weapon?.startsWith("knife") || event.weapon === "bayonet")
+            result.knifeKills++;
+          if (event.weapon === "taser") result.taserKills++;
+          if (event.penetrated && event.penetrated > 0) result.wallbangKills++;
+          if (event.thrusmoke) result.smokeKills++;
+          if (event.attackerblind) result.blindKills++;
+          if (event.attackerinair) result.airKills++;
+          if (event.noscope) result.noScopeKills++;
           if (event.headshot) stats.get(attackerId!)!.headshotKills++;
           if (validAssist) {
             stats.get(assisterId!)!.assists++;
@@ -360,6 +492,8 @@ export function calculateDemoStats(input: {
     for (const player of round.players) {
       const result = stats.get(player.steamid)!;
       result.roundsPlayed++;
+      if (alive.has(player.steamid) && round.winnerTeamId !== player.teamId)
+        result.savedLostRounds++;
       if (
         alive.has(player.steamid) ||
         kast.has(player.steamid) ||

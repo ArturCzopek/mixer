@@ -314,3 +314,27 @@ it("counts advanced FACEIT awards through the same stored fields as a played mix
     result.awards.find((award) => award.key === "kamikaze")?.leaders,
   ).toMatchObject([{ playerId: "a", count: 1 }]);
 });
+
+it("counts demo-only awards from raw stats without treating missing fields as zero", () => {
+  const result = analyticsSummary(
+    [mixes[1]],
+    [{ ...maps[2], stats_origin: "demo" }],
+    [
+      {
+        ...base,
+        match_id: "new2",
+        raw: { chickenKills: 1, friendlyDamage: 0 },
+      },
+    ],
+    players,
+    lineups,
+    participants,
+    { period: "all", archive: "current" },
+  );
+  expect(
+    result.awards.find((award) => award.key === "chickenHunter")?.leaders,
+  ).toMatchObject([{ playerId: "a", count: 1 }]);
+  expect(
+    result.awards.some((award) => award.key === "friendlyFireEnthusiast"),
+  ).toBe(false);
+});

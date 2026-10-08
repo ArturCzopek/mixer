@@ -20,6 +20,20 @@ export interface AwardStat {
   mvps?: number | null;
   multi4: number | null;
   multi5: number | null;
+  friendlyFlashes?: number | null;
+  friendlyDamage?: number | null;
+  selfDamage?: number | null;
+  suicides?: number | null;
+  chickenKills?: number | null;
+  knifeKills?: number | null;
+  taserKills?: number | null;
+  wallbangKills?: number | null;
+  smokeKills?: number | null;
+  blindKills?: number | null;
+  airKills?: number | null;
+  noScopeKills?: number | null;
+  tradeKills?: number | null;
+  savedLostRounds?: number | null;
   matchId?: string;
   team?: "A" | "B";
   scoreA?: number;
@@ -44,12 +58,26 @@ export type AwardKey =
   | "exterminator"
   | "soClose"
   | "loneWolf"
-  | "mvpHoarder";
+  | "mvpHoarder"
+  | "friendlyFlasher"
+  | "friendlyFireEnthusiast"
+  | "selfDestruct"
+  | "chickenHunter"
+  | "knifeCollector"
+  | "zeusEnthusiast"
+  | "xRay"
+  | "smokeCriminal"
+  | "blindFury"
+  | "airJordan"
+  | "noScopeArtist"
+  | "baitMaster"
+  | "saveArtist";
 
 export interface MatchAward {
   key: AwardKey;
   steamId: string;
   value: number;
+  metric?: "damage" | "suicides";
 }
 
 const sum = (a: number | null, b: number | null) =>
@@ -105,6 +133,38 @@ export function matchAwards(
       mvps: sum(previous.mvps ?? null, line.mvps ?? null),
       multi4: sum(previous.multi4, line.multi4),
       multi5: sum(previous.multi5, line.multi5),
+      friendlyFlashes: sum(
+        previous.friendlyFlashes ?? null,
+        line.friendlyFlashes ?? null,
+      ),
+      friendlyDamage: sum(
+        previous.friendlyDamage ?? null,
+        line.friendlyDamage ?? null,
+      ),
+      selfDamage: sum(previous.selfDamage ?? null, line.selfDamage ?? null),
+      suicides: sum(previous.suicides ?? null, line.suicides ?? null),
+      chickenKills: sum(
+        previous.chickenKills ?? null,
+        line.chickenKills ?? null,
+      ),
+      knifeKills: sum(previous.knifeKills ?? null, line.knifeKills ?? null),
+      taserKills: sum(previous.taserKills ?? null, line.taserKills ?? null),
+      wallbangKills: sum(
+        previous.wallbangKills ?? null,
+        line.wallbangKills ?? null,
+      ),
+      smokeKills: sum(previous.smokeKills ?? null, line.smokeKills ?? null),
+      blindKills: sum(previous.blindKills ?? null, line.blindKills ?? null),
+      airKills: sum(previous.airKills ?? null, line.airKills ?? null),
+      noScopeKills: sum(
+        previous.noScopeKills ?? null,
+        line.noScopeKills ?? null,
+      ),
+      tradeKills: sum(previous.tradeKills ?? null, line.tradeKills ?? null),
+      savedLostRounds: sum(
+        previous.savedLostRounds ?? null,
+        line.savedLostRounds ?? null,
+      ),
     });
   }
   const players = [...byPlayer.values()].map((row) => ({
@@ -147,6 +207,8 @@ export function matchAwards(
     value !== null && line.rounds && line.rounds > 0
       ? value / line.rounds
       : null;
+  const observedCount = (value: number | null | undefined) =>
+    value != null && Number.isFinite(value) && value >= 0 ? value : null;
   const share = (
     numerator: number | null | undefined,
     denominator: number | null | undefined,
@@ -279,6 +341,54 @@ export function matchAwards(
     (v, line) => line.rounds !== null && v / line.rounds >= 0.2,
     (v) => v,
   );
+  for (const [key, field, threshold] of [
+    ["friendlyFlasher", "friendlyFlashes", 5],
+    ["friendlyFireEnthusiast", "friendlyDamage", 100],
+    ["chickenHunter", "chickenKills", 1],
+    ["knifeCollector", "knifeKills", 1],
+    ["zeusEnthusiast", "taserKills", 1],
+    ["xRay", "wallbangKills", 3],
+    ["smokeCriminal", "smokeKills", 3],
+    ["blindFury", "blindKills", 1],
+    ["airJordan", "airKills", 1],
+    ["noScopeArtist", "noScopeKills", 1],
+    ["saveArtist", "savedLostRounds", 5],
+  ] as const)
+    award(
+      key,
+      (line) => observedCount(line[field]),
+      (v) => v >= threshold,
+      (v) => v / threshold,
+    );
+  award(
+    "baitMaster",
+    (line) => share(line.tradeKills, line.kills, 10),
+    (v) => v >= 0.4,
+    (v) => v / 0.4,
+  );
+
+  const selfDestruct = players
+    .flatMap((line) => {
+      const damage = observedCount(line.selfDamage);
+      const suicides = observedCount(line.suicides);
+      const damageSeverity = damage !== null && damage >= 50 ? damage / 50 : 0;
+      const suicideSeverity = suicides !== null && suicides >= 1 ? suicides : 0;
+      if (!damageSeverity && !suicideSeverity) return [];
+      const metric: NonNullable<MatchAward["metric"]> =
+        damageSeverity >= suicideSeverity ? "damage" : "suicides";
+      return [
+        {
+          key: "selfDestruct" as const,
+          steamId: line.steamId,
+          value: metric === "damage" ? damage! : suicides!,
+          metric,
+          severity: Math.max(damageSeverity, suicideSeverity),
+          order: order.get(line.steamId) ?? Infinity,
+        },
+      ];
+    })
+    .sort((a, b) => b.severity - a.severity || a.order - b.order)[0];
+  if (selfDestruct) candidates.push(selfDestruct);
 
   const byMatch = new Map<string, AwardStat[]>();
   for (const line of lines) {
@@ -344,5 +454,10 @@ export function matchAwards(
       return true;
     })
     .slice(0, 6)
-    .map(({ key, steamId, value }) => ({ key, steamId, value }));
+    .map(({ key, steamId, value, metric }) => ({
+      key,
+      steamId,
+      value,
+      ...(metric ? { metric } : {}),
+    }));
 }

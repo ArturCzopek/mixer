@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { calculateDemoStats, type DemoEvent, type DemoRound } from "./stats";
+import {
+  calculateDemoStats,
+  summarizeDemoRounds,
+  type DemoEvent,
+  type DemoRound,
+} from "./stats";
 
 const players: DemoRound["players"] = [
   { steamid: "a", teamId: "A", side: 2, isAlive: true, health: 100 },
@@ -45,6 +50,116 @@ function calculate(rounds: DemoRound[], events: DemoEvent[]) {
 }
 
 describe("calculateDemoStats", () => {
+  it("derives demo award counters without counting friendly kills as highlights", () => {
+    const special = {
+      ...death(30, "a", "x"),
+      weapon: "knife_butterfly",
+      penetrated: 1,
+      thrusmoke: true,
+      attackerblind: true,
+      attackerinair: true,
+      noscope: true,
+    };
+    const result = calculate(
+      [round()],
+      [
+        {
+          event_name: "player_hurt",
+          tick: 1,
+          attacker_steamid: "a",
+          user_steamid: "b",
+          dmg_health: 9,
+          health: 90,
+          weapon: "ak47",
+        },
+        {
+          event_name: "player_hurt",
+          tick: 2,
+          attacker_steamid: "a",
+          user_steamid: "a",
+          dmg_health: 50,
+          health: 50,
+          weapon: "hegrenade",
+        },
+        {
+          event_name: "player_blind",
+          tick: 3,
+          attacker_steamid: "a",
+          user_steamid: "b",
+          blind_duration: 1,
+        },
+        {
+          event_name: "player_blind",
+          tick: 4,
+          attacker_steamid: "a",
+          user_steamid: "b",
+          blind_duration: 1.01,
+        },
+        {
+          event_name: "other_death",
+          tick: 5,
+          attacker_steamid: "a",
+          othertype: "chicken",
+        },
+        {
+          event_name: "other_death",
+          tick: 6,
+          attacker_steamid: "a",
+          othertype: "prop_dynamic",
+        },
+        special,
+        { ...death(40, "a", "y"), weapon: "taser" },
+        { ...death(50, "b", "b"), weapon: "hegrenade", thrusmoke: true },
+      ],
+    );
+    expect(result.a).toMatchObject({
+      friendlyDamage: 10,
+      selfDamage: 50,
+      friendlyFlashes: 1,
+      teammatesFlashed: 2,
+      chickenKills: 1,
+      knifeKills: 1,
+      taserKills: 1,
+      wallbangKills: 1,
+      smokeKills: 1,
+      blindKills: 1,
+      airKills: 1,
+      noScopeKills: 1,
+    });
+    expect(result.b).toMatchObject({ suicides: 1, smokeKills: 0 });
+  });
+
+  it("summarizes live rounds and marks overtime only from observed regulation length", () => {
+    const rounds = [round(0, 100, 150), round(150, 250, 300)];
+    const events = [
+      death(10, "x", "b"),
+      death(20, "a", "x"),
+      death(30, "a", "y"),
+      death(110, "a", "b"),
+    ];
+    const summary = summarizeDemoRounds({ rounds, events }, 1);
+    expect(summary[0]).toMatchObject({
+      number: 1,
+      winnerTeamId: "A",
+      phase: "regulation",
+      opening: { killer: "x", victim: "b" },
+      multikills: [{ steamid: "a", kills: 2 }],
+    });
+    expect(summary[0].clutches).toContainEqual({
+      steamid: "a",
+      opponents: 2,
+      won: true,
+    });
+    expect(summary[1].phase).toBe("overtime");
+    expect(
+      summarizeDemoRounds({ rounds, events }, null).every(
+        (row) => row.phase === null,
+      ),
+    ).toBe(true);
+    const losing = round();
+    losing.winnerTeamId = "B";
+    expect(calculate([losing], []).a.savedLostRounds).toBe(1);
+  });
   it("uses HP deltas for damage, including one-point parser rounding, overkill and friendly damage", () => {
     const result = calculate(
       [round()],
