@@ -104,3 +104,51 @@ Decoder primary source: [fzstd](https://github.com/101arrowz/fzstd).
 Validation: native and browser parity assertions passed; 439 repository tests, lint, typecheck,
 format check and production build passed. ESLint now excludes ignored private backtest fixtures
 and third-party build artifacts, matching their existing Git exclusion.
+
+## Event-stat calculation follow-up (2026-10-08)
+
+`lib/demo/prepare.ts` now normalizes completed live rounds from the last
+`round_announce_match_start`, including a freeze-end on the same tick. It resolves winners using
+observed player sides, never a fixed halftime/overtime formula. Complete start/end snapshots are
+required; end alive states must match the death events. Missing snapshots, duplicate deaths and an
+unfinished last round are rejected. Scoreboard events end at the exclusive next `round_start`;
+opening duels, trades, clutches and KAST survival end at inclusive `round_end`.
+
+`lib/demo/stats.ts` computes K/D/A and per-round rates, enemy damage/ADR, headshots, first enemy
+kill/death, five-second trades, KAST, 1vX clutch attempts/wins, utility damage, flash assists,
+enemy/teammate flashes above 0.5 seconds (excluding self), and multikills. Team/world/self damage
+updates victim health but contributes no enemy damage. A clutch is won when its team wins, including
+a planted-bomb win after the last player dies. Post-round deaths do not erase round-end survival.
+
+### Damage rounding correction
+
+Summing `min(dmg_health, previousHP)` undercounted all ten players by 13–41 damage on this replay.
+There are 248 nonfatal hurt events where `dmg_health` is one point lower than the observed HP loss.
+Computing `previousHP - event.health` instead produces exact controller damage totals for all ten
+players, caps overkill naturally, and accounts for preceding uncredited friendly/world damage.
+This is an observed integer-rounding discrepancy in this sample, not a claim about every parser or
+game version. Start health and nonincreasing event health are validated; healing modes are unsupported.
+
+### Native/browser comparison
+
+- Native event-derived K/D/A and damage match all ten controller rows, over all 34 completed rounds.
+  Those controller values already match the FACEIT K/D/A and rounded ADR baseline.
+- Measured tick rate is 64, from tick and `game_time` differences between the first freeze and end.
+- The actual browser worker parses the original compressed file and runs the same pure TypeScript
+  adapter/calculator. Every field of every player's calculated statistics matches the native event
+  baseline. First run: 9.61 seconds including 3.37 seconds decoding/read; WASM capacity 411,369,472
+  bytes (392.31 MiB), plus the retained 382.33 MiB input. The final version, including separate teammate
+  flash counts, passed again in 9.95 seconds (3.63 seconds decoding/read). Whole-process peak memory
+  is still unmeasured.
+- Sample checks: 34 opening kills/deaths, 44 trade kills, KAST range 52.94–85.29%. These advanced
+  metrics have implementation parity and focused edge-case tests, not an independent external
+  accuracy reference. Incomplete POV event streams are not approved for product enrichment.
+
+The raw replay, extracted fixtures and local browser harness remain ignored. Product upload/preview,
+reproducible WASM/decoder packaging, whole-process memory measurement, identity/map/score validation,
+atomic enrichment and full Mixer Rating replacement remain open. No database query/write or
+balancing change is included. M4-6 is partial, not complete.
+
+Delegation requested Sol high for event calculation and Luna xhigh for documentation; runtime did
+not independently expose model confirmation. Validation: 455 tests, lint, typecheck, format check
+and production build, plus native/browser replay assertions. No Supabase/PostgREST embed changed.

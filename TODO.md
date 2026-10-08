@@ -66,7 +66,10 @@ Next, in order:
    native parsing confirms 34 rounds, 19:15 and all ten K/D/A/ADR lines (2026-10-08). A patched
    current WASM build plus streaming fzstd now passes the original compressed file in the browser
    (9.64 seconds; score, sides and ten-player scoreboard parity). WASM capacity is 390 MiB plus
-   382 MiB input; whole-process memory, reproducible app packaging and richer stats remain open. See
+   382 MiB input. Pure event stats now also pass the same replay in native and browser workers
+   (9.61 seconds): K/D/A and HP-derived damage match all ten controllers; KAST, openings, trades,
+   clutches, utility, flashes and multikills have implementation parity. Whole-process memory,
+   reproducible app packaging, product preview and validated atomic enrichment remain open. See
    [the overtime spike](docs/09-demo-overtime-spike.md).
 3. Further profile/source statistics and owner UX feedback. Balance settings and live scores wait.
 

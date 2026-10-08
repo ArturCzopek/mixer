@@ -128,7 +128,7 @@ What the recorded match (`lib/external/__fixtures__/faceit/matches/1-1cb5…json
 
 Library: [demoparser2](https://github.com/LaihoE/demoparser) by LaihoE (Rust core; Python, Node and WASM builds).
 
-### Flow (in the browser)
+### Planned product flow (not implemented)
 
 ```mermaid
 sequenceDiagram
@@ -144,33 +144,50 @@ sequenceDiagram
   W-->>P: MatchPayload JSON (~50 KB) + round coverage
   P->>U: preview scoreboard + warnings (unknown players, team mismatch)
   U->>P: Confirm
-  P->>API: POST MatchPayload
-  API->>API: Zod validate, dedupe by demo hash, map SteamIDs to players
-  API-->>P: match id → redirect to match page
+  P->>API: POST MatchPayload (future)
+  API->>API: validate, dedupe, map SteamIDs (future)
+  API-->>P: saved match (future)
 ```
+
+The parser and calculator are not connected to a product upload or save flow yet. The diagram is a
+target flow, not a description of shipped behavior.
 
 ### Data extracted
 
 | From | Fields |
 |---|---|
-| Header | map name, server name, playback ticks |
-| Events | `round_start`, `round_freeze_end`, `round_end` (winner, reason), `round_officially_ended`, `player_death` (attacker, victim, assister, `assistedflash`, weapon, headshot, tick), `player_hurt` (attacker, victim, `dmg_health`, weapon, victim health), `player_blind`, `bomb_planted`, `bomb_defused` |
-| Ticks | per-round `team_num`, `is_alive`; controller match-stat props at the final tick (kills, deaths, assists, damage, utility damage, enemies flashed, 3k/4k/5k, headshot kills, MVPs) |
+| Header | map name, server name |
+| Events | `round_start`, `round_freeze_end`, `round_end` (winner, reason), `round_officially_ended`, `player_death` (attacker, victim, assister, `assistedflash`, weapon, headshot, tick), `player_hurt` (attacker, victim, `dmg_health`, weapon, victim health after the hit), `player_blind`, `bomb_planted`, `bomb_defused` |
+| Ticks | complete per-round player snapshots: SteamID64, stable team identity, current `team_num`/T-CT side, `is_alive`, and health; `game_time` differences for measured tick rate; final-tick controller match-stat props (kills, deaths, assists, damage, utility damage, enemies flashed, 3k/4k/5k, headshot kills, MVPs) |
 
-Warmup and knife rounds are excluded (use `is_warmup_period`, and only count rounds after the
-first `round_freeze_end` of the live match).
+Exclude warmup using `is_warmup_period`. For a replay with multiple
+`round_announce_match_start` events, retain only rounds after the last one; a live
+`round_freeze_end` on the same tick as that event is valid. This also drops knife/restart rounds
+before the live match. Each counted round needs a complete
+snapshot for the same ten players. Keep each player's stable team identity separate from their
+current T/CT side, and map the round winner using the actual side snapshot for that round.
 
-**Browser feasibility remains unverified.** A Web Worker keeps parsing off the UI thread, but
-compatibility, decompression, copies into WASM memory and peak memory must be measured. The
-[2026-10-08 overtime spike](09-demo-overtime-spike.md) found that the old prebuilt WASM fails on
-the supplied replay. Desktop upload support is gated on S4; phones are not planned for uploads.
+**Browser parsing works for the tested replay; product support remains unfinished.** In the
+[2026-10-08 overtime spike](09-demo-overtime-spike.md), a local browser worker used a patched build
+of current upstream WASM and streaming `fzstd` to parse the 289,913,207-byte compressed replay. It
+found 34 live rounds and a 19:15 score; all ten scoreboard rows matched native output in about
+9.64 seconds. The old published WASM still fails on this replay. A follow-up runs the pure TypeScript
+round adapter and event-stat calculator in the browser in about ten seconds. All calculated fields
+match the native event baseline, and K/D/A plus HP-derived damage match all ten controller rows.
+Advanced metrics have implementation parity and unit tests; an independent external reference is
+not established.
 
-**Fallback if WASM is a problem:** no server needed. The same logic runs in a small Python script
-(`pip install demoparser2`) that the admin runs locally on demand. It uploads the same JSON payload.
+S4 remains open: whole-renderer peak memory has not been measured, and the patched WASM plus
+decoder are not packaged reproducibly for the app. `fzstd` also documents a 32 MiB backreference
+limit. Product upload, preview, and saving/enriching match results are not implemented; desktop
+upload support is still gated on this remaining work, and phones are not planned for uploads.
 
-**Raw payload is kept.** The full parsed payload (events summary, per-round data) is stored as `jsonb`
-in `match_payloads`, next to the computed stats. When formulas change (Mixer Rating 2 → 3), we recompute
-from it without re-uploading demos.
+No Python fallback is implemented. It remains a possible local option if the browser parser cannot
+meet the remaining memory or packaging requirements.
+
+**Planned persistence:** retain the parsed payload (event summary and per-round data) as `jsonb` in
+`match_payloads` beside computed stats, so formulas can be recomputed without another demo upload.
+This storage and the product upload/save flow are not implemented.
 
 ## Stat definitions
 
@@ -178,17 +195,18 @@ All per match, per player. `R` = rounds played.
 
 | Stat | Definition |
 |---|---|
-| K / D / A | from `player_death`; team kills and suicides do not count as kills |
-| ADR | Σ damage to enemies, each hit capped at the victim's remaining HP, ÷ R |
-| HS% | headshot kills ÷ kills |
-| Opening kill / death | first `player_death` of the round (attacker / victim) |
-| Trade kill | killing an enemy within **5 s** after that enemy killed a teammate |
-| Traded death | player died and a teammate killed the killer within 5 s |
-| KAST | % of rounds with a **K**ill, **A**ssist, **S**urvived, or **T**raded death |
-| Multikill 2k–5k | rounds with N kills |
+| K / D / A | From `player_death`: kills and assists are credited for enemy kills; deaths count player deaths. Team kills and suicides do not count as kills. Scoreboard events stop at the next `round_start` (exclusive). |
+| ADR | Sum enemy-caused health loss ÷ R. Use `max(0, beforeHP - event.health)` for each `player_hurt`; `dmg_health` can be one point lower due to integer rounding. Update victim health for every hurt event, but do not credit friendly, world, or self damage. |
+| HS% | Headshot enemy kills ÷ enemy kills |
+| Opening kill / death | Attacker / victim of the first valid enemy kill during the live round |
+| Trade kill | killing an enemy within **5 s**, measured with the demo's tick rate, after that enemy killed a teammate |
+| Traded death | player died and a teammate killed the killer within 5 s, measured with the demo's tick rate |
+| KAST | % of rounds with a live-round **K**ill, **A**ssist, **S**urvived, or **T**raded death. Survival is read at round end; a later post-round death does not remove it. |
+| Multikill 2k–5k | Live rounds with N enemy kills; five or more count as 5k |
 | Clutch 1vX | player becomes the last alive on their team with X ≥ 1 enemies alive; won if their team wins the round |
-| Utility damage | damage from `hegrenade`, `inferno`, `molotov`, `incgrenade` |
+| Utility damage | Enemy health loss from `hegrenade`, `inferno`, `molotov`, `incgrenade` |
 | Enemies flashed | `player_blind` on enemies with duration > 0.5 s |
+| Teammates flashed | `player_blind` on teammates with duration > 0.5 s, excluding self |
 | Flash assist | `player_death.assistedflash = true` for the assister |
 | KPR / DPR / APR | kills / deaths / assists ÷ R |
 
@@ -229,13 +247,16 @@ where possible, or ask for a re-upload.
 
 A FACEIT GOTV demo (de_nuke, 216 MB `.dem`, 157 MB as `.dem.zst`) parsed with the **native**
 `@laihoe/demoparser2` (Node, cloud sandbox): header + player list + `player_death` / `player_hurt` /
-`round_end` in **~1.8 s, ~95 MB RSS**. Browser/WASM numbers are still open (S4). Lessons for M2-3:
+`round_end` in **~1.8 s, ~95 MB RSS**. This native test predates the separate browser overtime spike. Lessons:
 - **Restarts:** the demo had two `round_announce_match_start` events (tick 1280 and 5262). Only rounds
   after the **last** one count; otherwise a pre-match round leaks in (20 → 18 real rounds).
-- **ADR:** `player_hurt.dmg_health` includes overkill (a 205 "ADR" came out). Cap each hit at the
-  victim's remaining health (`health` before the hit) to match scoreboard ADR.
-- **Score per team:** `round_end.winner` is a side (T/CT); map it to teams using the halftime swap
-  (after round 12 in MR12, and every 3 rounds in OT).
+- **ADR:** The overtime replay showed `dmg_health` undercounts controller damage: 248 nonfatal
+  `player_hurt` events had `dmg_health` one point below `beforeHP - event.health`. Summing actual
+  health deltas (`max(0, beforeHP - event.health)`) matched all ten controller damage totals
+  exactly. Apply every victim health update, but credit only enemy damage; friendly, world, and self
+  damage still change health without adding to a player's damage stat.
+- **Score per team:** `round_end.winner` is a side (T/CT). Map it to stable teams from each round's
+  actual player-side snapshot, including overtime; do not assume a fixed halftime schedule.
 - `parsePlayerInfo` gives SteamID64 + name + team, enough to map players to the roster.
 
 ## Validation on upload
