@@ -28,6 +28,27 @@ begin
   end if;
   insert into public.match_player_stats (match_id, player_id, team, kills)
     values (v_match_id, player_id, 'A', 20);
+  failed := false;
+  begin
+    insert into public.match_player_stats (match_id, player_id, team, entry_attempts, entry_wins)
+      values (v_match_id, outsider_id, 'B', 2, 3);
+  exception when check_violation then failed := true;
+  end;
+  if not failed then raise exception 'ASSERT: entry wins exceeded attempts'; end if;
+  failed := false;
+  begin
+    insert into public.match_player_stats (match_id, player_id, team, flashes_thrown, flashes_successful)
+      values (v_match_id, outsider_id, 'B', 2, 3);
+  exception when check_violation then failed := true;
+  end;
+  if not failed then raise exception 'ASSERT: flash successes exceeded thrown'; end if;
+  failed := false;
+  begin
+    insert into public.match_player_stats (match_id, player_id, team, clutch_attempts, clutch_wins)
+      values (v_match_id, outsider_id, 'B', 2, 3);
+  exception when check_violation then failed := true;
+  end;
+  if not failed then raise exception 'ASSERT: clutch wins exceeded attempts'; end if;
   insert into public.match_payloads (match_id, parser_version, payload)
     values (v_match_id, 'test', '{"rounds":[]}'::jsonb);
   delete from public.matches where id = v_match_id;
@@ -168,7 +189,9 @@ begin
     (select locked_at from public.mixes where id = fixture_mix_id),
     jsonb_build_array(
       jsonb_build_object('faceitId', 'manual-room-1', 'mapName', 'Mirage', 'startedAt', now(), 'scoreA', 13, 'scoreB', 7,
-        'stats', jsonb_build_array(jsonb_build_object('playerId', participants[2], 'team', 'A', 'kills', 21, 'rating', 1.3))),
+        'stats', jsonb_build_array(jsonb_build_object('playerId', participants[2], 'team', 'A', 'kills', 21, 'rating', 1.3,
+          'entryAttempts', 4, 'entryWins', 2, 'clutchAttempts', 2, 'clutchWins', 1,
+          'flashesThrown', 11, 'flashesSuccessful', 6, 'sniperKills', 3, 'mvps', 5))),
       jsonb_build_object('faceitId', 'manual-room-2', 'mapName', 'Nuke', 'startedAt', now(), 'scoreA', 9, 'scoreB', 13, 'stats', '[]'::jsonb)
     ));
   if (select count(*) from public.matches where mix_id = fixture_mix_id and source = 'manual' and stats_origin = 'faceit') <> 2
@@ -176,7 +199,14 @@ begin
      or (select map_name from public.matches where mix_id = fixture_mix_id and map_number = 2) <> 'Nuke'
      or (select score_a from public.matches where mix_id = fixture_mix_id and map_number = 2) <> 9
      or (select s.rating from public.match_player_stats s join public.matches m on m.id = s.match_id
-         where m.mix_id = fixture_mix_id and s.player_id = participants[2]) <> 1.3 then
+         where m.mix_id = fixture_mix_id and s.player_id = participants[2]) <> 1.3
+     or not exists (
+       select 1 from public.match_player_stats s join public.matches m on m.id = s.match_id
+       where m.mix_id = fixture_mix_id and s.player_id = participants[2]
+         and (s.entry_attempts, s.entry_wins, s.clutch_attempts, s.clutch_wins,
+              s.flashes_thrown, s.flashes_successful, s.sniper_kills, s.mvps)
+           = (4, 2, 2, 1, 11, 6, 3, 5)
+     ) then
     raise exception 'ASSERT: FACEIT stats did not preserve manual score provenance';
   end if;
   failed := false;
@@ -213,13 +243,31 @@ begin
   perform public.record_faceit_mix_results(faceit_mix_id, player_id,
     (select locked_at from public.mixes where id = faceit_mix_id), jsonb_build_array(
     jsonb_build_object('faceitId', 'room-1', 'mapName', 'de_mirage', 'startedAt', now(), 'scoreA', 13, 'scoreB', 7,
-      'stats', jsonb_build_array(jsonb_build_object('playerId', participants[1], 'team', 'A', 'kills', 20, 'deaths', 12, 'rounds', 20, 'rating', 1.2))),
+      'stats', jsonb_build_array(
+        jsonb_build_object('playerId', participants[1], 'team', 'A', 'kills', 20, 'deaths', 12, 'rounds', 20, 'rating', 1.2,
+          'entryAttempts', 6, 'entryWins', 1, 'clutchAttempts', 3, 'clutchWins', 0,
+          'flashesThrown', 12, 'flashesSuccessful', 2, 'sniperKills', 8, 'mvps', 6),
+        jsonb_build_object('playerId', participants[2], 'team', 'A', 'kills', 10))),
     jsonb_build_object('faceitId', 'room-2', 'mapName', 'de_nuke', 'startedAt', now(), 'scoreA', 11, 'scoreB', 13, 'stats', '[]'::jsonb)
   ));
   if (select status from public.mixes where id = faceit_mix_id) <> 'played'
      or (select count(*) from public.matches where mix_id = faceit_mix_id) <> 2
      or (select s.kills from public.match_player_stats s where s.player_id = participants[1]) <> 20
-     or (select s.rating from public.match_player_stats s where s.player_id = participants[1]) <> 1.2 then
+     or (select s.rating from public.match_player_stats s where s.player_id = participants[1]) <> 1.2
+     or not exists (
+       select 1 from public.match_player_stats s join public.matches m on m.id = s.match_id
+       where m.mix_id = faceit_mix_id and s.player_id = participants[1]
+         and (s.entry_attempts, s.entry_wins, s.clutch_attempts, s.clutch_wins,
+              s.flashes_thrown, s.flashes_successful, s.sniper_kills, s.mvps)
+           = (6, 1, 3, 0, 12, 2, 8, 6)
+     ) or not exists (
+       select 1 from public.match_player_stats s join public.matches m on m.id = s.match_id
+       where m.mix_id = faceit_mix_id and s.player_id = participants[2]
+         and s.entry_attempts is null and s.entry_wins is null
+         and s.clutch_attempts is null and s.clutch_wins is null
+         and s.flashes_thrown is null and s.flashes_successful is null
+         and s.sniper_kills is null and s.mvps is null
+     ) then
     raise exception 'ASSERT: FACEIT evening was not stored';
   end if;
   perform public.record_faceit_mix_results(faceit_mix_id, player_id,

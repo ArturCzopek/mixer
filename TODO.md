@@ -60,8 +60,8 @@ webhook auto-return (`app/api/webhooks/faceit`, unverified until a real Club mat
 
 Next, in order:
 
-1. Continue **M2-8 (match awards)**: five remaining API-based awards need advanced FACEIT
-   fields persisted by both result-import RPCs and historical backfill.
+1. **M2-8 (match awards):** the API-based award set is complete (18 types, 2026-10-08).
+   Next expand situational quips where observations support them; demo-only awards wait for M4-6.
 2. **S4 / M4-6 (browser demo parser / demo extras):** verify a recent CS2 demo in a worker,
    including memory, compressed input and parity, before promising browser support.
 3. Further profile/source statistics and owner UX feedback. Balance settings and live scores wait.
@@ -70,6 +70,21 @@ Owner UX refinement (2026-10-07): roster FACEIT links omit the external nickname
 points are non-navigating, with immediate custom hover/focus details. FACEIT/Premier history uses
 an expand arrow beside the date, showing total damage, derived ADR (damage / positive rounds),
 MVPs, aces, headshot kills, enemies/teammates flashed and flash assists only. Date navigation stays.
+
+**Advanced FACEIT awards shipped (2026-10-08, M2-8):** five additional awards are implemented:
+Kamikaze, Clutch or Kick, Flashbang Whiff, Scope Addict and MVP Hoarder (18 types total).
+Both FACEIT import RPCs persist entry counts/wins, observed 1v1+1v2 clutch counts/wins,
+flash counts/successes, sniper kills and MVPs. Missing fields remain NULL and exclude the
+corresponding award; existing two/player and six/evening caps remain. Played Mixes and group
+award totals consume the same stored fields. Percentage values and MVP counts render correctly
+in EN/PL. Migration `20261007100000` is applied; seven live SQL suites and public-key read/write
+checks passed. A real FACEIT response confirmed all required keys for all ten players. The current
+database has no stored FACEIT maps, so no historical backfill is needed. Real new-import admin
+browser verification remains part of the existing Club evening check. Demo parser testing can use
+a recent non-Mix CS2 demo; attaching parsed data to a Mix later still requires matching its map.
+Delegation requested Sol high for schema/import, Sol medium for awards and Luna xhigh for copy;
+runtime did not expose independent model confirmation. Validation: 439 tests, lint, typecheck,
+format check and production build. Larger quip coverage and demo-only awards remain open.
 
 **Group statistics implemented (2026-10-07, D44):** M3-4 (full leaderboard) now has
 public `/g/[slug]/stats`, linked from the group summary. All historical players can be sorted by

@@ -8,6 +8,23 @@ const numeric = (value: unknown): number | null => {
   return Number.isFinite(number) && number >= 0 ? number : null;
 };
 
+// FACEIT sends count stats as decimal strings. Reject malformed or out-of-range
+// values before they reach PostgreSQL smallint columns.
+const count = (value: unknown): number | null => {
+  if (!(
+    (typeof value === "string" && /^\d+$/.test(value)) ||
+    (typeof value === "number" && Number.isInteger(value))
+  ))
+    return null;
+  const number = Number(value);
+  return number >= 0 && number <= 32767 ? number : null;
+};
+
+const total = (left: number | null, right: number | null): number | null =>
+  left !== null && right !== null && left + right <= 32767
+    ? left + right
+    : null;
+
 /** A confirmed FACEIT BO1 room becomes one map in the voted A/B lineup. */
 export function faceitImportMap(
   candidate: FaceitCandidate,
@@ -59,6 +76,12 @@ export function faceitImportMap(
       const assists = numeric(s.Assists);
       const rounds = numeric(round.round_stats.Rounds);
       const adr = numeric(s.ADR);
+      const entryAttempts = count(s["Entry Count"]);
+      const entryWins = count(s["Entry Wins"]);
+      const clutchAttempts = total(count(s["1v1Count"]), count(s["1v2Count"]));
+      const clutchWins = total(count(s["1v1Wins"]), count(s["1v2Wins"]));
+      const flashesThrown = count(s["Flash Count"]);
+      const flashesSuccessful = count(s["Flash Successes"]);
       return [
         {
           playerId,
@@ -86,6 +109,29 @@ export function faceitImportMap(
           pentaKills: numeric(s["Penta Kills"]),
           utilityDamage: numeric(s["Utility Damage"]),
           enemiesFlashed: numeric(s["Enemies Flashed"]),
+          entryAttempts,
+          entryWins:
+            entryAttempts !== null &&
+            entryWins !== null &&
+            entryWins > entryAttempts
+              ? null
+              : entryWins,
+          clutchAttempts,
+          clutchWins:
+            clutchAttempts !== null &&
+            clutchWins !== null &&
+            clutchWins > clutchAttempts
+              ? null
+              : clutchWins,
+          flashesThrown,
+          flashesSuccessful:
+            flashesThrown !== null &&
+            flashesSuccessful !== null &&
+            flashesSuccessful > flashesThrown
+              ? null
+              : flashesSuccessful,
+          sniperKills: count(s["Sniper Kills"]),
+          mvps: count(s.MVPs),
         },
       ];
     });

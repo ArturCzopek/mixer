@@ -2073,6 +2073,11 @@ function Played({ initialPick }: { initialPick: number }) {
                 "assistKing",
                 "tourist",
               ].includes(award.key);
+              const percent = [
+                "kamikaze",
+                "flashBangWhiff",
+                "scopeAddict",
+              ].includes(award.key);
               return (
                 <div
                   key={award.key}
@@ -2088,9 +2093,12 @@ function Played({ initialPick }: { initialPick: number }) {
                   </span>
                   <span className="text-dim">
                     {" "}
-                    · {rate
-                      ? award.value.toFixed(2)
-                      : award.value.toFixed(0)}{" "}
+                    ·{" "}
+                    {percent
+                      ? (award.value * 100).toFixed(1)
+                      : rate
+                        ? award.value.toFixed(2)
+                        : award.value.toFixed(0)}{" "}
                     {unit}
                   </span>
                 </div>

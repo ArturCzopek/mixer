@@ -51,8 +51,63 @@ it("maps recorded FACEIT factions, scores and player ratings to the locked A/B l
   expect(imported.stats).toHaveLength(2);
   expect(
     imported.stats.find((s) => s.playerId === known[0].player_id),
-  ).toMatchObject({ team: "B", kills: 9, deaths: 16 });
+  ).toMatchObject({
+    team: "B",
+    kills: 9,
+    deaths: 16,
+    entryAttempts: 2,
+    entryWins: 2,
+    clutchAttempts: 1,
+    clutchWins: 0,
+    flashesThrown: 8,
+    flashesSuccessful: 5,
+    sniperKills: 0,
+    mvps: 1,
+  });
+  expect(
+    imported.stats.find((s) => s.playerId === known[1].player_id),
+  ).toMatchObject({
+    entryAttempts: 11,
+    entryWins: 9,
+    clutchAttempts: 1,
+    clutchWins: 1,
+    flashesThrown: 10,
+    flashesSuccessful: 6,
+    sniperKills: 14,
+    mvps: 7,
+  });
   expect(
     imported.stats.find((s) => s.playerId === known[1].player_id)?.rating,
   ).toBeGreaterThan(0);
+
+  const source = response.rounds[0].teams
+    .flatMap((team) => team.players)
+    .find((player) => player.player_id === known[0].player_id)!.player_stats;
+  delete source["Entry Count"];
+  source["Entry Wins"] = "3";
+  source["1v2Count"] = "not-a-count";
+  source["Flash Count"] = "8.5";
+  source["Flash Successes"] = "9";
+  source["Sniper Kills"] = "32768";
+  source.MVPs = -1;
+  expect(
+    faceitImportMap(candidate, room, response, playerIds).stats.find(
+      (s) => s.playerId === known[0].player_id,
+    ),
+  ).toMatchObject({
+    entryAttempts: null,
+    entryWins: 3,
+    clutchAttempts: null,
+    clutchWins: 0,
+    flashesThrown: null,
+    flashesSuccessful: 9,
+    sniperKills: null,
+    mvps: null,
+  });
+  source["Entry Count"] = "2";
+  expect(
+    faceitImportMap(candidate, room, response, playerIds).stats.find(
+      (s) => s.playerId === known[0].player_id,
+    )?.entryWins,
+  ).toBeNull();
 });

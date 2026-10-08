@@ -167,3 +167,18 @@ One site-wide bot. Env: `DISCORD_BOT_TOKEN`, `DISCORD_CLIENT_ID`, `DISCORD_CLIEN
 | Steam names / avatars | 1 h fetch cache; stored in `players` and refreshed on login (no daily refresh job yet) |
 | FACEIT ELO / form | 10 min fetch cache; per-mix snapshot storage is planned |
 | Leetify profile / matches | Five-minute server fetch cache; never persisted to our database |
+
+
+### Advanced award counts (M2-8, 2026-10-08)
+
+Both new FACEIT evening imports and enrichment of matching manual results persist these observed
+counts: `Entry Count`/`Entry Wins`, `1v1Count` + `1v2Count` and `1v1Wins` + `1v2Wins`,
+`Flash Count`/`Flash Successes`, `Sniper Kills` and `MVPs`. Clutch totals require both source
+counts; unavailable or malformed counts remain NULL. These are 1v1/1v2 attempts only, not a count
+of every possible 1vX situation. The import rejects impossible success ratios as unavailable.
+An authenticated live check of the recorded Nuke room on 2026-10-08 confirmed all ten fields for
+all ten players. The official [match-statistics API](https://docs.faceit.com/docs/data-api/data/)
+returns game-specific statistics; the recorded response supplies the exact CS2 field names.
+Migration `20261007100000` adds six nullable columns and extends both result RPCs without changing
+result provenance, permissions or rating/balancing inputs. No stored FACEIT maps existed at the
+backfill check, so historical Popflash rows were left unchanged.

@@ -60,6 +60,13 @@ const base: AnalyticsStat = {
   rating: 1.5,
   hs_kills: null,
   first_kills: null,
+  entry_attempts: null,
+  entry_wins: null,
+  clutch_attempts: null,
+  flashes_thrown: null,
+  flashes_successful: null,
+  sniper_kills: null,
+  mvps: null,
   clutch_wins: null,
   utility_damage: null,
   enemies_flashed: null,
@@ -279,4 +286,31 @@ describe("analyticsSummary", () => {
     });
     expect(result.awards).toEqual([]);
   });
+});
+
+it("counts advanced FACEIT awards through the same stored fields as a played mix", () => {
+  const result = analyticsSummary(
+    [mixes[1]],
+    [maps[2]],
+    [
+      {
+        ...base,
+        match_id: "new2",
+        entry_attempts: 5,
+        entry_wins: 1,
+        flashes_thrown: 10,
+        flashes_successful: 1,
+      },
+    ],
+    players,
+    lineups,
+    participants,
+    { period: "all", archive: "current" },
+  );
+  expect(result.awards.map((award) => award.key)).toEqual(
+    expect.arrayContaining(["kamikaze", "flashBangWhiff"]),
+  );
+  expect(
+    result.awards.find((award) => award.key === "kamikaze")?.leaders,
+  ).toMatchObject([{ playerId: "a", count: 1 }]);
 });

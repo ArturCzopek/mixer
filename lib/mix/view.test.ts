@@ -277,3 +277,51 @@ describe("production voting view", () => {
     );
   });
 });
+
+describe("advanced award values", () => {
+  it.each(["en", "pl"] as const)(
+    "renders percentages and observed counts in %s",
+    (lang) => {
+      const view: MixViewData = {
+        ...data,
+        result: {
+          source: "faceit",
+          maps: [{ map: "Mirage", a: 13, b: 7, lines: [] }],
+          awards: [
+            { key: "kamikaze", steamId: data.players[0].steamId, value: 0.2 },
+            {
+              key: "flashBangWhiff",
+              steamId: data.players[0].steamId,
+              value: 0.1,
+            },
+            {
+              key: "scopeAddict",
+              steamId: data.players[0].steamId,
+              value: 0.5,
+            },
+            { key: "clutchOrKick", steamId: data.players[0].steamId, value: 3 },
+            { key: "mvpHoarder", steamId: data.players[0].steamId, value: 4 },
+          ],
+        },
+      };
+      const html = renderToStaticMarkup(
+        I18nProvider({
+          lang,
+          children: createElement(MixView, { state: "played", data: view }),
+        }),
+      );
+      for (const [key, value] of [
+        ["kamikaze", "20.0"],
+        ["flashBangWhiff", "10.0"],
+        ["scopeAddict", "50.0"],
+        ["clutchOrKick", "3"],
+        ["mvpHoarder", "4"],
+      ] as const) {
+        expect(html).toContain(DICTS[lang].played.awardLabels[key][0]);
+        expect(html).toContain(
+          value + " " + DICTS[lang].played.awardLabels[key][1],
+        );
+      }
+    },
+  );
+});

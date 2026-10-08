@@ -114,6 +114,158 @@ describe("matchAwards", () => {
     ).toBe(false);
   });
 
+  it.each([
+    {
+      key: "kamikaze" as const,
+      passing: { entryAttempts: 10, entryWins: 3 },
+      failing: { entryAttempts: 10, entryWins: 4 },
+      tooFew: { entryAttempts: 4, entryWins: 0 },
+      value: 0.3,
+    },
+    {
+      key: "clutchOrKick" as const,
+      passing: { clutchAttempts: 3, clutchWins: 0 },
+      failing: { clutchAttempts: 3, clutchWins: 1 },
+      tooFew: { clutchAttempts: 2, clutchWins: 0 },
+      value: 3,
+    },
+    {
+      key: "flashBangWhiff" as const,
+      passing: { flashesThrown: 10, flashesSuccessful: 3 },
+      failing: { flashesThrown: 10, flashesSuccessful: 4 },
+      tooFew: { flashesThrown: 9, flashesSuccessful: 0 },
+      value: 0.3,
+    },
+    {
+      key: "scopeAddict" as const,
+      passing: { kills: 10, sniperKills: 4 },
+      failing: { kills: 10, sniperKills: 3 },
+      tooFew: { kills: 9, sniperKills: 9 },
+      value: 0.4,
+    },
+    {
+      key: "mvpHoarder" as const,
+      passing: { rounds: 20, mvps: 4 },
+      failing: { rounds: 20, mvps: 3 },
+      tooFew: { rounds: 0, mvps: 0 },
+      value: 4,
+    },
+  ])(
+    "$key enforces its rate and minimum denominator",
+    ({ key, passing, failing, tooFew, value }) => {
+      const awards = (stats: Partial<AwardStat>) =>
+        matchAwards([{ ...empty, ...stats }], ["one"]);
+      expect(awards(passing)).toContainEqual({ key, steamId: "one", value });
+      expect(awards(failing).some((award) => award.key === key)).toBe(false);
+      expect(awards(tooFew).some((award) => award.key === key)).toBe(false);
+    },
+  );
+
+  it("requires complete and valid advanced stats across every map", () => {
+    for (const { key, first, second, missing } of [
+      {
+        key: "kamikaze",
+        first: { entryAttempts: 5, entryWins: 1 },
+        second: { entryAttempts: 5, entryWins: 2 },
+        missing: "entryWins",
+      },
+      {
+        key: "clutchOrKick",
+        first: { clutchAttempts: 2, clutchWins: 0 },
+        second: { clutchAttempts: 1, clutchWins: 0 },
+        missing: "clutchAttempts",
+      },
+      {
+        key: "flashBangWhiff",
+        first: { flashesThrown: 5, flashesSuccessful: 1 },
+        second: { flashesThrown: 5, flashesSuccessful: 2 },
+        missing: "flashesSuccessful",
+      },
+      {
+        key: "scopeAddict",
+        first: { kills: 5, sniperKills: 2 },
+        second: { kills: 5, sniperKills: 2 },
+        missing: "sniperKills",
+      },
+      {
+        key: "mvpHoarder",
+        first: { rounds: 10, mvps: 2 },
+        second: { rounds: 10, mvps: 2 },
+        missing: "mvps",
+      },
+    ] as const) {
+      expect(
+        matchAwards(
+          [
+            { ...empty, ...first },
+            { ...empty, ...second },
+          ],
+          ["one"],
+        ).some((award) => award.key === key),
+      ).toBe(true);
+      expect(
+        matchAwards(
+          [
+            { ...empty, ...first },
+            { ...empty, ...second, [missing]: null },
+          ],
+          ["one"],
+        ).some((award) => award.key === key),
+      ).toBe(false);
+    }
+    expect(
+      matchAwards([{ ...empty, entryAttempts: 5, entryWins: 6 }], ["one"]).some(
+        (award) => award.key === "kamikaze",
+      ),
+    ).toBe(false);
+    expect(
+      matchAwards([{ ...empty, kills: 10, sniperKills: 11 }], ["one"]).some(
+        (award) => award.key === "scopeAddict",
+      ),
+    ).toBe(false);
+  });
+
+  it("breaks advanced award ties by join order", () => {
+    const line = { ...empty, entryAttempts: 10, entryWins: 2 };
+    expect(
+      matchAwards(
+        [
+          { ...line, steamId: "one" },
+          { ...line, steamId: "two" },
+        ],
+        ["two", "one"],
+      ),
+    ).toContainEqual({ key: "kamikaze", steamId: "two", value: 0.2 });
+  });
+
+  it("gives MVP Hoarder to the most MVPs among players over the rate floor", () => {
+    const awards = matchAwards(
+      [
+        { ...empty, steamId: "one", rounds: 10, mvps: 3 },
+        { ...empty, steamId: "two", rounds: 20, mvps: 4 },
+        { ...empty, steamId: "three", rounds: 30, mvps: 5 },
+      ],
+      ["one", "two", "three"],
+    );
+    expect(awards).toContainEqual({
+      key: "mvpHoarder",
+      steamId: "two",
+      value: 4,
+    });
+  });
+
+  it("treats observed zero wins and flash successes as real zero rates", () => {
+    expect(
+      matchAwards([{ ...empty, entryAttempts: 5, entryWins: 0 }], ["one"]),
+    ).toContainEqual({ key: "kamikaze", steamId: "one", value: 0 });
+    expect(
+      matchAwards(
+        [{ ...empty, flashesThrown: 10, flashesSuccessful: 0 }],
+        ["one"],
+      ),
+    ).toContainEqual({ key: "flashBangWhiff", steamId: "one", value: 0 });
+  });
+
   it("chooses the losing map's top fragger only with a five-round loss and complete team stats", () => {
     const map = (scoreA: number, kills: (number | null)[]) => [
       ...kills.map((value, index) => ({

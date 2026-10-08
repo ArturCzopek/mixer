@@ -110,7 +110,7 @@ export default async function MixLobbyPage({
         ? await adminDb()
             .from("match_player_stats")
             .select(
-              "match_id, player_id, team, kills, deaths, assists, adr, rounds, rating, hs_kills, first_kills, clutch_wins, utility_damage, enemies_flashed, multi_4k, multi_5k",
+              "match_id, player_id, team, kills, deaths, assists, adr, rounds, rating, hs_kills, first_kills, entry_attempts, entry_wins, clutch_attempts, flashes_thrown, flashes_successful, sniper_kills, mvps, clutch_wins, utility_damage, enemies_flashed, multi_4k, multi_5k",
             )
             .in("match_id", matchIds)
         : { data: [], error: null };
@@ -188,6 +188,13 @@ export default async function MixLobbyPage({
                     assists: stat.assists,
                     adr: stat.adr === null ? null : Number(stat.adr),
                     firstKills: stat.first_kills,
+                    entryAttempts: stat.entry_attempts,
+                    entryWins: stat.entry_wins,
+                    clutchAttempts: stat.clutch_attempts,
+                    flashesThrown: stat.flashes_thrown,
+                    flashesSuccessful: stat.flashes_successful,
+                    sniperKills: stat.sniper_kills,
+                    mvps: stat.mvps,
                     clutchWins: stat.clutch_wins,
                     utilityDamage: stat.utility_damage,
                     enemiesFlashed: stat.enemies_flashed,

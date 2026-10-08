@@ -34,6 +34,13 @@ export interface AnalyticsStat {
   rating: number | null;
   hs_kills: number | null;
   first_kills: number | null;
+  entry_attempts: number | null;
+  entry_wins: number | null;
+  clutch_attempts: number | null;
+  flashes_thrown: number | null;
+  flashes_successful: number | null;
+  sniper_kills: number | null;
+  mvps: number | null;
   clutch_wins: number | null;
   utility_damage: number | null;
   enemies_flashed: number | null;
@@ -343,6 +350,13 @@ export function analyticsSummary(
           adr: stat.adr === null ? null : Number(stat.adr),
           headshotKills: stat.hs_kills,
           firstKills: stat.first_kills,
+          entryAttempts: stat.entry_attempts,
+          entryWins: stat.entry_wins,
+          clutchAttempts: stat.clutch_attempts,
+          flashesThrown: stat.flashes_thrown,
+          flashesSuccessful: stat.flashes_successful,
+          sniperKills: stat.sniper_kills,
+          mvps: stat.mvps,
           clutchWins: stat.clutch_wins,
           utilityDamage: stat.utility_damage,
           enemiesFlashed: stat.enemies_flashed,

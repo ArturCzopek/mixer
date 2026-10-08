@@ -8,9 +8,16 @@ export interface AwardStat {
   assists: number | null;
   adr: number | null;
   firstKills: number | null;
+  entryAttempts?: number | null;
+  entryWins?: number | null;
+  clutchAttempts?: number | null;
   clutchWins: number | null;
   utilityDamage: number | null;
   enemiesFlashed: number | null;
+  flashesThrown?: number | null;
+  flashesSuccessful?: number | null;
+  sniperKills?: number | null;
+  mvps?: number | null;
   multi4: number | null;
   multi5: number | null;
   matchId?: string;
@@ -26,13 +33,18 @@ export type AwardKey =
   | "tourist"
   | "headhunter"
   | "sprayAndPray"
+  | "kamikaze"
   | "doorOpener"
   | "clutchMinister"
+  | "clutchOrKick"
   | "grenadier"
   | "sunglasses"
+  | "flashBangWhiff"
+  | "scopeAddict"
   | "exterminator"
   | "soClose"
-  | "loneWolf";
+  | "loneWolf"
+  | "mvpHoarder";
 
 export interface MatchAward {
   key: AwardKey;
@@ -69,9 +81,28 @@ export function matchAwards(
       adr: null,
       adrTotal: sum(previous.adrTotal, adrTotal),
       firstKills: sum(previous.firstKills, line.firstKills),
+      entryAttempts: sum(
+        previous.entryAttempts ?? null,
+        line.entryAttempts ?? null,
+      ),
+      entryWins: sum(previous.entryWins ?? null, line.entryWins ?? null),
+      clutchAttempts: sum(
+        previous.clutchAttempts ?? null,
+        line.clutchAttempts ?? null,
+      ),
       clutchWins: sum(previous.clutchWins, line.clutchWins),
       utilityDamage: sum(previous.utilityDamage, line.utilityDamage),
       enemiesFlashed: sum(previous.enemiesFlashed, line.enemiesFlashed),
+      flashesThrown: sum(
+        previous.flashesThrown ?? null,
+        line.flashesThrown ?? null,
+      ),
+      flashesSuccessful: sum(
+        previous.flashesSuccessful ?? null,
+        line.flashesSuccessful ?? null,
+      ),
+      sniperKills: sum(previous.sniperKills ?? null, line.sniperKills ?? null),
+      mvps: sum(previous.mvps ?? null, line.mvps ?? null),
       multi4: sum(previous.multi4, line.multi4),
       multi5: sum(previous.multi5, line.multi5),
     });
@@ -115,6 +146,20 @@ export function matchAwards(
   const perRound = (value: number | null, line: AwardStat) =>
     value !== null && line.rounds && line.rounds > 0
       ? value / line.rounds
+      : null;
+  const share = (
+    numerator: number | null | undefined,
+    denominator: number | null | undefined,
+    minimum: number,
+  ) =>
+    numerator != null &&
+    denominator != null &&
+    Number.isFinite(numerator) &&
+    Number.isFinite(denominator) &&
+    denominator >= minimum &&
+    numerator >= 0 &&
+    numerator <= denominator
+      ? numerator / denominator
       : null;
   award(
     "cannonFodder",
@@ -163,6 +208,12 @@ export function matchAwards(
     (v) => 25 / Math.max(v, 0.01),
   );
   award(
+    "kamikaze",
+    (line) => share(line.entryWins, line.entryAttempts, 5),
+    (v) => v <= 0.3,
+    (v) => 0.3 / Math.max(v, 0.001),
+  );
+  award(
     "doorOpener",
     (line) => line.firstKills,
     (v) => v >= 5,
@@ -173,6 +224,17 @@ export function matchAwards(
     (line) => line.clutchWins,
     (v) => v >= 2,
     (v) => v / 2,
+  );
+  award(
+    "clutchOrKick",
+    (line) =>
+      line.clutchAttempts != null &&
+      Number.isFinite(line.clutchAttempts) &&
+      line.clutchWins === 0
+        ? line.clutchAttempts
+        : null,
+    (v) => v >= 3,
+    (v) => v / 3,
   );
   award(
     "grenadier",
@@ -187,6 +249,18 @@ export function matchAwards(
     (v) => v / 15,
   );
   award(
+    "flashBangWhiff",
+    (line) => share(line.flashesSuccessful, line.flashesThrown, 10),
+    (v) => v <= 0.3,
+    (v) => 0.3 / Math.max(v, 0.001),
+  );
+  award(
+    "scopeAddict",
+    (line) => share(line.sniperKills, line.kills, 10),
+    (v) => v >= 0.4,
+    (v) => v / 0.4,
+  );
+  award(
     "exterminator",
     (line) => line.multi5,
     (v) => v >= 1,
@@ -197,6 +271,13 @@ export function matchAwards(
     (line) => line.multi4,
     (v) => v >= 2,
     (v) => v / 2,
+  );
+  award(
+    "mvpHoarder",
+    (line) =>
+      share(line.mvps, line.rounds, 1) === null ? null : (line.mvps ?? null),
+    (v, line) => line.rounds !== null && v / line.rounds >= 0.2,
+    (v) => v,
   );
 
   const byMatch = new Map<string, AwardStat[]>();
