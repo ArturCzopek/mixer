@@ -231,7 +231,7 @@ function MixProfileColumn({
       title: t.profile.ratingPoint(
         date(point.at),
         point.map,
-        `${point.scoreA}:${point.scoreB}`,
+        `${point.ours}:${point.theirs}`,
         point.rating.toFixed(2),
       ),
     }));
@@ -296,7 +296,7 @@ function MixProfileColumn({
                     </span>
                   </td>
                   <td>
-                    {map.scoreA}:{map.scoreB}
+                    {map.ours}:{map.theirs}
                   </td>
                   <td
                     className={

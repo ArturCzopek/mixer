@@ -65,7 +65,7 @@ export function profileSummary(maps: ProfileMap[]) {
         }
       }
     }
-    return { ...map, outcome };
+    return { ...map, outcome, ours, theirs };
   });
   const rated = outcomes.filter(
     (map) => map.stats?.rating !== null && map.stats?.rating !== undefined,
@@ -88,8 +88,8 @@ export function profileSummary(maps: ProfileMap[]) {
       at: map.playedAt,
       mixId: map.mixId,
       map: map.mapName ?? `#${map.mapNumber}`,
-      scoreA: map.scoreA,
-      scoreB: map.scoreB,
+      ours: map.ours,
+      theirs: map.theirs,
       faceitRoomUrl: map.faceitRoomUrl ?? null,
       rating: map.stats!.rating!,
     })),

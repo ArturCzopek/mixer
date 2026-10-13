@@ -43,7 +43,7 @@ export function PlayerProfileView({
       title: t.profile.ratingPoint(
         date(point.at),
         point.map,
-        `${point.scoreA}:${point.scoreB}`,
+        `${point.ours}:${point.theirs}`,
         point.rating.toFixed(2),
       ),
     }));
@@ -181,7 +181,7 @@ export function PlayerProfileView({
                                 )}
                               </td>
                               <td>
-                                {map.scoreA}:{map.scoreB}
+                                {map.ours}:{map.theirs}
                               </td>
                               <td
                                 className={

@@ -611,6 +611,8 @@ const en = {
       connect: "Link Discord",
       change: "Change Discord",
       disconnect: "Unlink",
+      banner:
+        "Your Discord is not linked, so the bot cannot move you to your team's voice channel.",
       result: {
         linked: "Your Discord account is linked.",
         unlinked: "Your Discord account is unlinked.",
@@ -1476,6 +1478,8 @@ const pl: Dict = {
       connect: "Połącz Discord",
       change: "Zmień konto Discord",
       disconnect: "Odłącz",
+      banner:
+        "Twój Discord nie jest połączony, więc bot nie przeniesie Cię na kanał głosowy drużyny.",
       result: {
         linked: "Twoje konto Discord zostało połączone.",
         unlinked: "Twoje konto Discord zostało odłączone.",

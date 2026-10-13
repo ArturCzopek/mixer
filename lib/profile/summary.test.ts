@@ -117,9 +117,16 @@ it("keeps the raw map and mix identifiers on each rated map point", () => {
     id: "m1",
     mixId: "mix",
     map: "de_mirage",
-    scoreA: 13,
-    scoreB: 7,
+    ours: 13,
+    theirs: 7,
     faceitRoomUrl: "https://www.faceit.com/en/cs2/room/1-room",
     rating: 1.23,
   });
+});
+
+it("shows the score from the player's side", () => {
+  const [map] = profileSummary([
+    { ...base, team: "B", scoreA: 16, scoreB: 12 },
+  ]).maps;
+  expect(map).toMatchObject({ ours: 12, theirs: 16, outcome: "loss" });
 });

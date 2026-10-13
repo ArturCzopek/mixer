@@ -38,6 +38,7 @@ export interface Session {
   displayName: string | null;
   avatarUrl: string | null;
   isSiteAdmin: boolean;
+  discordUserId?: string | null;
 }
 
 /** The logged-in player, or null. Memoised per request. */
@@ -47,7 +48,9 @@ export const getSession = cache(async (): Promise<Session | null> => {
   if (!claims) return null;
   const { data } = await adminDb()
     .from("players")
-    .select("id, steam_id, display_name, avatar_url, is_site_admin")
+    .select(
+      "id, steam_id, display_name, avatar_url, is_site_admin, discord_user_id",
+    )
     .eq("id", claims.playerId)
     .maybeSingle();
   if (!data || data.steam_id !== claims.steamId) return null;
@@ -57,6 +60,7 @@ export const getSession = cache(async (): Promise<Session | null> => {
     displayName: data.display_name,
     avatarUrl: data.avatar_url,
     isSiteAdmin: data.is_site_admin,
+    discordUserId: data.discord_user_id,
   };
 });
 
