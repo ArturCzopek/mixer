@@ -399,7 +399,7 @@ describe("production voting view", () => {
     expect(html).toContain(
       'href="https://www.faceit.com/en/club/test/parties"',
     );
-    expect(html).toContain("FACEIT Club and join its queue");
+    expect(html).toContain("Each team forms one FACEIT party");
     expect(html).not.toContain(DICTS.en.admin.reopen);
     expect(render({ ...view, faceitClubUrl: null }, "locked")).toContain(
       DICTS.en.locked.noClub,

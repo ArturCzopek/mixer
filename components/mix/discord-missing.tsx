@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useT } from "@/components/i18n";
-import { Well } from "@/components/vgui";
 
 export function DiscordMissing({
   names,
@@ -14,9 +13,13 @@ export function DiscordMissing({
   const t = useT().groups.discordMissing;
   if (names.length === 0) return null;
   return (
-    <Well className="text-dim mt-2 px-2 py-1.5 text-[11px]">
-      <b className="text-text">{t.title(names.length)}:</b> {names.join(", ")}.{" "}
+    <div
+      role="alert"
+      className="border-loss text-text mt-2 border-2 px-2 py-1.5 text-[12px]"
+    >
+      <b className="text-loss">⚠ {t.title(names.length)}:</b>{" "}
+      <b>{names.join(", ")}</b>.{" "}
       <Link href={`/g/${groupSlug}#members`}>{t.roster}</Link>
-    </Well>
+    </div>
   );
 }

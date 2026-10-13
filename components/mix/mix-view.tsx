@@ -1348,6 +1348,7 @@ function Locked() {
           teamB={lockedWinner.teamB}
           order="join"
         />
+        <Tally />
       </div>
       <div className="mt-2.5 space-y-2.5 lg:mt-0">
         <Well className="p-2">

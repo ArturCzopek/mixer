@@ -1,5 +1,6 @@
 import "server-only";
 
+import { headers } from "next/headers";
 import { after } from "next/server";
 import { adminDb } from "@/lib/db/admin";
 import { postDiscordMessage } from "./api";
@@ -28,7 +29,11 @@ export async function claimMixFlag(mixId: string, flag: string) {
 }
 
 /** Posts the notice to the group's text channel once per mix and event; never throws. */
-export async function notifyMix(mixId: string, event: MixNotice) {
+export async function notifyMix(
+  mixId: string,
+  event: MixNotice,
+  origin: string | null = null,
+) {
   try {
     const db = adminDb();
     const { data: mix, error } = await db
@@ -50,7 +55,7 @@ export async function notifyMix(mixId: string, event: MixNotice) {
     // ponytail: a failed post is not retried; add a retry if Discord drops messages in practice.
     if (!(await claimMixFlag(mixId, event))) return;
 
-    const base = process.env.APP_URL?.replace(/\/$/, "");
+    const base = (process.env.APP_URL || origin)?.replace(/\/$/, "");
     const data: Parameters<typeof mixNoticeText>[1] = {
       title: mix.title,
       url: base ? `${base}/g/${mix.group.slug}/m/${mixId}` : null,
@@ -93,7 +98,13 @@ export async function notifyMix(mixId: string, event: MixNotice) {
   }
 }
 
-/** Runs notifyMix after the response so Discord never slows a page or action. */
+/**
+ * Runs notifyMix after the response so Discord never slows a page or action. Without APP_URL the
+ * mix link uses the host the admin is on.
+ */
 export function notifyMixLater(mixId: string, event: MixNotice) {
-  after(() => notifyMix(mixId, event));
+  const host = headers().then((h) => h.get("host"));
+  after(async () =>
+    notifyMix(mixId, event, (await host) ? `https://${await host}` : null),
+  );
 }
