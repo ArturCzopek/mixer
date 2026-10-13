@@ -276,7 +276,11 @@ export function MixView({
                       focusId={focusId}
                       onFocus={selectPlayer}
                       showPreview={previewSelected}
-                    />
+                    >
+                      {!data.showcase && data.viewerCanVote && variant.id && (
+                        <VoteButton variant={variant} myVote={mix.myVote} />
+                      )}
+                    </VariantBody>
                   )}
                   {variant && <Tally />}
                   {data.showcase && data.viewerIsAdmin && (
@@ -304,10 +308,6 @@ export function MixView({
         {data.showcase && (
           <ActionBar state={state} variantNo={activeVariantNo} />
         )}
-        {!data.showcase &&
-          state === "voting" &&
-          data.viewerCanVote &&
-          variant?.id && <VoteBar variant={variant} myVote={mix.myVote} />}
       </div>
     </MixContext.Provider>
   );
@@ -918,11 +918,14 @@ function VariantBody({
   focusId,
   onFocus,
   showPreview,
+  children,
 }: {
   variant: Variant;
   focusId: string;
   onFocus: (id: string) => void;
   showPreview: boolean;
+  /** Shown right under the teams, e.g. the vote button. */
+  children?: React.ReactNode;
 }) {
   const everyone = [...variant.teamA, ...variant.teamB];
   const focused = everyone.find((p) => p.steamId === focusId) ?? everyone[0];
@@ -942,6 +945,7 @@ function VariantBody({
           focusId={focused.steamId}
           onFocus={onFocus}
         />
+        {children}
       </div>
       <div className="lg:[&>details:first-child]:mt-0">
         <Explanation player={focused} everyone={everyone} variant={variant} />
@@ -1837,7 +1841,7 @@ function FaceitImportPanel({
   );
 }
 
-function VoteBar({
+function VoteButton({
   variant,
   myVote,
 }: {
@@ -1866,28 +1870,26 @@ function VoteBar({
     }
   };
   return (
-    <div className="border-hi bg-window fixed inset-x-0 bottom-0 z-10 border-t px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-      <div className="mx-auto max-w-[444px] md:max-w-[744px] lg:max-w-[1164px]">
-        {error && (
-          <p role="alert" className="text-loss mb-1 text-[11px]">
-            {error}
-          </p>
-        )}
-        <VButton
-          primary
-          className="w-full"
-          disabled={pending || myVote === variant.number}
-          onClick={() => void vote()}
-        >
-          {pending
-            ? t.actions.savingVote
-            : myVote === variant.number
-              ? t.actions.yourVote(variant.number)
-              : myVote === null
-                ? t.actions.vote(variant.number)
-                : t.actions.moveVote(variant.number)}
-        </VButton>
-      </div>
+    <div className="mt-2.5">
+      {error && (
+        <p role="alert" className="text-loss mb-1 text-[11px]">
+          {error}
+        </p>
+      )}
+      <VButton
+        primary
+        className="w-full"
+        disabled={pending || myVote === variant.number}
+        onClick={() => void vote()}
+      >
+        {pending
+          ? t.actions.savingVote
+          : myVote === variant.number
+            ? t.actions.yourVote(variant.number)
+            : myVote === null
+              ? t.actions.vote(variant.number)
+              : t.actions.moveVote(variant.number)}
+      </VButton>
     </div>
   );
 }
