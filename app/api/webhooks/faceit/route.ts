@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     const { data: mixes, error } = await db
       .from("mixes")
       .select(
-        "id, group_id, chosen_variant_id, group:groups!mixes_group_id_fkey!inner(discord_guild_id, faceit_club_id)",
+        "id, group_id, chosen_variant_id, group:groups!mixes_group_id_fkey!inner(discord_guild_id)",
       )
       .in("status", ["locked", "played"])
       .gte("locked_at", since)
@@ -45,7 +45,6 @@ export async function POST(request: Request) {
           id: string;
           group_id: string;
           chosen_variant_id: string;
-          group: { faceit_club_id: string | null };
         }[]
       >();
     if (error) throw error;
@@ -71,7 +70,6 @@ export async function POST(request: Request) {
       match,
       mixes.map((mix) => ({
         id: mix.id,
-        clubId: mix.group.faceit_club_id,
         lineup: rows
           .filter((row) => row.variant_id === mix.chosen_variant_id)
           .map(({ player }) =>
@@ -82,6 +80,7 @@ export async function POST(request: Request) {
       })),
     );
     const mix = mixes.find((item) => item.id === mixId);
+    if (!mix) console.info("FACEIT finish: no matching mix", match.matchId);
     if (!mix || !(await claimMixFlag(mix.id, `returned:${match.matchId}`)))
       return Response.json({ ignored: true }, { headers });
 

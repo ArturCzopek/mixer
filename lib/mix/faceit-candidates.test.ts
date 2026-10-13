@@ -38,7 +38,6 @@ describe("FACEIT evening candidates", () => {
   const options = {
     lockedAt: "2026-09-29T19:00:00Z",
     nextLockedAt: "2026-09-30T01:00:00Z",
-    clubId: "club",
     teamA,
     teamB,
   };
@@ -61,7 +60,7 @@ describe("FACEIT evening candidates", () => {
     expect(result[1].lineupMismatch).toContain("a5");
   });
 
-  it("rejects seven players, a late room, the next evening, other competitions and unfinished rooms", () => {
+  it("rejects seven players, a late room, the next evening, series and unfinished rooms; keeps queue rooms", () => {
     const result = faceitCandidates(
       [
         room("valid", 0),
@@ -71,17 +70,17 @@ describe("FACEIT evening candidates", () => {
         }),
         room("late", 421),
         room("next", 900),
-        room("other", 30, { competitionId: "other" }),
+        room("queue", 30, { competitionId: "club-queue" }),
         room("live", 40, { status: "ONGOING" }),
         room("series", 50, { bestOf: 3 }),
         room("before", -120),
       ],
       { ...options, nextLockedAt: "2026-09-30T10:00:00Z" },
     );
-    expect(result.map((m) => m.id)).toEqual(["valid"]);
+    expect(result.map((m) => m.id)).toEqual(["valid", "queue"]);
   });
 
-  it("reports ambiguous faction mapping and falls back without a Club id", () => {
+  it("reports ambiguous faction mapping", () => {
     const result = faceitCandidates(
       [
         room("tie", 0, {
@@ -90,7 +89,7 @@ describe("FACEIT evening candidates", () => {
           faction2: ["a3", "a4", "b3", "b4", "sub2"],
         }),
       ],
-      { ...options, clubId: null },
+      options,
     );
     expect(result[0]).toMatchObject({ coverage: 8, teamAIsFaction1: null });
   });

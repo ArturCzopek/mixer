@@ -43,7 +43,6 @@ export function faceitCandidates(
   options: {
     lockedAt: string;
     nextLockedAt?: string | null;
-    clubId?: string | null;
     teamA: string[];
     teamB: string[];
   },
@@ -62,7 +61,7 @@ export function faceitCandidates(
       if (!Number.isFinite(at) || at < start || at >= end) return false;
       if (room.status !== "FINISHED") return false;
       if (room.bestOf !== 1) return false;
-      if (options.clubId && room.competitionId !== options.clubId) return false;
+      // No competition check: Club queue rooms carry the queue's own hub id, not the Club's (S5).
       return (
         new Set(
           [...room.faction1, ...room.faction2].filter((id) => roster.has(id)),

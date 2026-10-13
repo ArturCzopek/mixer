@@ -80,23 +80,21 @@ export async function findMixFaceitCandidates(
       /* Private or unavailable Club listing: use player histories. */
     }
   }
-  let historyIds: string[] = [];
-  if (!clubIds.length) {
-    const faceitIds = await Promise.all(
-      (players ?? []).map(
-        async (player) =>
-          player.faceit_player_id ??
-          (await getPlayerBySteamId(player.steam_id))?.playerId ??
-          null,
-      ),
-    );
-    const histories = await Promise.all(
-      faceitIds
-        .filter((id): id is string => !!id)
-        .map((id) => getHistoryMatchIds(id, from, to)),
-    );
-    historyIds = histories.flat();
-  }
+  // Always read player histories too: Club queue rooms may be listed under the queue, not the Club.
+  const faceitIds = await Promise.all(
+    (players ?? []).map(
+      async (player) =>
+        player.faceit_player_id ??
+        (await getPlayerBySteamId(player.steam_id))?.playerId ??
+        null,
+    ),
+  );
+  const histories = await Promise.all(
+    faceitIds
+      .filter((id): id is string => !!id)
+      .map((id) => getHistoryMatchIds(id, from, to)),
+  );
+  const historyIds = histories.flat();
   const ids = [...new Set([...clubIds, ...historyIds, ...extraIds])];
   const rooms: FaceitRoom[] = [];
   for (const id of ids) {
@@ -122,7 +120,6 @@ export async function findMixFaceitCandidates(
   const candidates = faceitCandidates(rooms, {
     lockedAt: mix.locked_at,
     nextLockedAt: nextMix?.locked_at,
-    clubId: group.faceit_club_id,
     teamA: chosen.teamA.map((player) => player.steamId),
     teamB: chosen.teamB.map((player) => player.steamId),
   });
