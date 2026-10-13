@@ -64,10 +64,10 @@ export function LeetifyPreviewCard({
         role="status"
         aria-live="polite"
         aria-busy={pending}
-        className="text-dim mb-1.5 flex min-h-[38px] items-center gap-2 px-2 py-1.5 text-[11px]"
+        className="text-dim mb-1.5 flex min-h-[38px] flex-wrap items-center gap-x-2 gap-y-1 px-2 py-1.5 text-[11px]"
       >
         <Badge>{matches.length}</Badge>
-        <span className="min-w-0 truncate">{message}</span>
+        <span className="min-w-0">{message}</span>
         {ratingAverage && (
           <span className="text-text min-w-0 break-words">
             {t.leetify.averageRating(t.profile.faceitTab, ratingAverage.count)}:{" "}

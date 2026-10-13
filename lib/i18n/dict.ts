@@ -139,7 +139,7 @@ const en = {
     rawRatingByMatch: "Raw Leetify Rating by match",
     lastMatches: "Last 20 matches",
     averageRating: (source: string, count: number) =>
-      `Average Leetify Rating · ${count} ${source} matches`,
+      `Average Leetify Rating · last ${count} ${source} matches`,
     ratingPoint: (date: string, map: string, score: string, rating: string) =>
       `${date} · ${map} · ${score} · Leetify Rating ${rating}`,
     placeholder: (name: string) =>
@@ -1049,7 +1049,7 @@ const pl: Dict = {
     rawRatingByMatch: "Surowy Leetify Rating na mecz",
     lastMatches: "Ostatnie 20 meczów",
     averageRating: (source, count) =>
-      `Średni Leetify Rating · ${count} ${plural(count, "mecz", "mecze", "meczów")} (${source})`,
+      `Średni Leetify Rating · z ostatnich ${count} ${plural(count, "meczu", "meczów", "meczów")} (${source})`,
     ratingPoint: (date, map, score, rating) =>
       `${date} · ${map} · ${score} · Leetify Rating ${rating}`,
     result: "Rezultat",
