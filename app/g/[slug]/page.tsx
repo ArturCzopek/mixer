@@ -82,6 +82,10 @@ export default async function GroupPage({
     process.env.DISCORD_CLIENT_ID && process.env.DISCORD_CLIENT_SECRET
   );
   const accountNext = `/g/${group.slug}#members`;
+  const statusText = (mix: (typeof mixes)[number]) =>
+    mix.status === "voting"
+      ? `${t.lobby.status.voting} · ${mix.voteCount}/10`
+      : t.lobby.status[mix.status];
   const mixRow = (mix: (typeof mixes)[number]) => {
     const historical = archivedMixes.includes(mix);
     const result = stats.mixResults[mix.id];
@@ -101,7 +105,7 @@ export default async function GroupPage({
             </span>
           )}
           <span className="text-dim shrink-0 text-right text-[11px]">
-            {t.lobby.status[mix.status]}
+            {statusText(mix)}
           </span>
         </span>
         {historical && (
@@ -142,7 +146,7 @@ export default async function GroupPage({
           <ActiveMixLink
             href={`/g/${group.slug}/m/${activeMix.id}`}
             title={activeMix.title}
-            status={t.lobby.status[activeMix.status]}
+            status={statusText(activeMix)}
           />
         ) : null
       }

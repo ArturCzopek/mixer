@@ -117,6 +117,7 @@ export interface GroupMix {
   status: MixStatus;
   createdAt: string;
   participantCount: number;
+  voteCount: number;
   archiveSource: string | null;
 }
 
@@ -146,6 +147,7 @@ interface GroupMixRow {
   created_at: string;
   archive_source: string | null;
   mix_participants: { player_id: string }[];
+  votes: { voter_id: string }[];
 }
 
 interface MixRow {
@@ -172,7 +174,7 @@ export async function groupMixes(groupId: string): Promise<GroupMix[]> {
   const { data, error } = await adminDb()
     .from("mixes")
     .select(
-      "id, title, status, created_at, archive_source, mix_participants!mix_participants_mix_id_fkey(player_id)",
+      "id, title, status, created_at, archive_source, mix_participants!mix_participants_mix_id_fkey(player_id), votes!votes_mix_id_fkey(voter_id)",
     )
     .eq("group_id", groupId)
     .order("created_at", { ascending: false })
@@ -184,6 +186,7 @@ export async function groupMixes(groupId: string): Promise<GroupMix[]> {
     status: mix.status,
     createdAt: mix.created_at,
     participantCount: mix.mix_participants.length,
+    voteCount: mix.votes.length,
     archiveSource: mix.archive_source,
   }));
 }
