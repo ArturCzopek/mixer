@@ -354,7 +354,9 @@ function StatusLine({ state }: { state: MixState }) {
     locked: (
       <>
         {t.status.lockedBefore}{" "}
-        <b className="text-text">{t.variants.variant(winner!.number)}</b>{" "}
+        <b className="text-text">
+          {winner ? t.variants.variant(winner.number) : null}
+        </b>{" "}
         {t.status.lockedAfter}
       </>
     ),
