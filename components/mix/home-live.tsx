@@ -26,6 +26,11 @@ export function HomeRealtime() {
         { event: "*", schema: "public", table: "mixes" },
         () => router.refresh(),
       )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "votes" },
+        () => router.refresh(),
+      )
       .subscribe();
 
     return () => {

@@ -20,6 +20,7 @@ export interface HomeInProgressMix {
   groupSlug: string;
   groupName: string;
   status: "balancing" | "voting" | "locked";
+  voteCount: number;
 }
 
 export interface HomeMixes {
@@ -34,6 +35,7 @@ export interface HomeMixRow {
   status: MixStatus;
   group: { slug: string; name: string };
   mix_participants: { player_id: string }[];
+  votes?: { voter_id: string }[];
 }
 
 const IN_PROGRESS_STATUSES = ["balancing", "voting", "locked"] as const;
@@ -65,6 +67,7 @@ export function mapHomeMixes(rows: HomeMixRow[], playerId: string) {
         groupSlug: mix.group.slug,
         groupName: mix.group.name,
         status: mix.status,
+        voteCount: mix.votes?.length ?? 0,
       })),
   };
 }
@@ -88,7 +91,7 @@ async function inProgressMixRows(playerId: string): Promise<HomeMixRow[]> {
   const { data, error } = await adminDb()
     .from("mixes")
     .select(
-      "id, title, status, group:groups!mixes_group_id_fkey(slug, name), mix_participants!mix_participants_mix_id_fkey!inner(player_id)",
+      "id, title, status, group:groups!mixes_group_id_fkey(slug, name), mix_participants!mix_participants_mix_id_fkey!inner(player_id), votes!votes_mix_id_fkey(voter_id)",
     )
     .in("status", IN_PROGRESS_STATUSES)
     .eq("mix_participants.player_id", playerId)

@@ -95,6 +95,12 @@ export default async function Home({ searchParams }: PageProps<"/">) {
                         </div>
                         <span className="text-dim shrink-0 text-[11px]">
                           {t.home.mixStatus[mix.status]}
+                          {mix.status === "voting" && (
+                            <b className="text-gold tabular-nums">
+                              {" "}
+                              · {mix.voteCount}/10
+                            </b>
+                          )}
                         </span>
                       </li>
                     ))}

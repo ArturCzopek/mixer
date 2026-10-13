@@ -35,6 +35,7 @@ describe("mapHomeMixes", () => {
         status: "voting",
         group: { slug: "crew", name: "The Crew" },
         mix_participants: [{ player_id: "viewer" }],
+        votes: [{ voter_id: "viewer" }, { voter_id: "mate" }],
       },
       {
         id: "locked",
@@ -78,6 +79,7 @@ describe("mapHomeMixes", () => {
           groupSlug: "other-crew",
           groupName: "Other Crew",
           status: "balancing",
+          voteCount: 0,
         },
         {
           id: "voting",
@@ -85,6 +87,7 @@ describe("mapHomeMixes", () => {
           groupSlug: "crew",
           groupName: "The Crew",
           status: "voting",
+          voteCount: 2,
         },
         {
           id: "locked",
@@ -92,6 +95,7 @@ describe("mapHomeMixes", () => {
           groupSlug: "crew",
           groupName: "The Crew",
           status: "locked",
+          voteCount: 0,
         },
       ],
     });
