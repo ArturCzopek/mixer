@@ -1315,9 +1315,10 @@ function Tally() {
 }
 
 function Locked() {
-  const { winner, outcome, real, data } = useMix();
+  const { winner, outcome, real, data, nameOf } = useMix();
   const t = useT();
   const lockedWinner = winner!;
+  const voterNames = lockedWinner.voters.map(nameOf).join(", ");
   const tie = outcome.tied.length > 1;
   const winningVotes = data.winningVotes ?? lockedWinner.votes;
   return (
@@ -1336,6 +1337,7 @@ function Locked() {
                     .join(t.locked.and),
                 )
               : t.locked.ofVotes(winningVotes)}
+            {voterNames && ` (${voterNames})`}
           </span>
         </Well>
         <Odds
@@ -1348,7 +1350,6 @@ function Locked() {
           teamB={lockedWinner.teamB}
           order="join"
         />
-        <Tally />
       </div>
       <div className="mt-2.5 space-y-2.5 lg:mt-0">
         <Well className="p-2">
@@ -1536,6 +1537,25 @@ function VotingAdminPanel({ state }: { state: "voting" | "locked" }) {
           </VButton>
         )}
       </div>
+      <dl className="text-dim mt-2 space-y-0.5">
+        {(state === "voting"
+          ? (["close", "proxy"] as const)
+          : ([
+              ...(data.matchStartedAt
+                ? []
+                : (["reopen", "startMatch"] as const)),
+              "result",
+              "faceit",
+            ] as const)
+        ).map((key) => (
+          <div key={key}>
+            <dt className="text-text inline font-bold">
+              {key === "faceit" ? t.admin.faceitTitle : t.admin[key]}:
+            </dt>{" "}
+            <dd className="inline">{t.admin.help[key]}</dd>
+          </div>
+        ))}
+      </dl>
       {showResults && state === "locked" && (
         <form
           className="mt-2 space-y-2"

@@ -284,6 +284,20 @@ const en = {
     proxy: "Vote for Someone",
     reopen: "Reopen Voting",
     result: "Enter Result",
+    help: {
+      close:
+        "Ends voting now and locks the winning variant (a tie is drawn at random). Posts the lineup on Discord.",
+      proxy:
+        "Casts or moves a vote for a player who cannot vote themselves. It shows as cast by you.",
+      reopen:
+        "Back to voting on the same three variants. Votes are kept and can be moved. Not possible after Mark Match Started.",
+      startMatch:
+        "Optional. Only stops voting from being reopened; nothing else changes.",
+      result:
+        "Fallback if the FACEIT import fails: type each map's score by hand. Saving marks the mix as played; FACEIT stats can still be added later if maps and scores match.",
+      faceit:
+        "After the last map: Find matches lists finished rooms with at least 8 of this lineup. Select the maps and import once; importing marks the mix as played.",
+    },
     resultHint: "Add every map from this evening. The map name is optional.",
     resultConfirm: "Save these scores and mark the mix as played?",
     mapName: (number: number) => `Map ${number} (optional)`,
@@ -1158,6 +1172,20 @@ const pl: Dict = {
     proxy: "Zagłosuj za kogoś",
     reopen: "Otwórz głosowanie",
     result: "Wpisz wynik",
+    help: {
+      close:
+        "Kończy głosowanie i blokuje zwycięski wariant (remis rozstrzyga losowanie). Wrzuca skład na Discorda.",
+      proxy:
+        "Oddaje lub przenosi głos za gracza, który nie może zagłosować sam. Widać, że głos oddałeś Ty.",
+      reopen:
+        "Wraca do głosowania na tych samych trzech wariantach. Głosy zostają i można je przenosić. Niedostępne po „Oznacz start meczu”.",
+      startMatch:
+        "Opcjonalne. Blokuje tylko ponowne otwarcie głosowania, nic więcej nie zmienia.",
+      result:
+        "Awaryjnie, gdy import z FACEIT zawiedzie: wpisujesz wynik każdej mapy ręcznie. Zapis oznacza mix jako rozegrany; statystyki FACEIT można dodać później, jeśli mapy i wyniki się zgadzają.",
+      faceit:
+        "Po ostatniej mapie: Znajdź mecze pokazuje skończone pokoje z co najmniej 8 graczami tego składu. Zaznacz mapy i zaimportuj raz; import oznacza mix jako rozegrany.",
+    },
     resultHint: "Dodaj wszystkie rozegrane mapy. Nazwa mapy jest opcjonalna.",
     resultConfirm: "Zapisać wyniki i oznaczyć miks jako rozegrany?",
     mapName: (number: number) => `Mapa ${number} (opcjonalnie)`,
