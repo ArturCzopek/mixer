@@ -331,6 +331,9 @@ function StatusLine({ state }: { state: MixState }) {
   const { data, lobby, waitingFor, result, winner } = useMix();
   const t = useT();
   const voted = data.variants.reduce((s, v) => s + v.votes, 0);
+  const notVoted = lobby
+    .map((x) => x.player)
+    .filter((p) => !data.variants.some((v) => v.voters.includes(p.steamId)));
   const text = {
     lobby: <>{t.status.lobby(10 - lobby.length)}</>,
     balancing: <>{t.status.balancing}</>,
@@ -346,9 +349,14 @@ function StatusLine({ state }: { state: MixState }) {
     ) : (
       <>
         {t.status.voting(voted)}{" "}
-        <b className="text-text">
-          <PlayerProfileName player={waitingFor} />
-        </b>
+        {notVoted.map((p, i) => (
+          <React.Fragment key={p.steamId}>
+            {i > 0 && ", "}
+            <b className="text-text">
+              <PlayerProfileName player={p} />
+            </b>
+          </React.Fragment>
+        ))}
       </>
     ),
     locked: (
