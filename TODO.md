@@ -20,6 +20,10 @@ before the first real mix.
   investigate **M4-6 (demo extras)**. **M4-7 (per-group balance settings)** is deferred,
   **M2-9 (live evening tracker)** is low priority. Database separation and the first real mix wait.
 - **P0-6 (separate Production Supabase project):** do this immediately before the first real mix.
+- **Balance shape (Artur, 2026-10-13, later):** equal team means can hide uneven shapes (first real
+  mix, variant 3: one star + the two weakest vs a flat team; team S standard deviation 448 vs 338).
+  Backtest whether the spread difference predicts results on the Popflash fixtures; if it does, add a
+  soft cost term (candidate for M4-7 per-group settings), otherwise only show spread in the UI.
 
 ## Owner (Artur)
 
