@@ -25,6 +25,23 @@ before the first real mix.
   Backtest whether the spread difference predicts results on the Popflash fixtures; if it does, add a
   soft cost term (candidate for M4-7 per-group settings), otherwise only show spread in the UI.
 
+## First real mix (2026-10-13): what we learned
+
+- Sign-ups, generation, voting, lock and manual results worked live on Production. Same-day fixes:
+  lobby crash before variants, vote button under the teams, every non-voter listed, vote counters,
+  Leetify header, player-side profile scores, Discord-link banner, admin legend, party how-to.
+- **Not played on FACEIT:** one player refused FACEIT verification, so the evening ran on CS2
+  private matchmaking. Valve servers reject `record` ("cheats" ignored) and private matches keep no
+  downloadable demo, so this mix has scores only, no player stats. Only a one-team scoreboard
+  screenshot exists. Next time: every player verified on FACEIT before the evening.
+- **FACEIT Club queue "Mix"** exists (hub `822094f3-779d-44c4-80bb-9fd6e3a79a88`, separate from the
+  Club id stored on the group). Import and lobby return no longer require the Club id (`ac849bf`).
+  Planned setup: two five-player parties (Join types Party + Team, Solo off, team pick off), BO1,
+  MR12, MR3 overtime with 16000, Germany/France/Netherlands, half-time all talk. Still unverified (S5).
+- **Follow-ups:** FACEIT form in balancing excludes Club matches by the Club id, so Club queue
+  matches now count toward form; exclude the queue hub too. "How to play" text assumes FACEIT.
+  BO3 import (one room, several maps) if parties do not work. Other variants' lineups after lock.
+
 ## Owner (Artur)
 
 - [ ] **S5 FACEIT Club:** Club exists and is linked to the group (2026-09-27); still to do: the private
