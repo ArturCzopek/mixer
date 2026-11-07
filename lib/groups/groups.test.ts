@@ -123,6 +123,10 @@ describe("group actions authorize before writing", () => {
     expect(await createGroup(undefined, form(valid))).toEqual({
       error: "slugTaken",
     });
+    db.result.error = { code: "23514", message: "groups_per_creator_limit" };
+    expect(await createGroup(undefined, form(valid))).toEqual({
+      error: "groupLimit",
+    });
   });
 
   it("updateGroup / changeMember: 403 for a non-admin, nothing written", async () => {

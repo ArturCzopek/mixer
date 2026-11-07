@@ -15,6 +15,7 @@ import { parseGroupForm, type GroupField } from "./form";
 export type GroupError =
   | GroupField
   | "slugTaken"
+  | "groupLimit"
   | "lastAdmin"
   | "unauthorized"
   | "forbidden"
@@ -53,6 +54,8 @@ export async function createGroup(
   });
   if (error) {
     if (error.code === PG_UNIQUE) return { error: "slugTaken" };
+    // A DB trigger caps how many groups one player may create (site admins exempt).
+    if (error.code === PG_CHECK) return { error: "groupLimit" };
     console.error("createGroup failed", error);
     return { error: "failed" };
   }

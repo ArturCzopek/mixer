@@ -10,6 +10,8 @@ export interface SessionClaims {
   /** players.id */
   playerId: string;
   steamId: string;
+  /** players.session_version at login; bumping it in the DB revokes every older cookie. */
+  version?: number;
 }
 
 const key = (secret: string) => {
@@ -24,7 +26,7 @@ export async function signSession(
   now = new Date(),
 ): Promise<string> {
   const iat = Math.floor(now.getTime() / 1000);
-  return new SignJWT({ steamId: claims.steamId })
+  return new SignJWT({ steamId: claims.steamId, ver: claims.version ?? 0 })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(claims.playerId)
     .setIssuedAt(iat)
@@ -46,7 +48,14 @@ export async function readSession(
     });
     if (typeof payload.sub !== "string" || typeof payload.steamId !== "string")
       return null;
-    return { playerId: payload.sub, steamId: payload.steamId };
+    // Cookies signed before session versions existed count as version 0.
+    const version = payload.ver ?? 0;
+    if (!Number.isSafeInteger(version)) return null;
+    return {
+      playerId: payload.sub,
+      steamId: payload.steamId,
+      version: version as number,
+    };
   } catch {
     return null;
   }

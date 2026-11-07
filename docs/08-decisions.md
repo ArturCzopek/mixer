@@ -403,3 +403,24 @@ sizes and minimum-map ranking eligibility. Missing statistics are not fabricated
 and ADR keep the existing round-weighted aggregation; awards reuse the capped per-evening
 engine, and pair records refer to players actually observed on the same team. No balancing
 formula or database schema change is authorized or required by this display feature.
+
+## D45. Security audit hardening, Accepted (2026-11-07)
+
+Artur asked for a full security audit and approved every fix. Changes:
+- Dependencies: Next.js 16.4.5 and zod 4.6.6+ (published advisories); the image optimizer is off
+  globally (`images.unoptimized`), so `/_next/image` is gone.
+- Post-login redirects (`safeNext`) refuse whitespace and control characters and must resolve
+  on-site: `/%09/evil.com` used to leave the site after a real Steam login.
+- D23's "group admins can delete uploads" is implemented: `detach_demo_from_match` restores the
+  map exactly as before the demo (`match_payloads.payload._restore`). Demo stats are computed from
+  browser-sent events and feed Mixer Rating, so a wrong or forged demo must be undoable. Demos
+  attached before this change can be removed only if they did not replace older stats.
+- `/api/leetify/[steamId]` answers only for SteamIDs in `players` (no quota burning by enumeration).
+- Every response sends `frame-ancestors 'none'`, `X-Frame-Options`, `nosniff`, `Referrer-Policy`,
+  `Permissions-Policy`. A full script CSP is future work (inline backdrop script, demo WASM).
+- Session cookies carry `players.session_version`; logout bumps it, which signs the player out on
+  every device and makes a copied cookie useless.
+- The publishable key no longer reads `mix_participants.skill_snapshot` or
+  `group_members.manual_skill_override` (column grants, like `players`/`groups`).
+- A player may create at most 3 groups (DB trigger; site admins exempt).
+- CI runs with a read-only `GITHUB_TOKEN`.
