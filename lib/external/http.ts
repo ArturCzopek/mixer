@@ -18,6 +18,9 @@ export class ExternalApiError extends Error {
   }
 }
 
+/** Longest Retry-After we wait for before one FACEIT retry. */
+export const MAX_RETRY_DELAY_MS = 3_000;
+
 export interface GetJsonOptions {
   service: ExternalApiError["service"];
   headers?: Record<string, string>;
@@ -73,6 +76,15 @@ export async function getJson<S extends z.ZodType>(
         ? Date.parse(retryAfter) - Date.now()
         : NaN;
     await res.body?.cancel();
+    // A long Retry-After (FACEIT can ask for minutes) would outlive the serverless function and
+    // turn a graceful "FACEIT unavailable" into a crashed page, so give up instead of waiting.
+    if (Number.isFinite(delay) && delay > MAX_RETRY_DELAY_MS) {
+      throw new ExternalApiError(
+        opts.service,
+        res.status,
+        `HTTP ${res.status} (Retry-After too long)`,
+      );
+    }
     await new Promise((resolve) =>
       setTimeout(resolve, Number.isFinite(delay) ? Math.max(0, delay) : 1000),
     );

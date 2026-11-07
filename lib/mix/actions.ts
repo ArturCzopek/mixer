@@ -292,7 +292,11 @@ export async function setMixStatus(
     (expectedStatus === "open" &&
       ["balancing", "cancelled"].includes(nextStatus)) ||
     (expectedStatus === "balancing" &&
-      ["open", "cancelled"].includes(nextStatus));
+      ["open", "cancelled"].includes(nextStatus)) ||
+    // An evening called off after voting started can still be cancelled (the DB trigger allows
+    // voting/locked -> cancelled); without this the mix stayed "in progress" forever.
+    ((expectedStatus === "voting" || expectedStatus === "locked") &&
+      nextStatus === "cancelled");
   if (!validTransition) return { error: "forbidden" };
 
   const auth = await authorizedMix("setMixStatus", mixId, "admin");

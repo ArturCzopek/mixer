@@ -15,6 +15,8 @@ const plural = (n: number, one: string, few: string, many: string) => {
   return d >= 2 && d <= 4 && (t < 12 || t > 14) ? few : many;
 };
 
+const mapsCount = (n: number) => `${n} ${n === 1 ? "map" : "maps"}`;
+
 const en = {
   prefs: {
     backdrop: "1.6 backdrop",
@@ -70,7 +72,7 @@ const en = {
     lockedBefore: "Voting closed ·",
     lockedAfter: "won",
     played: (maps: number, source: string) =>
-      `Played · ${maps} maps · result from ${source}`,
+      `Played · ${mapsCount(maps)} · result from ${source}`,
   },
   lists: {
     playerJoinOrder: "Player · join order",
@@ -297,6 +299,8 @@ const en = {
         "Fallback if the FACEIT import fails: type each map's score by hand. Saving marks the mix as played; FACEIT stats can still be added later if maps and scores match.",
       faceit:
         "After the last map: Find matches lists finished rooms with at least 8 of this lineup. Select the maps and import once; importing marks the mix as played.",
+      cancel:
+        "The evening is called off: ends the mix for good without a result. It cannot be reopened.",
     },
     resultHint: "Add every map from this evening. The map name is optional.",
     resultConfirm: "Save these scores and mark the mix as played?",
@@ -325,16 +329,18 @@ const en = {
     faceitOpenRoom: "Open FACEIT room",
     faceitRoomRejected:
       "The added room does not meet this mix's time, lineup or Club rules.",
-    faceitImport: (count: number) => `Import ${count} maps`,
+    faceitImport: (count: number) => `Import ${mapsCount(count)}`,
     faceitImportConfirm: (count: number) =>
-      `Import ${count} FACEIT maps and mark this mix as played?`,
+      `Import ${count} FACEIT ${count === 1 ? "map" : "maps"} and mark this mix as played?`,
     faceitEnrichConfirm: (count: number) =>
-      `Add FACEIT stats from ${count} maps? Manual scores will stay unchanged.`,
+      `Add FACEIT stats from ${mapsCount(count)}? Manual scores will stay unchanged.`,
     proxyPlayer: "Player",
     proxyVariant: "Variant",
     startMatch: "Mark Match Started",
     startConfirm:
       "Mark the match as started? Voting cannot be reopened after this.",
+    closeEmptyConfirm:
+      "Nobody has voted yet. Close voting anyway? The lineup is drawn at random from the three variants.",
     matchStarted: "Match started · voting cannot reopen",
     previewWaiting: "No variants generated yet.",
     previewNote:
@@ -377,7 +383,7 @@ const en = {
       `${map} · ${a} : ${b} · draw`,
     scoreOnlySummary: (maps: number) => `Maps with saved scores: ${maps}`,
     mapsWon: "Maps won, Team A : Team B",
-    seriesResult: (maps: number) => `Evening result · ${maps} maps`,
+    seriesResult: (maps: number) => `Evening result · ${mapsCount(maps)}`,
     mapStats: "Map player stats",
     totalStats: "All maps · player stats",
     teamWon: (team: string) => `Team ${team} won`,
@@ -395,7 +401,7 @@ const en = {
       rounds: number,
     ) => `${map} · ${a} : ${b} · Team ${team} won · ${rounds} rounds`,
     allLine: (maps: number, rounds: number) =>
-      `All ${maps} maps · ${rounds} rounds · ADR and MR weighted by rounds`,
+      `All ${mapsCount(maps)} · ${rounds} rounds · ADR and MR weighted by rounds`,
     mr: "Mixer Rating",
     awardsTitle: "Evening awards",
     awardsNote: "Calculated from available recorded stats only.",
@@ -830,6 +836,8 @@ const en = {
     startBalancing: "Start Balancing",
     reopen: "Reopen Sign-ups",
     cancel: "Cancel Mix",
+    cancelConfirm:
+      "Cancel this mix for good? It cannot be reopened; create a new mix instead.",
     errors: {
       title: "Use a title from 2 to 60 characters.",
       full: "This mix is full (10 players).",
@@ -891,7 +899,7 @@ const en = {
     ratingTrendCount: (shown: number, total: number) =>
       `${shown} of ${total} rated maps`,
     ratingTrendAverage: (count: number) =>
-      `Average Mixer Rating · ${count} maps`,
+      `Average Mixer Rating · ${mapsCount(count)}`,
     ratingTrendMin: "Min",
     ratingTrendReference: (value: string) => `Reference ${value}`,
     ratingTrendMax: "Max",
@@ -1185,6 +1193,8 @@ const pl: Dict = {
         "Awaryjnie, gdy import z FACEIT zawiedzie: wpisujesz wynik każdej mapy ręcznie. Zapis oznacza mix jako rozegrany; statystyki FACEIT można dodać później, jeśli mapy i wyniki się zgadzają.",
       faceit:
         "Po ostatniej mapie: Znajdź mecze pokazuje skończone pokoje z co najmniej 8 graczami tego składu. Zaznacz mapy i zaimportuj raz; import oznacza mix jako rozegrany.",
+      cancel:
+        "Wieczór odwołany: kończy miks na dobre, bez wyniku. Nie da się go przywrócić.",
     },
     resultHint: "Dodaj wszystkie rozegrane mapy. Nazwa mapy jest opcjonalna.",
     resultConfirm: "Zapisać wyniki i oznaczyć miks jako rozegrany?",
@@ -1212,9 +1222,10 @@ const pl: Dict = {
     faceitOpenRoom: "Otwórz pokój FACEIT",
     faceitRoomRejected:
       "Dodany pokój nie pasuje do czasu, składu albo klubu tego miksu.",
-    faceitImport: (count) => `Importuj ${count} map`,
+    faceitImport: (count) =>
+      `Importuj ${count} ${plural(count, "mapę", "mapy", "map")}`,
     faceitImportConfirm: (count) =>
-      `Zaimportować ${count} map FACEIT i oznaczyć miks jako rozegrany?`,
+      `Zaimportować ${count} ${plural(count, "mapę", "mapy", "map")} FACEIT i oznaczyć miks jako rozegrany?`,
     faceitEnrichConfirm: (count) =>
       `Dodać statystyki FACEIT z ${count} map? Ręczne wyniki pozostaną bez zmian.`,
     proxyPlayer: "Gracz",
@@ -1222,6 +1233,8 @@ const pl: Dict = {
     startMatch: "Oznacz start meczu",
     startConfirm:
       "Oznaczyć start meczu? Nie będzie można ponownie otworzyć głosowania.",
+    closeEmptyConfirm:
+      "Nikt jeszcze nie zagłosował. Zamknąć głosowanie mimo to? Skład zostanie wylosowany z trzech wariantów.",
     matchStarted: "Mecz rozpoczęty · głosowania nie można otworzyć ponownie",
     previewWaiting: "Nie wygenerowano jeszcze wariantów.",
     previewNote:
@@ -1271,14 +1284,15 @@ const pl: Dict = {
     totalStats: "Statystyki graczy · wszystkie mapy",
     teamWon: (team) => `Wygrała drużyna ${team}`,
     draw: "Remis",
-    mapRounds: (rounds) => `${rounds} rund`,
+    mapRounds: (rounds) =>
+      `${rounds} ${plural(rounds, "runda", "rundy", "rund")}`,
     scoreboardFor: "Tabela dla",
     allMaps: "Wszystkie mapy",
     realNote: "Prawdziwy skład i wynik z 16.12.2024, nie wariant z głosowania.",
     mapLine: (map, a, b, team, rounds) =>
-      `${map} · ${a} : ${b} · wygrała drużyna ${team} · ${rounds} rund`,
+      `${map} · ${a} : ${b} · wygrała drużyna ${team} · ${rounds} ${plural(rounds, "runda", "rundy", "rund")}`,
     allLine: (maps, rounds) =>
-      `Wszystkie ${maps} ${plural(maps, "mapa", "mapy", "map")} · ${rounds} rund · ADR i MR ważone rundami`,
+      `Wszystkie ${maps} ${plural(maps, "mapa", "mapy", "map")} · ${rounds} ${plural(rounds, "runda", "rundy", "rund")} · ADR i MR ważone rundami`,
     mr: "Mixer Rating",
     awardsTitle: "Nagrody wieczoru",
     awardsNote: "Liczone wyłącznie z dostępnych zapisanych statystyk.",
@@ -1338,7 +1352,8 @@ const pl: Dict = {
     previewMap: "Mapa z dema",
     previewResult: "Wynik z dema",
     previewRoster: "Skład",
-    previewRounds: (count: number) => `${count} rund`,
+    previewRounds: (count: number) =>
+      `${count} ${plural(count, "runda", "rundy", "rund")}`,
     save: "Zapisz statystyki z dema",
     saving: "Zapisywanie statystyk…",
     saved: "Statystyki z dema zapisane.",
@@ -1709,6 +1724,8 @@ const pl: Dict = {
     startBalancing: "Zamknij zapisy",
     reopen: "Otwórz zapisy",
     cancel: "Anuluj miks",
+    cancelConfirm:
+      "Anulować ten miks na dobre? Nie da się go przywrócić; trzeba będzie założyć nowy.",
     errors: {
       title: "Nazwa musi mieć od 2 do 60 znaków.",
       full: "Miks jest pełny (10 graczy).",

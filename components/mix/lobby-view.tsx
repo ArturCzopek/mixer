@@ -76,7 +76,14 @@ export function MixLobbyView({
   const [feedback, setFeedback] = useState<MixActionError>();
   const [focusedSteamId, setFocusedSteamId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
-  const [newPlayerId, setNewPlayerId] = useState(candidates[0]?.playerId ?? "");
+  const [chosenPlayerId, setNewPlayerId] = useState(
+    candidates[0]?.playerId ?? "",
+  );
+  // After an add the chosen player leaves `candidates` and the select shows the next one; send
+  // what the select shows, not the stale id (which silently re-added the same player).
+  const newPlayerId = candidates.some((c) => c.playerId === chosenPlayerId)
+    ? chosenPlayerId
+    : (candidates[0]?.playerId ?? "");
   const joinedIds = new Set(mix.participants.map((player) => player.playerId));
   const focusedParticipant = mix.participants.find(
     (participant) => participant.steamId === focusedSteamId,
@@ -87,10 +94,14 @@ export function MixLobbyView({
 
   function run(action: () => Promise<MixActionState>) {
     startTransition(async () => {
-      const result = await action();
-      setFeedback(result && "error" in result ? result.error : undefined);
-      if (result && ("ok" in result || result.error === "stale"))
-        router.refresh();
+      try {
+        const result = await action();
+        setFeedback(result && "error" in result ? result.error : undefined);
+        if (result && ("ok" in result || result.error === "stale"))
+          router.refresh();
+      } catch {
+        setFeedback("failed");
+      }
     });
   }
 
@@ -264,15 +275,16 @@ export function MixLobbyView({
               <VButton
                 type="button"
                 disabled={pending}
-                onClick={() =>
-                  run(() =>
-                    setMixStatus(
-                      mix.id,
-                      mix.status as "open" | "balancing",
-                      "cancelled",
-                    ),
-                  )
-                }
+                onClick={() => {
+                  if (window.confirm(t.lobby.cancelConfirm))
+                    run(() =>
+                      setMixStatus(
+                        mix.id,
+                        mix.status as "open" | "balancing",
+                        "cancelled",
+                      ),
+                    );
+                }}
               >
                 {t.lobby.cancel}
               </VButton>

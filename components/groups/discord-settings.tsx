@@ -11,7 +11,7 @@ type Action = (
   form: FormData,
 ) => Promise<DiscordActionState>;
 
-const input = "sunk text-text w-full px-1.5 py-1 text-[13px] outline-none";
+const input = "sunk text-text w-full px-1.5 py-1 text-[13px]";
 
 export function DiscordSettings({
   groupId,

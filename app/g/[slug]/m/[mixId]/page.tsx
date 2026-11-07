@@ -7,6 +7,7 @@ import { demoAwardFields, normalizeStoredDemo } from "@/lib/demo/view";
 import { LobbyRealtime } from "@/components/mix/lobby-realtime";
 import { MixLobbyView } from "@/components/mix/lobby-view";
 import { MixView } from "@/components/mix/mix-view";
+import { mixNumber } from "@/lib/mix/number";
 import { hasGroupRole } from "@/lib/auth/roles";
 import { getSession } from "@/lib/auth/server";
 import { notifyMixLater } from "@/lib/discord/notify";
@@ -76,7 +77,7 @@ export default async function MixLobbyPage({
     const page = await mixVariantPage(mix.id, canManage);
     if (!page) notFound();
     const mixes = await groupMixes(group.id);
-    const number = mixes.findIndex((item) => item.id === mix.id) + 1;
+    const number = mixNumber(mixes, mix.id);
     const data = mixVariantViewData(page, {
       number,
       meSteamId:

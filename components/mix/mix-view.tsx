@@ -528,11 +528,12 @@ function VariantAdminControls() {
         </VButton>
         <VButton
           disabled={isPending}
-          onClick={() =>
-            void run("cancel", () =>
-              setMixStatus(data.mix.id, "balancing", "cancelled"),
-            )
-          }
+          onClick={() => {
+            if (window.confirm(t.lobby.cancelConfirm))
+              void run("cancel", () =>
+                setMixStatus(data.mix.id, "balancing", "cancelled"),
+              );
+          }}
         >
           {pending === "cancel" ? t.admin.cancelling : t.lobby.cancel}
         </VButton>
@@ -1459,8 +1460,18 @@ function VotingAdminPanel({ state }: { state: "voting" | "locked" }) {
   const t = useT();
   const router = useRouter();
   const targets = data.proxyTargets ?? [];
-  const [voterId, setVoterId] = React.useState(targets[0]?.playerId ?? "");
-  const [variantId, setVariantId] = React.useState(variants[0]?.id ?? "");
+  const [voterChoice, setVoterId] = React.useState(targets[0]?.playerId ?? "");
+  const [variantChoice, setVariantId] = React.useState(variants[0]?.id ?? "");
+  // A swap or a refresh can drop the remembered choice from the list; fall back to what the
+  // select actually shows instead of sending a stale id.
+  const voterId = targets.some((p) => p.playerId === voterChoice)
+    ? voterChoice
+    : (targets[0]?.playerId ?? "");
+  const variantId = variants.some((v) => v.id === variantChoice)
+    ? variantChoice
+    : (variants[0]?.id ?? "");
+  const canCancel = state === "voting" || !data.matchStartedAt;
+  const noVotes = variants.every((v) => v.votes === 0);
   const [pending, setPending] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [showProxy, setShowProxy] = React.useState(false);
@@ -1498,7 +1509,10 @@ function VotingAdminPanel({ state }: { state: "voting" | "locked" }) {
           <>
             <VButton
               disabled={pending}
-              onClick={() => void run(() => closeMixVoting(data.mix.id))}
+              onClick={() => {
+                if (!noVotes || window.confirm(t.admin.closeEmptyConfirm))
+                  void run(() => closeMixVoting(data.mix.id));
+              }}
             >
               {t.admin.close}
             </VButton>
@@ -1536,21 +1550,41 @@ function VotingAdminPanel({ state }: { state: "voting" | "locked" }) {
             {t.admin.result}
           </VButton>
         )}
+        {canCancel && (
+          <VButton
+            disabled={pending}
+            onClick={() => {
+              if (window.confirm(t.lobby.cancelConfirm))
+                void run(() => setMixStatus(data.mix.id, state, "cancelled"));
+            }}
+          >
+            {t.lobby.cancel}
+          </VButton>
+        )}
       </div>
       <dl className="text-dim mt-2 space-y-0.5">
-        {(state === "voting"
-          ? (["close", "proxy"] as const)
-          : ([
-              ...(data.matchStartedAt
-                ? []
-                : (["reopen", "startMatch"] as const)),
-              "result",
-              "faceit",
-            ] as const)
+        {(
+          [
+            ...(state === "voting"
+              ? (["close", "proxy"] as const)
+              : ([
+                  ...(data.matchStartedAt
+                    ? []
+                    : (["reopen", "startMatch"] as const)),
+                  "result",
+                  "faceit",
+                ] as const)),
+            ...(canCancel ? (["cancel"] as const) : []),
+          ] as const
         ).map((key) => (
           <div key={key}>
             <dt className="text-text inline font-bold">
-              {key === "faceit" ? t.admin.faceitTitle : t.admin[key]}:
+              {key === "faceit"
+                ? t.admin.faceitTitle
+                : key === "cancel"
+                  ? t.lobby.cancel
+                  : t.admin[key]}
+              :
             </dt>{" "}
             <dd className="inline">{t.admin.help[key]}</dd>
           </div>

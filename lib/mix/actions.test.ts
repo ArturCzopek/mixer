@@ -371,6 +371,23 @@ describe("mix action validation and writes", () => {
     });
   });
 
+  it("lets an admin cancel a mix that is voting or locked, but not reopen it", async () => {
+    for (const from of ["voting", "locked"] as const) {
+      db.writes.length = 0;
+      expect(await setMixStatus(MIX, from, "cancelled")).toEqual({ ok: true });
+      expect(db.writes[0]).toMatchObject({
+        values: { status: "cancelled" },
+        filters: { id: MIX, status: from },
+      });
+    }
+    expect(await setMixStatus(MIX, "voting", "open")).toEqual({
+      error: "forbidden",
+    });
+    expect(await setMixStatus(MIX, "cancelled", "open")).toEqual({
+      error: "forbidden",
+    });
+  });
+
   it("calls generation RPCs with the expected generation after admin authorization", async () => {
     expect(await generateMixVariants(MIX)).toEqual({ ok: true });
     expect(variantService.initialVariantPlan).toHaveBeenCalledWith(MIX);

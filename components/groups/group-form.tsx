@@ -8,8 +8,7 @@ import { toSlug } from "@/lib/groups/form";
 
 type FormAction = (prev: ActionState, form: FormData) => Promise<ActionState>;
 
-const input =
-  "sunk text-text w-full px-1.5 py-1 text-[13px] outline-none focus:bg-row";
+const input = "sunk text-text w-full px-1.5 py-1 text-[13px]";
 
 /** Create (with the fixed address) or edit a group. Errors come back from the server action. */
 export function GroupForm({

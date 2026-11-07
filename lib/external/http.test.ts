@@ -67,6 +67,26 @@ describe("FACEIT retry", () => {
     expect(fetch.mock.calls[1][1].cache).toBe("no-store");
   });
 
+  it.each(["600", "4"])(
+    "gives up at once on a Retry-After of %s seconds",
+    async (retryAfter) => {
+      const fetch = vi.fn().mockResolvedValue(
+        new Response(null, {
+          status: 429,
+          headers: { "Retry-After": retryAfter },
+        }),
+      );
+      await expect(
+        getJson("https://example.test", schema, {
+          service: "faceit",
+          revalidate: 0,
+          fetch,
+        }),
+      ).rejects.toMatchObject({ service: "faceit", status: 429 });
+      expect(fetch).toHaveBeenCalledTimes(1);
+    },
+  );
+
   it("throws after the second failure without a third attempt", async () => {
     const fetch = vi
       .fn()
