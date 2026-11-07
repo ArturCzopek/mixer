@@ -237,7 +237,13 @@ Bevelled and literal: they press in.
 - **Well:** sunken bevel on olive-well. It holds every list, the status line, the explanation and the tally cells.
 
 ### Inputs / Fields
-There are no shipped inputs yet. The token wiring maps input to olive-well, so fields are sunken wells with the dotted gold focus outline.
+Every text field and select is a sunken well (`sunk`: olive-well with the inverted bevel) with pale text and the dotted gold focus outline. Never a raised bevel, never `outline-none`.
+
+### Action bar
+The fixed bottom bar (`ActionBar` in `components/vgui`) holds the screen's thumb action on real mixes, not only on `/demo`: Join or Leave in the open lobby, Vote or Move Vote in voting. An error for that action sits on a line above the buttons.
+
+### Error pages
+Not-found and failed routes render a VGUI window (`ErrorPanel`) with a status well, Back to mixer and, for errors, Try Again.
 
 ### Navigation
 - **Menu bar:** 12px breadcrumb. "mixer" in bold gold, a dim chevron, the group as a pale link (underline on hover), and the user's name plus an 18px avatar at the right.

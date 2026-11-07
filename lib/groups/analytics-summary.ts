@@ -277,10 +277,9 @@ export function analyticsSummary(
       name: string;
       maps: number;
       mixIds: Set<string>;
-      scoreA: number;
-      scoreB: number;
-      winsA: number;
-      winsB: number;
+      scoreWinner: number;
+      scoreLoser: number;
+      decided: number;
       draws: number;
       players: Map<string, Acc>;
     }
@@ -305,19 +304,19 @@ export function analyticsSummary(
       name,
       maps: 0,
       mixIds: new Set<string>(),
-      scoreA: 0,
-      scoreB: 0,
-      winsA: 0,
-      winsB: 0,
+      scoreWinner: 0,
+      scoreLoser: 0,
+      decided: 0,
       draws: 0,
       players: new Map<string, Acc>(),
     };
     group.maps++;
     group.mixIds.add(map.mix_id);
-    group.scoreA += map.score_a;
-    group.scoreB += map.score_b;
-    if (map.score_a > map.score_b) group.winsA++;
-    else if (map.score_b > map.score_a) group.winsB++;
+    // Team A and B are per-mix labels, so across evenings only the winner/loser split means
+    // anything: how close the map tends to be, not which letter won.
+    group.scoreWinner += Math.max(map.score_a, map.score_b);
+    group.scoreLoser += Math.min(map.score_a, map.score_b);
+    if (map.score_a !== map.score_b) group.decided++;
     else group.draws++;
     mapGroups.set(key, group);
     const stored = statsByMap.get(map.id) ?? [];
@@ -440,10 +439,9 @@ export function analyticsSummary(
         name: g.name,
         maps: g.maps,
         evenings: g.mixIds.size,
-        scoreA: g.scoreA,
-        scoreB: g.scoreB,
-        winsA: g.winsA,
-        winsB: g.winsB,
+        scoreWinner: g.scoreWinner,
+        scoreLoser: g.scoreLoser,
+        decided: g.decided,
         draws: g.draws,
         players: playerRows(g.players),
       }))

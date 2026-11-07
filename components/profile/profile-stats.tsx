@@ -10,11 +10,11 @@ export function ProfileStats({
   items: { label: string; value: string | number }[];
 }) {
   return (
-    <Well className="mb-2 grid grid-cols-2 gap-x-3 gap-y-2 p-3 text-xs sm:grid-cols-3">
+    <Well className="mb-2 grid grid-cols-2 gap-x-3 gap-y-2 p-3 text-[11px] sm:grid-cols-3">
       {items.map(({ label, value }) => (
         <div key={label} className="min-w-0">
           <span className="text-dim block">{label}</span>
-          <b className="text-gold text-lg tabular-nums">{value}</b>
+          <b className="text-gold text-[16px] tabular-nums">{value}</b>
         </div>
       ))}
     </Well>

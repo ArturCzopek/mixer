@@ -363,7 +363,12 @@ function ParticipantRow({
       >
         {name}
       </button>
-      <span className="text-dim shrink-0 text-[11px]">
+      <span
+        className={cn(
+          "shrink-0 text-[11px]",
+          focused ? "text-text" : "text-dim",
+        )}
+      >
         {t.lobby.joined(position)}
       </span>
       {removable && (

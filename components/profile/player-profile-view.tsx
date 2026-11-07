@@ -67,12 +67,12 @@ export function PlayerProfileView({
               />
             )}
             <div className="min-w-0">
-              <h2 className="text-gold truncate text-xl font-bold">
+              <h2 className="text-gold truncate text-[16px] font-bold">
                 {player.name}
               </h2>
-              <p className="text-dim text-xs">{player.steamId}</p>
+              <p className="text-dim text-[11px]">{player.steamId}</p>
               {faceit ? (
-                <p className="mt-2 text-xs">
+                <p className="mt-2 text-[11px]">
                   <a
                     href={faceit.profileUrl}
                     target="_blank"
@@ -83,7 +83,7 @@ export function PlayerProfileView({
                   </a>
                 </p>
               ) : (
-                <p className="text-dim mt-2 text-xs">
+                <p className="text-dim mt-2 text-[11px]">
                   {t.profile.faceitUnavailable}
                 </p>
               )}
@@ -114,13 +114,13 @@ export function PlayerProfileView({
                   ratings={trendPoints.map((point) => point.rating)}
                 />
                 {summary.mapCount === 0 ? (
-                  <Well className="text-dim p-4 text-sm">
+                  <Well className="text-dim p-4 text-[13px]">
                     {t.profile.empty}
                   </Well>
                 ) : (
                   <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(220px,1fr)]">
                     <div className="min-w-0">
-                      <h2 className="text-gold mb-1 text-sm font-bold">
+                      <h2 className="text-text mb-1 text-[13px] font-bold">
                         {t.profile.ratingTrend}
                       </h2>
                       <Well>
@@ -136,16 +136,16 @@ export function PlayerProfileView({
                             label={t.profile.ratingTrend}
                           />
                         ) : (
-                          <p className="text-dim p-3 text-xs">
+                          <p className="text-dim p-3 text-[11px]">
                             {t.profile.noRatings}
                           </p>
                         )}
                       </Well>
-                      <h2 className="text-gold mt-4 mb-1 text-sm font-bold">
+                      <h2 className="text-text mt-4 mb-1 text-[13px] font-bold">
                         {t.profile.mapHistory}
                       </h2>
                       <Well className="overflow-x-auto">
-                        <table className="w-full min-w-[620px] text-left text-xs">
+                        <table className="w-full min-w-[620px] text-left text-[11px]">
                           <thead className="bg-window text-dim">
                             <tr>
                               <th className="p-2">{t.profile.map}</th>
@@ -216,10 +216,10 @@ export function PlayerProfileView({
                       </Well>
                     </div>
                     <div>
-                      <h2 className="text-gold mb-1 text-sm font-bold">
+                      <h2 className="text-text mb-1 text-[13px] font-bold">
                         {t.profile.bestTeammates}
                       </h2>
-                      <Well className="divide-row divide-y text-xs">
+                      <Well className="divide-row divide-y text-[11px]">
                         {summary.bestTeammates.slice(0, 5).map((mate) => (
                           <div
                             key={mate.id}

@@ -88,7 +88,7 @@ export function LeetifyMatchTable({
     <Well className="max-h-[32rem] overflow-auto">
       <table
         aria-label={t.leetify.resultsAria}
-        className="w-full min-w-[540px] text-left text-xs tabular-nums"
+        className="w-full min-w-[540px] text-left text-[11px] tabular-nums"
       >
         <thead className="bg-window text-dim sticky top-0">
           <tr>

@@ -168,13 +168,16 @@ export function GroupStatisticsView({
             action={filterAction}
             className="grid items-end gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]"
           >
-            <label className="text-dim block text-xs" htmlFor="stats-period">
+            <label
+              className="text-dim block text-[11px]"
+              htmlFor="stats-period"
+            >
               {copy.period}
               <select
                 id="stats-period"
                 name="period"
                 defaultValue={period}
-                className="bevel bg-well text-text mt-1 block w-full px-2 py-1.5 text-xs"
+                className="sunk text-text mt-1 block w-full px-2 py-1.5 text-[11px]"
               >
                 {(["all", "30", "90", "365"] as const).map((option) => (
                   <option key={option} value={option}>
@@ -183,13 +186,16 @@ export function GroupStatisticsView({
                 ))}
               </select>
             </label>
-            <label className="text-dim block text-xs" htmlFor="stats-archive">
+            <label
+              className="text-dim block text-[11px]"
+              htmlFor="stats-archive"
+            >
               {copy.archiveScope}
               <select
                 id="stats-archive"
                 name="archive"
                 defaultValue={archive}
-                className="bevel bg-well text-text mt-1 block w-full px-2 py-1.5 text-xs"
+                className="sunk text-text mt-1 block w-full px-2 py-1.5 text-[11px]"
               >
                 {(["all", "current", "archive"] as const).map((option) => (
                   <option key={option} value={option}>
@@ -198,13 +204,13 @@ export function GroupStatisticsView({
                 ))}
               </select>
             </label>
-            <label className="text-dim block text-xs" htmlFor="stats-sort">
+            <label className="text-dim block text-[11px]" htmlFor="stats-sort">
               {copy.sortBy}
               <select
                 id="stats-sort"
                 name="sort"
                 defaultValue={sort}
-                className="bevel bg-well text-text mt-1 block w-full px-2 py-1.5 text-xs"
+                className="sunk text-text mt-1 block w-full px-2 py-1.5 text-[11px]"
               >
                 {(["rating", "adr", "kd", "winRate", "maps"] as const).map(
                   (option) => (
@@ -215,7 +221,7 @@ export function GroupStatisticsView({
                 )}
               </select>
             </label>
-            <VButton primary type="submit" className="px-3 py-1.5 text-xs">
+            <VButton primary type="submit" className="px-3 py-1.5 text-[11px]">
               {copy.apply}
             </VButton>
           </form>
@@ -426,11 +432,11 @@ export function GroupStatisticsView({
                           <td className="px-2 py-1.5">{map.maps}</td>
                           <td className="px-2 py-1.5">{map.evenings}</td>
                           <td className="px-2 py-1.5">
-                            {map.winsA}–{map.draws}–{map.winsB}
+                            {map.decided} · {map.draws}
                           </td>
                           <td className="px-2 py-1.5">
-                            {number(map.scoreA / map.maps, 1)}:
-                            {number(map.scoreB / map.maps, 1)}
+                            {number(map.scoreWinner / map.maps, 1)}:
+                            {number(map.scoreLoser / map.maps, 1)}
                           </td>
                           <td className="px-2 py-1.5">
                             <details>

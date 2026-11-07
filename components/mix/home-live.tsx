@@ -14,26 +14,34 @@ export function HomeRealtime() {
     const client = browserDb();
     if (!client) return;
 
+    // The home page lists every group's mixes, so it hears every join and vote; coalesce a burst
+    // (ten players joining, an evening of votes) into one refresh instead of one per row.
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const refresh = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => router.refresh(), 1_000);
+    };
     const channel = client
       .channel("home-mixes")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "mix_participants" },
-        () => router.refresh(),
+        refresh,
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "mixes" },
-        () => router.refresh(),
+        refresh,
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "votes" },
-        () => router.refresh(),
+        refresh,
       )
       .subscribe();
 
     return () => {
+      clearTimeout(timer);
       void client.removeChannel(channel);
     };
   }, [router]);

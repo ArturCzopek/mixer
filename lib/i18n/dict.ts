@@ -152,6 +152,7 @@ const en = {
   },
   explain: {
     title: "How was this calculated?",
+    openProfile: (name: string) => `Open ${name}'s profile ›`,
     eName: "E contribution",
     eFaceitAtLineup: (elo: string, level: number) =>
       `${elo} ELO at lineup · ${level ? `level ${level} · ` : ""}FACEIT data used for this mix`,
@@ -653,6 +654,7 @@ const en = {
         unlinked: "Your Discord account is unlinked.",
         alreadyUsed: "That Discord account is linked to another player.",
         failed: "Could not update your Discord link. Try again.",
+        cancelled: "Discord linking was cancelled. Nothing changed.",
       },
     },
     discordMissing: {
@@ -730,8 +732,8 @@ const en = {
       mapsTitle: "Map performance",
       map: "Map",
       played: "Played",
-      mapRecord: "Team A · draws · Team B",
-      averageScore: "Avg. score A:B",
+      mapRecord: "Decided · draws",
+      averageScore: "Avg. score winner:loser",
       unnamedMap: "Unknown map",
       playerDetails: (count: number) => `Players · ${count}`,
       noMapPlayers: "No player records for this map.",
@@ -775,6 +777,7 @@ const en = {
       `Yours: K/D ${kills}/${deaths} · MR ${rating}`,
     cancelledMix: "Mix cancelled before play.",
     admin: "admin",
+    manageMember: "Manage",
     makeAdmin: "Make Admin",
     removeAdmin: "Remove Admin",
     remove: "Remove",
@@ -1116,6 +1119,7 @@ const pl: Dict = {
   },
   explain: {
     title: "Jak to policzyliśmy?",
+    openProfile: (name) => `Otwórz profil gracza ${name} ›`,
     eName: "Wkład E",
     eFaceitAtLineup: (elo, level) =>
       `${elo} ELO przy układaniu składu · ${level ? `poziom ${level} · ` : ""}dane FACEIT użyte w tym miksie`,
@@ -1572,6 +1576,7 @@ const pl: Dict = {
       result: {
         linked: "Twoje konto Discord zostało połączone.",
         unlinked: "Twoje konto Discord zostało odłączone.",
+        cancelled: "Łączenie z Discordem anulowane. Nic się nie zmieniło.",
         alreadyUsed: "To konto Discord jest już połączone z innym graczem.",
         failed:
           "Nie udało się zmienić połączenia z Discordem. Spróbuj ponownie.",
@@ -1652,8 +1657,8 @@ const pl: Dict = {
       mapsTitle: "Wyniki na mapach",
       map: "Mapa",
       played: "Rozegrane",
-      mapRecord: "Drużyna A · remisy · drużyna B",
-      averageScore: "Śr. wynik A:B",
+      mapRecord: "Rozstrzygnięte · remisy",
+      averageScore: "Śr. wynik zwycięzca:przegrany",
       unnamedMap: "Nieznana mapa",
       playerDetails: (count: number) => `Gracze · ${count}`,
       noMapPlayers: "Brak danych graczy dla tej mapy.",
@@ -1692,6 +1697,7 @@ const pl: Dict = {
       `Twoje: K/D ${kills}/${deaths} · MR ${rating}`,
     cancelledMix: "Miks anulowano przed grą.",
     admin: "admin",
+    manageMember: "Zarządzaj",
     makeAdmin: "Daj admina",
     removeAdmin: "Zabierz admina",
     remove: "Usuń",

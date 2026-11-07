@@ -15,7 +15,7 @@ Audience/job: players join, compare 3 variants, see *why* each split is fair, vo
 
 THESIS: The mix is a server you join. The page is a 2003 Steam/CS 1.6 VGUI window, olive and bevelled, not a dark esports dashboard with neon, and not a FACEIT/popflash clone.
 
-OWN-WORLD: Olive panels (#3e4637 ground, #4c5844 window, #5a6a50 sheet), 1-px bevels (light top-left #8c9a7e, dark bottom-right #292e23), sunken list wells, gold #c4b550 for key figures and the primary action, pale #d8ded3 text. DejaVu Sans (Verdana/Tahoma lineage) at small, dense sizes; property-sheet tabs; server-browser lists with column headers; hatch pattern marks rule conflicts and badges. One skill ramp: S always as the same gold bar.
+OWN-WORLD: Olive panels (#3a4234 ground, #434e3c window, #4a5742 sheet), 1-px bevels (light top-left #7f8d72, dark bottom-right #262a20), sunken list wells, gold #dccf6a for key figures and the primary action, pale #dfe4da text. DejaVu Sans (Verdana/Tahoma lineage) at small, dense sizes; property-sheet tabs; server-browser lists with column headers; hatch pattern marks rule conflicts and badges. One skill ramp: S always as the same gold bar.
 
 STORY: Visitor sees in one glance how many are in (x/10), what state the mix is in, which variant leads and why each team is fair; they join or vote with a thumb.
 

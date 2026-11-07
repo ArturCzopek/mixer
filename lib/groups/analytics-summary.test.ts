@@ -173,8 +173,7 @@ describe("analyticsSummary", () => {
     expect(
       recent.mapPerformance.find((row) => row.name === "Mirage"),
     ).toMatchObject({
-      winsA: 0,
-      winsB: 0,
+      decided: 0,
       draws: 1,
       players: expect.arrayContaining([
         expect.objectContaining({ maps: 1, rating: null }),

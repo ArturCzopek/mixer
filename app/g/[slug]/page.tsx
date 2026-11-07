@@ -1,3 +1,4 @@
+import { ChevronRight } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -405,7 +406,16 @@ export default async function GroupPage({
                     )}
                   </div>
                   {canManage && (
-                    <>
+                    // Admin controls stay folded per member: fifteen rows of ELO, admin and
+                    // remove buttons made the roster unreadable on a phone.
+                    <details className="group/manage mt-1">
+                      <summary className="text-dim hover:text-text inline-flex min-h-6 cursor-pointer list-none items-center gap-1 text-[11px]">
+                        <ChevronRight
+                          aria-hidden
+                          className="size-3 group-open/manage:rotate-90"
+                        />
+                        {t.groups.manageMember}
+                      </summary>
                       <RosterElo
                         groupId={group.id}
                         playerId={m.playerId}
@@ -420,7 +430,7 @@ export default async function GroupPage({
                           isAdmin={m.role === "admin"}
                         />
                       </div>
-                    </>
+                    </details>
                   )}
                 </div>
               );

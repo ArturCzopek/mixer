@@ -38,8 +38,11 @@ function progress(stage: DemoParseProgress["stage"], percent?: number) {
   self.postMessage({ type: "progress", progress: { stage, percent } });
 }
 
-async function fileHash(file: File): Promise<string> {
-  const hash = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
+async function replayHash(bytes: Uint8Array): Promise<string> {
+  const hash = await crypto.subtle.digest(
+    "SHA-256",
+    bytes as Uint8Array<ArrayBuffer>,
+  );
   return [...new Uint8Array(hash)]
     .map((byte) => byte.toString(16).padStart(2, "0"))
     .join("");
@@ -94,8 +97,10 @@ self.onmessage = async (message: MessageEvent<{ file: File }>) => {
     const file = message.data.file;
     if (!file.size || file.size > MAX_BYTES) throw new Error("tooLarge");
     progress(stage, 0);
-    const demoHash = await fileHash(file);
     const bytes = await replayBytes(file);
+    // Hash the decompressed replay, not the upload: the same demo as .dem and .dem.zst is one
+    // demo for the duplicate check, and the file is read once instead of twice.
+    const demoHash = await replayHash(bytes);
     if (new TextDecoder().decode(bytes.subarray(0, 8)) !== "PBDEMS2\0")
       throw new Error("invalid");
     stage = "initialize";

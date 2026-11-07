@@ -69,13 +69,16 @@ export function PlayerCompareView({
           action={`/g/${encodeURIComponent(groupSlug)}/compare`}
           className="grid items-end gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(130px,0.8fr)_auto]"
         >
-          <label className="text-dim block text-xs" htmlFor="compare-player-a">
+          <label
+            className="text-dim block text-[11px]"
+            htmlFor="compare-player-a"
+          >
             {t.profile.playerA}
             <select
               id="compare-player-a"
               name="a"
               defaultValue={selectedA}
-              className="bevel bg-well text-text focus-visible:outline-gold mt-1 block w-full px-2 py-1.5 text-xs focus-visible:outline-2 focus-visible:outline-offset-2"
+              className="sunk text-text mt-1 block w-full px-2 py-1.5 text-[11px]"
             >
               <option value="">{t.profile.selectPlayer}</option>
               {members.map((member) => (
@@ -85,13 +88,16 @@ export function PlayerCompareView({
               ))}
             </select>
           </label>
-          <label className="text-dim block text-xs" htmlFor="compare-player-b">
+          <label
+            className="text-dim block text-[11px]"
+            htmlFor="compare-player-b"
+          >
             {t.profile.playerB}
             <select
               id="compare-player-b"
               name="b"
               defaultValue={selectedB}
-              className="bevel bg-well text-text focus-visible:outline-gold mt-1 block w-full px-2 py-1.5 text-xs focus-visible:outline-2 focus-visible:outline-offset-2"
+              className="sunk text-text mt-1 block w-full px-2 py-1.5 text-[11px]"
             >
               <option value="">{t.profile.selectPlayer}</option>
               {members.map((member) => (
@@ -101,26 +107,29 @@ export function PlayerCompareView({
               ))}
             </select>
           </label>
-          <label className="text-dim block text-xs" htmlFor="compare-source">
+          <label
+            className="text-dim block text-[11px]"
+            htmlFor="compare-source"
+          >
             {t.profile.source}
             <select
               id="compare-source"
               name="source"
               defaultValue={source}
-              className="bevel bg-well text-text focus-visible:outline-gold mt-1 block w-full px-2 py-1.5 text-xs focus-visible:outline-2 focus-visible:outline-offset-2"
+              className="sunk text-text mt-1 block w-full px-2 py-1.5 text-[11px]"
             >
               <option value="mix">{t.profile.mixTab}</option>
               <option value="faceit">{t.profile.faceitTab}</option>
               <option value="premier">{t.profile.premierTab}</option>
             </select>
           </label>
-          <VButton primary type="submit" className="py-1.5 text-xs">
+          <VButton primary type="submit" className="py-1.5 text-[11px]">
             {t.profile.compareAction}
           </VButton>
         </form>
 
         {!validPair || guidance ? (
-          <Well role="status" className="text-dim mt-3 px-3 py-3 text-xs">
+          <Well role="status" className="text-dim mt-3 px-3 py-3 text-[11px]">
             <p>{guidance ?? t.profile.chooseBothPlayers}</p>
             {members.length >= 2 && !selectedA && !selectedB && (
               <p className="mt-1">{t.profile.choosePlayers}</p>
@@ -194,7 +203,7 @@ function PlayerHeading({
 }) {
   return (
     <header className="border-lo mb-2 flex items-baseline justify-between gap-2 border-b pb-1">
-      <h2 className="text-gold min-w-0 truncate text-sm font-bold">
+      <h2 className="text-text min-w-0 truncate text-[13px] font-bold">
         <Link
           href={`/g/${groupSlug}/p/${encodeURIComponent(profile.player.steamId)}`}
           className="underline decoration-1 underline-offset-2"
@@ -247,7 +256,7 @@ function MixProfileColumn({
         summary={summary}
         ratings={trendPoints.map((point) => point.rating)}
       />
-      <h3 className="text-gold mt-3 mb-1 text-xs font-bold">
+      <h3 className="text-text mt-3 mb-1 text-[11px] font-bold">
         {t.profile.ratingTrend}
       </h3>
       <Well className="px-2 py-1.5">
@@ -262,12 +271,12 @@ function MixProfileColumn({
           </p>
         )}
       </Well>
-      <h3 className="text-gold mt-3 mb-1 text-xs font-bold">
+      <h3 className="text-text mt-3 mb-1 text-[11px] font-bold">
         {t.profile.mapHistory}
       </h3>
       {summary.maps.length ? (
         <Well className="max-h-[32rem] overflow-auto">
-          <table className="w-full min-w-[500px] text-left text-xs tabular-nums">
+          <table className="w-full min-w-[500px] text-left text-[11px] tabular-nums">
             <thead className="bg-window text-dim sticky top-0">
               <tr>
                 <th className="p-2">{t.profile.map}</th>
@@ -348,7 +357,7 @@ function HeadToHeadSection({
 
   return (
     <section className="mt-4">
-      <h2 className="text-gold mb-1 text-sm font-bold">
+      <h2 className="text-text mb-1 text-[13px] font-bold">
         {t.profile.sharedHistory}
       </h2>
       <Well className="p-2">
@@ -357,7 +366,7 @@ function HeadToHeadSection({
             <span className="text-dim block text-[11px]">
               {t.profile.sharedMaps}
             </span>
-            <b className="text-gold text-base tabular-nums">
+            <b className="text-gold text-[16px] tabular-nums">
               {data.sharedMaps}
             </b>
           </div>
@@ -365,7 +374,7 @@ function HeadToHeadSection({
             <span className="text-dim block text-[11px]">
               {t.profile.sharedEvenings}
             </span>
-            <b className="text-gold text-base tabular-nums">
+            <b className="text-gold text-[16px] tabular-nums">
               {data.sharedMixes}
             </b>
           </div>
@@ -396,12 +405,12 @@ function HeadToHeadSection({
             </span>
           </div>
         </div>
-        <h3 className="text-gold mt-2 mb-1 text-xs font-bold">
+        <h3 className="text-text mt-2 mb-1 text-[11px] font-bold">
           {t.profile.sharedMapHistory}
         </h3>
         {maps.length ? (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[600px] text-left text-xs tabular-nums">
+            <table className="w-full min-w-[600px] text-left text-[11px] tabular-nums">
               <thead className="bg-window text-dim">
                 <tr>
                   <th className="p-2">{t.profile.map}</th>

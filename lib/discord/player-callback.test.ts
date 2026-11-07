@@ -93,4 +93,15 @@ describe("Discord player OAuth callback", () => {
       "https://mixer.test/g/crew?discordAccount=alreadyUsed#members",
     );
   });
+
+  it("reports a cancelled consent screen without exchanging a code", async () => {
+    const cancelled = request();
+    cancelled.nextUrl.searchParams.delete("code");
+    cancelled.nextUrl.searchParams.set("error", "access_denied");
+    const response = await GET(cancelled);
+    expect(discord.exchangeDiscordCode).not.toHaveBeenCalled();
+    expect(response.headers.get("location")).toBe(
+      "https://mixer.test/g/crew?discordAccount=cancelled#members",
+    );
+  });
 });

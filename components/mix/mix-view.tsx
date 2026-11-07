@@ -600,7 +600,7 @@ function SwapPanel() {
           <label className="min-w-0 flex-1">
             <span className="text-dim mb-0.5 block">{t.admin.swapLeaving}</span>
             <select
-              className="bevel bg-window w-full min-w-0 px-2 py-1.5"
+              className="sunk text-text w-full min-w-0 px-2 py-1.5"
               value={leaving}
               disabled={pending}
               onChange={(event) => setLeavingId(event.target.value)}
@@ -615,7 +615,7 @@ function SwapPanel() {
           <label className="min-w-0 flex-1">
             <span className="text-dim mb-0.5 block">{t.admin.swapJoining}</span>
             <select
-              className="bevel bg-window w-full min-w-0 px-2 py-1.5"
+              className="sunk text-text w-full min-w-0 px-2 py-1.5"
               value={joining}
               disabled={pending}
               onChange={(event) => setJoiningId(event.target.value)}
@@ -697,12 +697,13 @@ function PlayerProfileName({
   selectableRow?: boolean;
 }) {
   const { profileHref } = useMix();
-  const href = profileHref(player.steamId);
+  // In a selectable row the whole row selects the player (one meaning for a tap); the profile
+  // link lives in the explanation panel instead, so voting context is not lost by accident.
+  const href = selectableRow ? null : profileHref(player.steamId);
   return href ? (
     <Link
       className={cn(
         "min-w-0 truncate underline hover:no-underline",
-        selectableRow && "pointer-events-auto",
         selected ? "text-white" : "text-gold",
       )}
       href={href}
@@ -737,7 +738,11 @@ function PlayerRow({
       className={cn(
         "border-row relative grid w-full items-center gap-2 border-b px-1.5 py-1 text-left",
         hasSkill ? "grid-cols-[1fr_46%]" : "grid-cols-[1fr]",
-        selected ? "bg-gold-deep text-white" : onSelect && "hover:bg-hover",
+        selected
+          ? "bg-gold-deep text-white"
+          : onSelect &&
+              // Dim text is only 3.9:1 on the hover fill, so it brightens with the row.
+              "hover:bg-hover [&:hover_.text-dim]:text-text",
       )}
     >
       {onSelect && (
@@ -772,6 +777,11 @@ function PlayerRow({
             className={cn("text-[10px]", selected ? "text-white" : "text-dim")}
           >
             {player.level}
+          </span>
+        )}
+        {joinedAt && (
+          <span className="text-dim ml-auto shrink-0 text-[10px] tabular-nums">
+            {joinedAt}
           </span>
         )}
       </span>
@@ -1030,14 +1040,12 @@ function Explanation({
   variant: Variant;
 }) {
   const t = useT();
+  const { profileHref } = useMix();
   return (
     <details open className="group mt-2.5">
       <summary className="bevel bg-window hover:bg-hover flex cursor-pointer list-none items-center justify-between px-2 py-1.5 select-none">
         <span>
-          {t.explain.title}{" "}
-          <b className="text-text">
-            <PlayerProfileName player={player} />
-          </b>
+          {t.explain.title} <b className="text-text">{player.name}</b>
         </span>
         <ChevronDown
           aria-hidden
@@ -1045,6 +1053,14 @@ function Explanation({
         />
       </summary>
       <Well className="grid p-2">
+        {profileHref(player.steamId) && (
+          <Link
+            href={profileHref(player.steamId)!}
+            className="mb-1.5 justify-self-start text-[11px]"
+          >
+            {t.explain.openProfile(player.name)}
+          </Link>
+        )}
         {everyone.map((p) => (
           <div
             key={p.steamId}
@@ -1634,7 +1650,7 @@ function VotingAdminPanel({ state }: { state: "voting" | "locked" }) {
                   {t.admin.mapName(index + 1)}
                 </span>
                 <input
-                  className="bevel bg-window w-32 px-2 py-1.5"
+                  className="sunk text-text w-32 px-2 py-1.5"
                   maxLength={60}
                   value={map.mapName}
                   onChange={(event) =>
@@ -1659,7 +1675,7 @@ function VotingAdminPanel({ state }: { state: "voting" | "locked" }) {
                     min={0}
                     max={32767}
                     required
-                    className="bevel bg-window w-16 px-2 py-1.5"
+                    className="sunk text-text w-16 px-2 py-1.5"
                     value={map[team]}
                     onChange={(event) =>
                       setMaps((rows) =>
@@ -1712,7 +1728,7 @@ function VotingAdminPanel({ state }: { state: "voting" | "locked" }) {
           <label>
             <span className="text-dim mb-0.5 block">{t.admin.proxyPlayer}</span>
             <select
-              className="bevel bg-window px-2 py-1.5"
+              className="sunk text-text px-2 py-1.5"
               value={voterId}
               onChange={(event) => setVoterId(event.target.value)}
               disabled={pending}
@@ -1729,7 +1745,7 @@ function VotingAdminPanel({ state }: { state: "voting" | "locked" }) {
               {t.admin.proxyVariant}
             </span>
             <select
-              className="bevel bg-window px-2 py-1.5"
+              className="sunk text-text px-2 py-1.5"
               value={variantId}
               onChange={(event) => setVariantId(event.target.value)}
               disabled={pending}
@@ -1769,6 +1785,7 @@ function FaceitImportPanel({
   enrich?: boolean;
 }) {
   const t = useT();
+  const lang = useLang();
   const router = useRouter();
   const [roomLink, setRoomLink] = React.useState("");
   const [candidates, setCandidates] = React.useState<FaceitCandidate[] | null>(
@@ -1839,7 +1856,7 @@ function FaceitImportPanel({
           </span>
           <input
             type="text"
-            className="bevel bg-window w-full min-w-40 px-2 py-1.5"
+            className="sunk text-text w-full min-w-40 px-2 py-1.5"
             value={roomLink}
             placeholder="https://www.faceit.com/en/cs2/room/…"
             onChange={(event) => setRoomLink(event.target.value)}
@@ -1880,7 +1897,11 @@ function FaceitImportPanel({
                     {candidate.coverage}/10
                   </span>
                   <span className="text-dim block">
-                    {new Date(candidate.startedAt).toLocaleString()} ·{" "}
+                    {new Date(candidate.startedAt).toLocaleString(
+                      lang === "pl" ? "pl-PL" : "en-GB",
+                      { timeZone: "Europe/Warsaw" },
+                    )}{" "}
+                    ·{" "}
                     {candidate.lineupMismatch.length
                       ? t.admin.faceitMismatch(candidate.lineupMismatch.length)
                       : t.admin.faceitLineupOk}
@@ -2006,21 +2027,64 @@ function Played({ initialPick }: { initialPick: number }) {
       : t.played.teamWon(scoreA > scoreB ? "A" : "B");
   return (
     <div className="mt-2.5">
-      <div className="overflow-x-auto pb-0.5">
-        <div style={{ minWidth: `${(result.maps.length + 1) * 112}px` }}>
-          <Tabs
-            label={t.played.scoreboardFor}
-            value={pick}
-            onChange={setPick}
-            items={[
-              { value: 0, label: t.played.allMaps },
-              ...result.maps.map((m, index) => ({
-                value: index + 1,
-                label: `${m.map} · ${m.a}:${m.b}`,
-              })),
-            ]}
-          />
-        </div>
+      {/* Map score chips double as the scoreboard picker: they wrap for any number of maps,
+          where tabs would truncate (DESIGN.md, Chips). */}
+      <div
+        role="group"
+        aria-label={t.played.scoreboardFor}
+        className="flex flex-wrap gap-1"
+      >
+        {[
+          { value: 0, label: t.played.allMaps, a: null, b: null },
+          ...result.maps.map((m, index) => ({
+            value: index + 1,
+            label: m.map,
+            a: m.a,
+            b: m.b,
+          })),
+        ].map((chip) => {
+          const on = pick === chip.value;
+          const lead = (x: number | null, y: number | null) =>
+            x !== null && y !== null && x > y;
+          return (
+            <button
+              key={chip.value}
+              type="button"
+              aria-pressed={on}
+              onClick={() => setPick(chip.value)}
+              className={cn(
+                "min-h-8 px-2 py-1 text-[11px] whitespace-nowrap",
+                on
+                  ? "sunk bg-gold-deep text-white"
+                  : "bevel bg-window text-text hover:bg-hover",
+              )}
+            >
+              {chip.label}
+              {chip.a !== null && chip.b !== null && (
+                <>
+                  {" · "}
+                  <span
+                    className={cn(
+                      "font-bold tabular-nums",
+                      !on && lead(chip.a, chip.b) && "text-gold",
+                    )}
+                  >
+                    {chip.a}
+                  </span>
+                  :
+                  <span
+                    className={cn(
+                      "font-bold tabular-nums",
+                      !on && lead(chip.b, chip.a) && "text-gold",
+                    )}
+                  >
+                    {chip.b}
+                  </span>
+                </>
+              )}
+            </button>
+          );
+        })}
       </div>
       <div className="mt-1.5">
         <Well className="mb-2 px-2 py-3 text-center">

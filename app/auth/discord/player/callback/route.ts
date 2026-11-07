@@ -16,7 +16,10 @@ export async function GET(request: NextRequest) {
   );
   const destination = new URL(state?.next ?? "/g", origin);
   let result = "failed";
-  if (state) {
+  // The player pressed Cancel on Discord's consent screen: not a failure.
+  if (request.nextUrl.searchParams.get("error") === "access_denied")
+    result = "cancelled";
+  else if (state) {
     try {
       const session = await requireSession();
       const code = request.nextUrl.searchParams.get("code");

@@ -180,12 +180,15 @@ describe("multi-map results", () => {
           }),
         }),
       );
-    expect(render(2)).toMatch(
-      /aria-selected="true"[^>]*>2\. Nuke · 7:13<\/button>/,
-    );
+    // Map score chips are the picker: the pressed chip is the requested map.
+    expect(
+      render(2)
+        .match(/aria-pressed="true"[^>]*>(.*?)<\/button>/)?.[1]
+        .replace(/<[^>]+>/g, ""),
+    ).toBe("2. Nuke · 7:13");
     expect(render(2)).toContain("20 rounds");
     for (const html of [render(), render(99)]) {
-      expect(html).toMatch(/aria-selected="true"[^>]*>All maps<\/button>/);
+      expect(html).toMatch(/aria-pressed="true"[^>]*>All maps<\/button>/);
       expect(html).toContain("Evening result · 2 maps");
       expect(html).toContain("41 rounds");
     }
@@ -229,9 +232,9 @@ describe("multi-map results", () => {
         children: createElement(MixView, { state: "played", data: view }),
       }),
     );
-    expect(html.match(/role="tab"/g)).toHaveLength(6);
+    expect(html.match(/aria-pressed=/g)).toHaveLength(6);
     expect(html).toContain("Team B won");
-    expect(html).toContain("16:12");
+    expect(html.replace(/<[^>]+>/g, "")).toContain("16:12");
     expect(html).toContain(DICTS.en.played.archiveNote("popflash"));
   });
 

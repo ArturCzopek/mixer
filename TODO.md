@@ -66,6 +66,17 @@ before the first real mix.
 
 ## Next session (Codex or Claude): start here
 
+**2026-11-07 design and functional audit (Claude, impeccable method):** findings F1–F28 plus P3s
+are fixed on `main` in four commits (lobby add/cancel/mix number, data correctness, phone and
+accessibility, consistency). Not done on purpose, open for a decision: (1) merging the two lobby
+components (`lobby-view.tsx` open lobby vs `mix-view.tsx` balancing lobby) is a larger refactor
+that needs a live DB to verify; (2) realtime for `matches` (enriched stats appear only after a
+reload) needs a publication + RLS migration; (3) the Leetify preview window ends today, while D30
+says "30 days before the mix" (D35 is ambiguous); (4) the FACEIT webhook claims its lobby-return
+flag before the Discord move, so a failed move is not retried; (5) a removed member cannot be
+re-added (intentional per M1-3, no UI to reopen). Demo duplicate hashes are now over the
+decompressed replay, so a `.dem.zst` attached before 2026-11-07 hashes differently from today.
+
 **2026-10-08 continuation — demo integration and presentation ready:** M4-6 (demo extras)
 now has a real browser file picker/worker, ten-player preview, exact map/team/score checks,
 server recalculation, atomic enrichment, KAST/full Mixer Rating, expandable details, and a round

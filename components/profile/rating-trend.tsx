@@ -177,7 +177,7 @@ export function RatingTrend({
             <div
               id={tooltipId}
               role="tooltip"
-              className="bevel bg-sheet text-text pointer-events-none absolute z-20 w-56 max-w-full px-2 py-1.5 text-xs shadow-lg"
+              className="bevel bg-sheet text-text pointer-events-none absolute z-20 w-56 max-w-full px-2 py-1.5 text-[11px]"
               style={{
                 left: `clamp(0px, calc(${x(active) / 6}% - 7rem), calc(100% - min(14rem, 100%)))`,
                 top: `${y(finitePoints[active].rating)}px`,
