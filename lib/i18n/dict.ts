@@ -1686,7 +1686,8 @@ const pl: Dict = {
       slug: "Adres: od 3 do 40 małych liter, cyfr lub myślników, bez myślnika na końcach.",
       faceitClub: "Link FACEIT musi zaczynać się od https://www.faceit.com/.",
       slugTaken: "Ten adres jest już zajęty.",
-      groupLimit: "Możesz założyć maksymalnie 3 grupy. O więcej poproś admina strony.",
+      groupLimit:
+        "Możesz założyć maksymalnie 3 grupy. O więcej poproś admina strony.",
       lastAdmin: "Grupa musi mieć co najmniej jednego admina.",
       unauthorized: "Najpierw zaloguj się przez Steam.",
       forbidden: "To mogą zrobić tylko admini grupy.",
