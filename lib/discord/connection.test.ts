@@ -146,5 +146,11 @@ describe("Discord player connection", () => {
         NONCE,
       ),
     ).toBeNull();
+    expect(
+      readPlayerState(
+        JSON.stringify({ nonce: NONCE, playerId: PLAYER, next: "/\t/evil.test" }),
+        NONCE,
+      ),
+    ).toBeNull();
   });
 });
