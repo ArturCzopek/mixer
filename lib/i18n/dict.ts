@@ -459,6 +459,16 @@ const en = {
     save: "Save demo stats",
     saving: "Saving demo stats…",
     saved: "Demo stats saved.",
+    detach: "Remove demo",
+    detachConfirm: "Remove the demo and restore the earlier stats?",
+    detachYes: "Yes, remove",
+    detaching: "Removing demo…",
+    detachFailed: {
+      forbidden: "Only a group admin can remove a demo.",
+      detachLegacy:
+        "This demo replaced older stats before removal was possible, so it can’t be removed.",
+      failed: "The demo could not be removed. Try again.",
+    },
     parseStages: {
       read: "Reading the demo file",
       initialize: "Preparing the match data",
@@ -1342,6 +1352,16 @@ const pl: Dict = {
     save: "Zapisz statystyki z dema",
     saving: "Zapisywanie statystyk…",
     saved: "Statystyki z dema zapisane.",
+    detach: "Usuń demo",
+    detachConfirm: "Usunąć demo i przywrócić wcześniejsze statystyki?",
+    detachYes: "Tak, usuń",
+    detaching: "Usuwanie dema…",
+    detachFailed: {
+      forbidden: "Demo może usunąć tylko admin grupy.",
+      detachLegacy:
+        "To demo nadpisało starsze statystyki, zanim dało się je usuwać, więc nie można go usunąć.",
+      failed: "Nie udało się usunąć dema. Spróbuj ponownie.",
+    },
     parseStages: {
       read: "Odczytywanie pliku demo",
       initialize: "Przygotowywanie danych meczu",

@@ -174,10 +174,55 @@ async function attachDemoToMatchInternal(
     console.error("Demo attach failed", error);
     return { error: "failed" };
   }
+  revalidateDemoPages();
+  return { ok: true };
+}
+
+/** D23: a group admin removes a demo and restores the map's earlier stats. */
+export async function detachDemoFromMatch(matchId: string): Promise<Result> {
+  if (!uuid.safeParse(matchId).success) return { error: "invalid" };
+  try {
+    let actor;
+    try {
+      actor = await requireSession();
+    } catch (error) {
+      return { error: error instanceof AuthError ? "unauthorized" : "failed" };
+    }
+    const db = adminDb();
+    const { data: match, error: matchError } = await db
+      .from("matches")
+      .select("mix:mixes!matches_mix_id_fkey!inner(group_id)")
+      .eq("id", matchId)
+      .maybeSingle<{ mix: { group_id: string } }>();
+    if (matchError) return { error: "failed" };
+    if (!match) return { error: "invalid" };
+    try {
+      await requireGroupRole(match.mix.group_id, "admin");
+    } catch (error) {
+      return { error: error instanceof AuthError ? "forbidden" : "failed" };
+    }
+    const { error } = await db.rpc("detach_demo_from_match", {
+      p_match_id: matchId,
+      p_actor_id: actor.playerId,
+    });
+    if (error) {
+      if (error.code === "42501") return { error: "forbidden" };
+      if (error.code === "55000") return { error: "detachLegacy" };
+      console.error("Demo detach failed", error);
+      return { error: "failed" };
+    }
+    revalidateDemoPages();
+    return { ok: true };
+  } catch (error) {
+    console.error("Demo detach failed", error);
+    return { error: "failed" };
+  }
+}
+
+function revalidateDemoPages() {
   revalidatePath("/g/[slug]/m/[mixId]", "page");
   revalidatePath("/g/[slug]", "page");
   revalidatePath("/g/[slug]/stats", "page");
   revalidatePath("/g/[slug]/p/[steamId]", "page");
   revalidatePath("/g/[slug]/compare", "page");
-  return { ok: true };
 }

@@ -103,5 +103,39 @@ begin
   exception when unique_violation then v_failed := true;
   end;
   if not v_failed then raise exception 'ASSERT: existing demo overwritten'; end if;
+
+  -- D23: only a group admin may detach a demo, and detaching restores the map as it was.
+  if has_function_privilege('anon', 'public.detach_demo_from_match(uuid,uuid)', 'EXECUTE')
+     or has_function_privilege('authenticated', 'public.detach_demo_from_match(uuid,uuid)', 'EXECUTE') then
+    raise exception 'ASSERT: browser can execute demo detachment';
+  end if;
+  insert into public.group_members (group_id, player_id, role) values (v_group, v_outsider, 'member');
+  v_failed := false;
+  begin
+    perform public.detach_demo_from_match(v_match, v_outsider);
+  exception when insufficient_privilege then v_failed := true;
+  end;
+  if not v_failed then raise exception 'ASSERT: plain member detached demo'; end if;
+  perform public.detach_demo_from_match(v_match, v_actor);
+  if (select demo_hash from public.matches where id = v_match) is not null
+     or (select stats_origin from public.matches where id = v_match) is not null
+     or (select count(*) from public.match_player_stats where match_id = v_match
+          and kills = 0 and mvps = 2 and raw ->> 'apiSource' = 'faceit'
+          and not raw ? '_previous') <> 10
+     or (select payload ->> 'source' from public.match_payloads where match_id = v_match) <> 'faceit'
+     or (select parser_version from public.match_payloads where match_id = v_match) <> 'faceit' then
+    raise exception 'ASSERT: detach did not restore the map';
+  end if;
+  v_failed := false;
+  begin
+    perform public.detach_demo_from_match(v_match, v_actor);
+  exception when object_not_in_prerequisite_state then v_failed := true;
+  end;
+  if not v_failed then raise exception 'ASSERT: detached a map without a demo'; end if;
+  -- After detaching, the same demo can be attached again.
+  perform public.attach_demo_to_match(v_match, v_actor, v_hash, 'mirage', 1, 0, v_rows, '{"version":2}'::jsonb);
+  if (select stats_origin from public.matches where id = v_match) <> 'demo' then
+    raise exception 'ASSERT: demo could not be attached again';
+  end if;
 end;
 $$;
