@@ -67,7 +67,11 @@ export function LeetifyPreviewCard({
             : t.leetify.wl(wins, losses, draws);
 
   return (
-    <Window title={t.leetify.previewTitle(player.name)} className="mt-2.5">
+    <Window
+      level={2}
+      title={t.leetify.previewTitle(player.name)}
+      className="mt-2.5"
+    >
       <Well
         role="status"
         aria-live="polite"

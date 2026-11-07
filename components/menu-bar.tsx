@@ -36,7 +36,7 @@ export async function MenuBar({
         groups={groups}
       />
       {askDiscord && (
-        <div className="border-gold bg-window mx-2 mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 border-2 px-3 py-2">
+        <div className="bevel bg-window mx-2 mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2">
           <p className="text-gold min-w-0 flex-1 text-[13px] font-bold">
             {t.groups.discordAccount.banner}
           </p>

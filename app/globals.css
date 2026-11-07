@@ -47,7 +47,8 @@
   --vg-dim: #c2cab7;
   --vg-hi: #7f8d72;
   --vg-lo: #262a20;
-  --vg-alert: #d8704f;
+  /* Errors and destructive labels: 4.9:1 on sheet, 5.5:1 on window, 7.3:1 on well. */
+  --vg-alert: #ffbfa8;
   /* Won / lost match letters on olive-well: 6.6:1 and 5.3:1. */
   --vg-win: #9fd36a;
   --vg-loss: #f09a7f;

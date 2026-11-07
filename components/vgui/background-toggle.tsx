@@ -56,7 +56,7 @@ export function BackgroundToggle({
   return (
     <label
       className={cn(
-        "text-dim flex shrink-0 cursor-pointer items-center gap-1.5 text-[11px] whitespace-nowrap select-none",
+        "text-dim flex min-h-6 shrink-0 cursor-pointer items-center gap-1.5 text-[11px] whitespace-nowrap select-none",
         className,
       )}
     >

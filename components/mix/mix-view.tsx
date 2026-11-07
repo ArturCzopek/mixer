@@ -18,11 +18,13 @@ import { DemoRoundStrip } from "@/components/demo/round-strip";
 import { DemoPlayerDetails } from "@/components/demo/player-details";
 import type { DemoStoredData } from "@/lib/demo/payload";
 import {
+  ActionBar,
   Badge,
   ListHead,
   Sheet,
   SkillBar,
   Tabs,
+  tabIds,
   VButton,
   Well,
   Window,
@@ -202,7 +204,7 @@ export function MixView({
 
   return (
     <MixContext.Provider value={mix}>
-      <div className="mx-auto flex w-full max-w-[460px] flex-1 flex-col pb-[76px] md:max-w-[760px] lg:max-w-[1180px]">
+      <main className="mx-auto flex w-full max-w-[460px] flex-1 flex-col pb-[76px] md:max-w-[760px] lg:max-w-[1180px]">
         <div className="px-2">
           {groupSlug && (
             <p className="text-dim mb-2 text-xs">
@@ -258,6 +260,7 @@ export function MixView({
               <div className="mt-2.5">
                 <Tabs
                   label={t.variants.aria}
+                  idBase="variants"
                   value={activeVariantNo}
                   onChange={setVariantNo}
                   items={mix.variants.map((v) => ({
@@ -265,23 +268,27 @@ export function MixView({
                     label: (
                       <>
                         {t.variants.variant(v.number)}{" "}
-                        <span className="text-gold font-bold">{v.votes}</span>
+                        <span aria-hidden className="text-gold font-bold">
+                          {v.votes}
+                        </span>
+                        <span className="sr-only">
+                          , {t.variants.votesSr(v.votes)}
+                        </span>
                       </>
                     ),
                   }))}
                 />
-                <Sheet>
+                <Sheet
+                  id={tabIds("variants", activeVariantNo).panel}
+                  aria-labelledby={tabIds("variants", activeVariantNo).tab}
+                >
                   {variant && (
                     <VariantBody
                       variant={variant}
                       focusId={focusId}
                       onFocus={selectPlayer}
                       showPreview={previewSelected}
-                    >
-                      {!data.showcase && data.viewerCanVote && variant.id && (
-                        <VoteButton variant={variant} myVote={mix.myVote} />
-                      )}
-                    </VariantBody>
+                    />
                   )}
                   {variant && <Tally />}
                   {data.showcase && data.viewerIsAdmin && (
@@ -307,9 +314,13 @@ export function MixView({
           <Quip state={state} />
         </div>
         {data.showcase && (
-          <ActionBar state={state} variantNo={activeVariantNo} />
+          <ShowcaseActionBar state={state} variantNo={activeVariantNo} />
         )}
-      </div>
+        {state === "voting" &&
+          !data.showcase &&
+          data.viewerCanVote &&
+          variant?.id && <VoteButton variant={variant} myVote={mix.myVote} />}
+      </main>
     </MixContext.Provider>
   );
 }
@@ -421,6 +432,7 @@ function BalancingPanel({
         <>
           <Tabs
             label={t.variants.aria}
+            idBase="variants"
             value={variantNo}
             onChange={onVariantChange}
             items={data.variants.map((item) => ({
@@ -428,7 +440,10 @@ function BalancingPanel({
               label: t.variants.variant(item.number),
             }))}
           />
-          <Sheet>
+          <Sheet
+            id={tabIds("variants", variantNo).panel}
+            aria-labelledby={tabIds("variants", variantNo).tab}
+          >
             {variant && (
               <VariantBody
                 variant={variant}
@@ -476,7 +491,7 @@ function VariantAdminControls() {
         {generated ? t.admin.previewReady(generation) : t.admin.previewWaiting}
       </p>
       {error && (
-        <p role="alert" className="text-loss mb-2">
+        <p role="alert" className="text-alert mb-2">
           {error}
         </p>
       )}
@@ -528,6 +543,7 @@ function VariantAdminControls() {
           {pending === "reopen" ? t.admin.reopening : t.lobby.reopen}
         </VButton>
         <VButton
+          className="text-alert"
           disabled={isPending}
           onClick={() => {
             if (window.confirm(t.lobby.cancelConfirm))
@@ -624,7 +640,7 @@ function SwapPanel() {
         <p className="text-dim">{t.admin.noSwapCandidates}</p>
       )}
       {error && (
-        <p role="alert" className="text-loss mt-1.5">
+        <p role="alert" className="text-alert mt-1.5">
           {error}
         </p>
       )}
@@ -1553,6 +1569,7 @@ function VotingAdminPanel({ state }: { state: "voting" | "locked" }) {
         )}
         {canCancel && (
           <VButton
+            className="text-alert"
             disabled={pending}
             onClick={() => {
               if (window.confirm(t.lobby.cancelConfirm))
@@ -1736,7 +1753,7 @@ function VotingAdminPanel({ state }: { state: "voting" | "locked" }) {
         </div>
       )}
       {error && (
-        <p role="alert" className="text-loss mt-2">
+        <p role="alert" className="text-alert mt-2">
           {error}
         </p>
       )}
@@ -1869,7 +1886,7 @@ function FaceitImportPanel({
                       : t.admin.faceitLineupOk}
                   </span>
                   {candidate.teamAIsFaction1 === null && (
-                    <span className="text-loss block">
+                    <span className="text-alert block">
                       {t.admin.faceitAmbiguous}
                     </span>
                   )}
@@ -1897,7 +1914,7 @@ function FaceitImportPanel({
         </div>
       )}
       {error && (
-        <p role="alert" className="text-loss mt-2">
+        <p role="alert" className="text-alert mt-2">
           {error}
         </p>
       )}
@@ -1934,15 +1951,18 @@ function VoteButton({
     }
   };
   return (
-    <div className="mt-2.5">
-      {error && (
-        <p role="alert" className="text-loss mb-1 text-[11px]">
-          {error}
-        </p>
-      )}
+    <ActionBar
+      note={
+        error && (
+          <p role="alert" className="text-alert text-[11px]">
+            {error}
+          </p>
+        )
+      }
+    >
       <VButton
         primary
-        className="w-full"
+        className="flex-1"
         disabled={pending || myVote === variant.number}
         onClick={() => void vote()}
       >
@@ -1954,7 +1974,7 @@ function VoteButton({
               ? t.actions.vote(variant.number)
               : t.actions.moveVote(variant.number)}
       </VButton>
-    </div>
+    </ActionBar>
   );
 }
 
@@ -2543,7 +2563,7 @@ function playedQuip(
   return t.quips.boring(mvp.player.name);
 }
 
-function ActionBar({
+function ShowcaseActionBar({
   state,
   variantNo,
 }: {
@@ -2553,8 +2573,8 @@ function ActionBar({
   const { myVote } = useMix();
   const t = useT();
   return (
-    <div className="border-hi bg-window fixed inset-x-0 bottom-0 border-t px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-      <div className="mx-auto flex max-w-[444px] gap-2 md:max-w-[744px] lg:max-w-[1164px] lg:justify-end lg:[&>button]:flex-none lg:[&>button]:basis-52">
+    <ActionBar>
+      <>
         {state === "lobby" && (
           <>
             <VButton className="flex-1">{t.actions.share}</VButton>
@@ -2599,7 +2619,7 @@ function ActionBar({
             </VButton>
           </>
         )}
-      </div>
-    </div>
+      </>
+    </ActionBar>
   );
 }

@@ -10,7 +10,7 @@ import {
 import { cn } from "@/lib/utils";
 
 const small =
-  "bevel bg-sheet enabled:hover:bg-hover px-1.5 py-0.5 text-[11px] disabled:text-dim";
+  "bevel bg-sheet enabled:hover:bg-hover min-h-7 px-2 py-1 text-[11px] disabled:text-dim";
 
 /** Admin buttons on one member row; the server re-checks the admin role on every click. */
 export function MemberActions({
@@ -34,7 +34,7 @@ export function MemberActions({
     startTransition(() => run(op));
   };
   return (
-    <span className="flex shrink-0 flex-wrap items-center justify-end gap-1">
+    <span className="flex shrink-0 flex-wrap items-center justify-end gap-2">
       {state && "error" in state && (
         <span role="status" className="text-alert text-[11px]">
           {t.groups.errors[state.error]}

@@ -14,7 +14,7 @@ colors:
   gold-deep: "#7a6f22"
   pale-text: "#dfe4da"
   dim-text: "#c2cab7"
-  alert-rust: "#d8704f"
+  alert-rust: "#ffbfa8"
   win-green: "#9fd36a"
   loss-red: "#f09a7f"
   white: "#ffffff"
@@ -147,7 +147,7 @@ A low-chroma olive family with bevel-edge tints and one warm gold highlight, tun
 - **Deep Gold** (gold-deep): selection fill. Used for the selected player row (with white text) and `::selection`. Never used as a text colour.
 
 ### Tertiary
-- **Alert Rust** (alert-rust): the destructive role. It is defined but not yet used on shipped surfaces. Reserve it for destructive or error states only.
+- **Alert** (alert-rust): the error and destructive role: error messages, destructive button labels (Remove, Cancel Mix) and the missing-Discord notice. A light salmon so it clears 4.5:1 on sheet, window and well. Never decorative, never for won/lost markers (those stay Win Green / Loss Red).
 - **Win Green / Loss Red** (win-green, loss-red): only won / lost match markers (the W / L letter and the result squares of the Leetify card). Never for scores, buttons or panels.
 
 ### Neutral

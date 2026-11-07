@@ -113,9 +113,9 @@ export function DemoRoundStrip({
 
   return (
     <section className="mt-2" aria-labelledby={`${id}-title`}>
-      <h3 id={`${id}-title`} className="text-dim mb-1 text-[11px]">
+      <h2 id={`${id}-title`} className="text-dim mb-1 text-[11px]">
         {t.demo.details.roundsTitle}
-      </h3>
+      </h2>
       <Well className="p-1.5">
         <div className="space-y-2">
           {sections.map((section) => {

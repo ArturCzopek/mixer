@@ -364,7 +364,7 @@ export function DemoAttachment({
             </div>
           )}
           {visibleIssue && (
-            <p role="alert" className="text-loss mt-2">
+            <p role="alert" className="text-alert mt-2">
               {t.demo.errors[visibleIssue]}
             </p>
           )}

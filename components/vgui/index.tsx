@@ -9,18 +9,22 @@ export function Window({
   right,
   className,
   children,
+  level = 1,
 }: {
   title: React.ReactNode;
   right?: React.ReactNode;
   className?: string;
   children: React.ReactNode;
+  /** Heading level of the title bar: 1 for the page window, 2 for a window nested in it. */
+  level?: 1 | 2 | 3;
 }) {
+  const Heading = `h${level}` as const;
   return (
     <section className={cn("bevel bg-window", className)}>
       <header className="border-lo flex items-center gap-2 border-b px-2.5 py-1.5">
-        <h1 className="text-text min-w-0 truncate text-[13px] font-bold">
+        <Heading className="text-text min-w-0 truncate text-[13px] font-bold">
           {title}
-        </h1>
+        </Heading>
         {right && (
           <div className="text-gold ml-auto shrink-0 font-bold">{right}</div>
         )}
@@ -30,7 +34,7 @@ export function Window({
   );
 }
 
-export { Tabs } from "./tabs";
+export { Tabs, tabIds } from "./tabs";
 export { BackgroundToggle } from "./background-toggle";
 
 export function Well({ className, ...props }: React.ComponentProps<"div">) {
@@ -55,6 +59,32 @@ export function VButton({
       )}
       {...props}
     />
+  );
+}
+
+/**
+ * The fixed bottom action bar (DESIGN.md): olive-window, bevel-hi top edge, safe-area aware. Holds
+ * the screen's main thumb action; the page reserves 76px at the bottom for it.
+ */
+export function ActionBar({
+  children,
+  note,
+}: {
+  children: React.ReactNode;
+  /** Optional line above the buttons, such as an error. */
+  note?: React.ReactNode;
+}) {
+  return (
+    <div className="border-hi bg-window fixed inset-x-0 bottom-0 z-10 border-t px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+      {note && (
+        <div className="mx-auto mb-1.5 max-w-[444px] md:max-w-[744px] lg:max-w-[1164px] lg:text-right">
+          {note}
+        </div>
+      )}
+      <div className="mx-auto flex max-w-[444px] gap-2 md:max-w-[744px] lg:max-w-[1164px] lg:justify-end lg:[&>button]:flex-none lg:[&>button]:basis-52">
+        {children}
+      </div>
+    </div>
   );
 }
 

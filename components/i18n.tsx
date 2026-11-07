@@ -87,7 +87,7 @@ export function LanguageToggle({ className }: { className?: string }) {
           aria-pressed={lang === code}
           onClick={() => set(code)}
           className={cn(
-            "p-[3px]",
+            "inline-flex min-h-6 min-w-7 items-center justify-center p-[3px]",
             lang === code
               ? "sunk"
               : "bevel bg-window hover:bg-hover opacity-70 hover:opacity-100",

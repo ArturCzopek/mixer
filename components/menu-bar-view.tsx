@@ -125,7 +125,7 @@ export function MenuBarView({
           )}
           <button
             type="submit"
-            className="bevel bg-sheet enabled:hover:bg-hover text-text shrink-0 px-1.5 py-0.5 text-[11px]"
+            className="bevel bg-sheet enabled:hover:bg-hover text-text min-h-6 shrink-0 px-2 py-1 text-[11px]"
           >
             {t.home.signOut}
           </button>

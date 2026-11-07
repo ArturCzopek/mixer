@@ -344,7 +344,7 @@ export default async function GroupPage({
                     {compareHref && (
                       <Link
                         href={compareHref}
-                        className="bevel bg-sheet text-gold hover:bg-hover shrink-0 px-1.5 py-0.5 text-[10px] font-bold whitespace-nowrap"
+                        className="bevel bg-sheet text-gold hover:bg-hover min-h-6 shrink-0 px-2 py-1 text-[10px] font-bold whitespace-nowrap"
                       >
                         {t.profile.compareWithMe}
                       </Link>
@@ -397,7 +397,7 @@ export default async function GroupPage({
                       >
                         <PendingSubmit
                           pendingLabel={t.loading.working}
-                          className="bg-window text-dim px-1 py-0.5 text-[10px]"
+                          className="bg-window text-dim min-h-6 px-2 py-1 text-[10px]"
                         >
                           {t.groups.discordAccount.disconnect}
                         </PendingSubmit>

@@ -90,6 +90,7 @@ const en = {
   variants: {
     aria: "Variants",
     variant: (n: number) => `Variant ${n}`,
+    votesSr: (n: number) => `${n} ${n === 1 ? "vote" : "votes"}`,
     mostEven: "Most even",
     fresh: "Fresh split",
     leading: "Leading",
@@ -838,6 +839,10 @@ const en = {
       played: "Played",
       cancelled: "Cancelled",
     },
+    statusFull: "Full · 10/10 · waiting for the admin to start balancing",
+    signInToJoin: "Sign in with Steam to join this mix.",
+    membersOnly:
+      "Only members of this group can join. Ask a group admin to add you.",
     freeSlot: (n: number) => `Slot ${n} · Free`,
     joined: (n: number) => `#${n}`,
     joinOrderNote: "Players appear in the order they joined.",
@@ -941,6 +946,16 @@ const en = {
       "No played mix maps yet. Results will appear after the first evening.",
     outcome: { win: "Win", loss: "Loss", draw: "Draw" },
   },
+  errorPage: {
+    notFoundTitle: "Not found",
+    notFound:
+      "There is no such group, mix or player here. The link may be old or mistyped.",
+    errorTitle: "Something went wrong",
+    error:
+      "The page could not load. It is usually a short hiccup of the database or an external API.",
+    retry: "Try Again",
+    home: "Back to mixer",
+  },
   loading: {
     loading: "Loading...",
     working: "Working...",
@@ -1040,6 +1055,7 @@ const pl: Dict = {
   variants: {
     aria: "Warianty",
     variant: (n) => `Wariant ${n}`,
+    votesSr: (n) => `${n} ${plural(n, "głos", "głosy", "głosów")}`,
     mostEven: "Najrówniejszy",
     fresh: "Świeży podział",
     leading: "Prowadzi",
@@ -1742,6 +1758,10 @@ const pl: Dict = {
       played: "Rozegrany",
       cancelled: "Anulowany",
     },
+    statusFull: "Komplet · 10/10 · czekamy, aż admin zamknie zapisy",
+    signInToJoin: "Zaloguj się przez Steam, żeby dołączyć do miksu.",
+    membersOnly:
+      "Dołączyć mogą tylko członkowie tej grupy. Poproś admina grupy, żeby Cię dodał.",
     freeSlot: (n: number) => `Miejsce ${n} · wolne`,
     joined: (n: number) => `#${n}`,
     joinOrderNote: "Gracze są pokazani w kolejności zapisów.",
@@ -1842,6 +1862,16 @@ const pl: Dict = {
     empty:
       "Nie ma jeszcze rozegranych map. Wyniki pojawią się po pierwszym wieczorze.",
     outcome: { win: "Wygrana", loss: "Porażka", draw: "Remis" },
+  },
+  errorPage: {
+    notFoundTitle: "Nie znaleziono",
+    notFound:
+      "Nie ma tu takiej grupy, miksu ani gracza. Link może być stary albo z literówką.",
+    errorTitle: "Coś poszło nie tak",
+    error:
+      "Strona się nie wczytała. Zwykle to chwilowa czkawka bazy danych albo zewnętrznego API.",
+    retry: "Spróbuj ponownie",
+    home: "Wróć do mixera",
   },
   loading: {
     loading: "Wczytywanie...",

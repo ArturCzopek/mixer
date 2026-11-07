@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useActionState, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useT } from "@/components/i18n";
-import { ListHead, VButton, Well, Window } from "@/components/vgui";
+import { ActionBar, ListHead, VButton, Well, Window } from "@/components/vgui";
 import { LeetifyPreviewCard } from "@/components/leetify/preview-card";
 import { DiscordMissing } from "./discord-missing";
 import {
@@ -106,7 +106,12 @@ export function MixLobbyView({
   }
 
   return (
-    <main className="mx-auto w-full max-w-[460px] px-2 py-6">
+    <main
+      className={cn(
+        "mx-auto w-full max-w-[460px] px-2 py-6",
+        open && (isJoined || (isMember && count < 10)) && "pb-[76px]",
+      )}
+    >
       <p className="text-dim mb-2 text-xs">
         <Link href={`/g/${groupSlug}`}>{groupName}</Link>
         <span aria-hidden="true"> › </span>
@@ -124,7 +129,9 @@ export function MixLobbyView({
                 : "bg-dim"
             }`}
           />
-          {t.lobby.status[mix.status]}
+          {open && count >= 10
+            ? t.lobby.statusFull
+            : t.lobby.status[mix.status]}
         </Well>
 
         <DiscordMissing names={unlinkedDiscordPlayers} groupSlug={groupSlug} />
@@ -194,28 +201,10 @@ export function MixLobbyView({
           </Well>
         )}
 
-        {open && isMember && !isJoined && count < 10 && (
-          <div className="mb-2 flex justify-end">
-            <VButton
-              type="button"
-              primary
-              disabled={pending}
-              onClick={() => run(() => joinMix(mix.id))}
-            >
-              {t.lobby.join}
-            </VButton>
-          </div>
-        )}
-        {open && isJoined && (
-          <div className="mb-2 flex justify-end">
-            <VButton
-              type="button"
-              disabled={pending}
-              onClick={() => run(() => leaveMix(mix.id))}
-            >
-              {t.lobby.leave}
-            </VButton>
-          </div>
+        {open && !isJoined && !isMember && (
+          <Well className="text-dim mb-2 px-2 py-1.5 text-[11px]">
+            {viewerId === null ? t.lobby.signInToJoin : t.lobby.membersOnly}
+          </Well>
         )}
 
         {canManage && open && count < 10 && candidates.length > 0 && (
@@ -273,6 +262,7 @@ export function MixLobbyView({
             )}
             {(open || mix.status === "balancing") && (
               <VButton
+                className="text-alert"
                 type="button"
                 disabled={pending}
                 onClick={() => {
@@ -293,6 +283,32 @@ export function MixLobbyView({
         )}
       </Window>
       <p className="text-dim mt-2 text-[11px]">{t.lobby.joinOrderNote}</p>
+      {/* Join and Leave sit in the fixed bottom bar: one thumb, no scrolling past ten slots. */}
+      {open && isMember && !isJoined && count < 10 && (
+        <ActionBar>
+          <VButton
+            type="button"
+            primary
+            className="flex-1"
+            disabled={pending}
+            onClick={() => run(() => joinMix(mix.id))}
+          >
+            {t.lobby.join}
+          </VButton>
+        </ActionBar>
+      )}
+      {open && isJoined && (
+        <ActionBar>
+          <VButton
+            type="button"
+            className="flex-1"
+            disabled={pending}
+            onClick={() => run(() => leaveMix(mix.id))}
+          >
+            {t.lobby.leave}
+          </VButton>
+        </ActionBar>
+      )}
     </main>
   );
 }
