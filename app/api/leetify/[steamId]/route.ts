@@ -5,6 +5,21 @@ import {
   toLeetifyMatches,
 } from "@/lib/external/leetify";
 import { getPlayerBySteamId } from "@/lib/external/faceit";
+import { adminDb } from "@/lib/db/admin";
+
+/**
+ * Only players Mixer already knows: otherwise anyone could enumerate SteamIDs through our Leetify
+ * and FACEIT keys and burn their rate limits (security audit 2026-11-07).
+ */
+async function knownPlayer(steamId: string): Promise<boolean> {
+  const { data, error } = await adminDb()
+    .from("players")
+    .select("id")
+    .eq("steam_id", steamId)
+    .maybeSingle();
+  if (error) throw new Error(`Leetify player lookup: ${error.message}`);
+  return !!data;
+}
 
 export const revalidate = 300;
 
@@ -33,6 +48,8 @@ export async function GET(
     return json({ error: "invalid_view" }, 400, false);
 
   try {
+    if (!(await knownPlayer(steamId)))
+      return json({ error: "not_found" }, 404, false);
     const profile = await getLeetifyProfile(steamId);
     if (!profile) return json({ error: "not_found" }, 404, false);
     const ranks =

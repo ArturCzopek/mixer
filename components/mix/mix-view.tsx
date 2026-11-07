@@ -13,6 +13,7 @@ import { resultQuip } from "@/lib/mix/result-quip";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronRight, ExternalLink, Lock } from "lucide-react";
 import { DemoAttachment } from "@/components/demo/demo-attachment";
+import { DemoDetach } from "@/components/demo/demo-detach";
 import { DemoRoundStrip } from "@/components/demo/round-strip";
 import { DemoPlayerDetails } from "@/components/demo/player-details";
 import type { DemoStoredData } from "@/lib/demo/payload";
@@ -2179,6 +2180,9 @@ function Played({ initialPick }: { initialPick: number }) {
               playerName={(steamId) => mix.nameOf(steamId)}
             />
           </div>
+        )}
+        {map?.demo && map.id && data.viewerIsAdmin && !data.showcase && (
+          <DemoDetach key={`detach-${map.id}`} matchId={map.id} />
         )}
         {map && map.id && map.teams && !map.demo && viewerCanAttachDemo && (
           <DemoAttachment

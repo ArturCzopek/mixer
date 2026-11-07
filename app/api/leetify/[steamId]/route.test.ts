@@ -6,6 +6,22 @@ const api = vi.hoisted(() => ({
   getFaceitPlayer: vi.fn(),
 }));
 
+const db = vi.hoisted(() => ({ known: true, error: null as unknown }));
+vi.mock("@/lib/db/admin", () => ({
+  adminDb: () => ({
+    from: () => ({
+      select: () => ({
+        eq: () => ({
+          maybeSingle: async () => ({
+            data: db.known ? { id: "player" } : null,
+            error: db.error,
+          }),
+        }),
+      }),
+    }),
+  }),
+}));
+
 vi.mock("@/lib/external/faceit", () => ({
   getPlayerBySteamId: api.getFaceitPlayer,
 }));
@@ -53,6 +69,8 @@ const context = (id = steamId) => ({
 });
 
 beforeEach(() => {
+  db.known = true;
+  db.error = null;
   vi.useFakeTimers();
   vi.setSystemTime(new Date("2026-10-06T12:00:00Z"));
   api.getProfile.mockReset().mockResolvedValue({
@@ -138,6 +156,15 @@ describe("Leetify route", () => {
       ranks: {},
     });
     expect(api.getMatches).not.toHaveBeenCalled();
+  });
+
+  it("does not spend the API keys on SteamIDs Mixer does not know", async () => {
+    db.known = false;
+    const response = await GET(request("profile"), context());
+    expect(response.status).toBe(404);
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+    expect(api.getProfile).not.toHaveBeenCalled();
+    expect(api.getFaceitPlayer).not.toHaveBeenCalled();
   });
 
   it("does not expose upstream error details", async () => {
