@@ -43,7 +43,11 @@ it("claims an admin-added Steam identity and signs a session for its existing pl
     { onConflict: "steam_id" },
   );
   const session = await readSession(token, SECRET);
-  expect(session).toMatchObject({ playerId: PLAYER, steamId: STEAM, version: 0 });
+  expect(session).toMatchObject({
+    playerId: PLAYER,
+    steamId: STEAM,
+    version: 0,
+  });
   // No membership write, generated player id, privilege reset or FACEIT link overwrite.
   expect(db.from).toHaveBeenCalledTimes(1);
 });

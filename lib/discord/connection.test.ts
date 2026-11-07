@@ -148,7 +148,11 @@ describe("Discord player connection", () => {
     ).toBeNull();
     expect(
       readPlayerState(
-        JSON.stringify({ nonce: NONCE, playerId: PLAYER, next: "/\t/evil.test" }),
+        JSON.stringify({
+          nonce: NONCE,
+          playerId: PLAYER,
+          next: "/\t/evil.test",
+        }),
         NONCE,
       ),
     ).toBeNull();
