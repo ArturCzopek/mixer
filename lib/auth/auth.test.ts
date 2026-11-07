@@ -184,7 +184,15 @@ describe("session token", () => {
 
   it("round-trips the claims", async () => {
     const t = await signSession(claims, SECRET, NOW);
-    await expect(readSession(t, SECRET, NOW)).resolves.toEqual(claims);
+    await expect(readSession(t, SECRET, NOW)).resolves.toEqual({
+      ...claims,
+      version: 0,
+    });
+    const v3 = await signSession({ ...claims, version: 3 }, SECRET, NOW);
+    await expect(readSession(v3, SECRET, NOW)).resolves.toEqual({
+      ...claims,
+      version: 3,
+    });
   });
 
   it("rejects a token signed with another secret, a tampered one and an expired one", async () => {

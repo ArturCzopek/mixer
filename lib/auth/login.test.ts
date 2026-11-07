@@ -43,7 +43,7 @@ it("claims an admin-added Steam identity and signs a session for its existing pl
     { onConflict: "steam_id" },
   );
   const session = await readSession(token, SECRET);
-  expect(session).toMatchObject({ playerId: PLAYER, steamId: STEAM });
+  expect(session).toMatchObject({ playerId: PLAYER, steamId: STEAM, version: 0 });
   // No membership write, generated player id, privilege reset or FACEIT link overwrite.
   expect(db.from).toHaveBeenCalledTimes(1);
 });
@@ -55,4 +55,14 @@ it("keeps an existing profile and allows claiming it when Steam summaries are un
   });
   expect(db.upsert.mock.calls[0][0]).not.toHaveProperty("display_name");
   expect(db.upsert.mock.calls[0][0]).not.toHaveProperty("avatar_url");
+});
+
+it("signs the player's current session version so older cookies stop working after a logout", async () => {
+  db.single.mockResolvedValue({
+    data: { id: PLAYER, session_version: 4 },
+    error: null,
+  });
+  expect(await readSession(await logIn(STEAM), SECRET)).toMatchObject({
+    version: 4,
+  });
 });

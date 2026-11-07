@@ -39,6 +39,8 @@ export interface Session {
   avatarUrl: string | null;
   isSiteAdmin: boolean;
   discordUserId?: string | null;
+  /** players.session_version this cookie was signed with. */
+  sessionVersion?: number;
 }
 
 /** The logged-in player, or null. Memoised per request. */
@@ -49,11 +51,16 @@ export const getSession = cache(async (): Promise<Session | null> => {
   const { data } = await adminDb()
     .from("players")
     .select(
-      "id, steam_id, display_name, avatar_url, is_site_admin, discord_user_id",
+      "id, steam_id, display_name, avatar_url, is_site_admin, discord_user_id, session_version",
     )
     .eq("id", claims.playerId)
     .maybeSingle();
-  if (!data || data.steam_id !== claims.steamId) return null;
+  if (
+    !data ||
+    data.steam_id !== claims.steamId ||
+    (data.session_version ?? 0) !== claims.version
+  )
+    return null;
   return {
     playerId: data.id,
     steamId: data.steam_id,
@@ -61,6 +68,7 @@ export const getSession = cache(async (): Promise<Session | null> => {
     avatarUrl: data.avatar_url,
     isSiteAdmin: data.is_site_admin,
     discordUserId: data.discord_user_id,
+    sessionVersion: data.session_version ?? 0,
   };
 });
 
@@ -121,14 +129,27 @@ export async function logIn(steamId: string): Promise<string> {
       },
       { onConflict: "steam_id" },
     )
-    .select("id")
+    .select("id, session_version")
     .single();
   if (error || !data)
     throw new Error(`Could not save player: ${error?.message}`);
   return signSession(
-    { playerId: data.id, steamId },
+    { playerId: data.id, steamId, version: data.session_version ?? 0 },
     requireEnv("SESSION_SECRET"),
   );
+}
+
+/**
+ * Revokes every session cookie of this player (all devices). Called on logout: the cookie is a
+ * stateless JWT, so clearing it in one browser alone would leave a copied token valid for 30 days.
+ */
+export async function revokeSessions(session: Session): Promise<void> {
+  const { error } = await adminDb()
+    .from("players")
+    .update({ session_version: (session.sessionVersion ?? 0) + 1 })
+    .eq("id", session.playerId)
+    .eq("session_version", session.sessionVersion ?? 0);
+  if (error) throw new Error(`Could not revoke sessions: ${error.message}`);
 }
 
 export const sessionCookie = {
