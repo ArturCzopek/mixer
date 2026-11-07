@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { safeNext } from "@/lib/auth/openid";
 
 export const DISCORD_GUILD_COOKIE = "mixer_discord_guild";
 export const DISCORD_PLAYER_COOKIE = "mixer_discord_player";
@@ -31,7 +32,7 @@ const guildState = z.object({
 const playerState = z.object({
   nonce: z.uuid(),
   playerId: z.uuid(),
-  next: z.string().regex(/^\/(?!\/)[^\\]*$/),
+  next: z.string().refine((value) => safeNext(value) === value),
 });
 
 export function readGuildState(

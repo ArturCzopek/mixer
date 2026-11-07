@@ -102,7 +102,16 @@ export async function verifySteamAssertion(
   return match[1];
 }
 
-/** Only same-site relative paths may be used as a post-login redirect. */
+const SAFE_PATH = /^\/(?![/\\])[^\\\s\p{Cc}]*$/u;
+const SAFE_BASE = "https://mixer.invalid";
+
+/**
+ * Only same-site relative paths may be used as a post-login redirect. Whitespace and control
+ * characters are refused because URL parsing strips them: "/\t/evil.com" would become "//evil.com".
+ * The final check resolves the path the way the redirect does and keeps it only if it stays on-site.
+ */
 export function safeNext(next: string | null | undefined): string {
-  return next && /^\/(?!\/)[^\\]*$/.test(next) ? next : "/";
+  if (!next || !SAFE_PATH.test(next)) return "/";
+  const url = new URL(next, SAFE_BASE);
+  return url.origin === SAFE_BASE ? next : "/";
 }

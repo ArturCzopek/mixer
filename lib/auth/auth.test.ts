@@ -166,6 +166,12 @@ describe("Steam OpenID", () => {
     expect(safeNext("https://evil.example")).toBe("/");
     expect(safeNext("/\\evil.example")).toBe("/");
     expect(safeNext(null)).toBe("/");
+    // URL parsing strips tabs and newlines, so these would resolve to //evil.example.
+    expect(safeNext("/\t/evil.example")).toBe("/");
+    expect(safeNext("/\n/evil.example")).toBe("/");
+    expect(safeNext("/\r/evil.example")).toBe("/");
+    expect(safeNext("/ /evil.example")).toBe("/");
+    expect(safeNext("/g/a?x=1#top")).toBe("/g/a?x=1#top");
   });
 });
 
