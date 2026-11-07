@@ -229,6 +229,11 @@ export function PlayerProfileView({
                           </span>
                         </div>
                       ))}
+                      {summary.bestTeammates.length === 0 && (
+                        <p className="text-dim p-2">
+                          {t.profile.noBestTeammates}
+                        </p>
+                      )}
                     </Well>
                   </div>
                 </div>

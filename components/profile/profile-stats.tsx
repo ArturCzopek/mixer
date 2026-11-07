@@ -56,7 +56,7 @@ export function MixProfileStats({
         { label: t.profile.adr, value: summary.adr?.toFixed(1) ?? "—" },
         {
           label: t.profile.kda,
-          value: summary.ratedMaps
+          value: summary.statMaps
             ? `${summary.kills} / ${summary.deaths} / ${summary.assists}`
             : "—",
         },

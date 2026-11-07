@@ -174,7 +174,7 @@ self.onmessage = async (message: MessageEvent<{ file: File }>) => {
         row.steamid &&
         (row.team_num === 2 || row.team_num === 3),
     );
-    if (final.length !== 10) throw new Error("invalid");
+    if (final.length !== 10) throw new Error("incomplete");
     const players = final.map((row) => ({
       steamid: row.steamid,
       name: row.name,
@@ -303,6 +303,14 @@ self.onmessage = async (message: MessageEvent<{ file: File }>) => {
     )
       code = "memory";
     else if (stage === "read") code = "decode";
+    // A player missing at a round start or at the end (disconnect, stand-in, bot): say so instead
+    // of the generic "could not be read".
+    else if (
+      error instanceof Error &&
+      (error.message === "incomplete" ||
+        error.message.startsWith("Incomplete player snapshot"))
+    )
+      code = "incomplete";
     else if (
       stage === "events" ||
       stage === "snapshots" ||

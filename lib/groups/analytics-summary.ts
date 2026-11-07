@@ -1,3 +1,4 @@
+import { countMapSources } from "./map-source";
 import { matchAwards, type AwardKey, type AwardStat } from "@/lib/awards";
 import { demoAwardFields } from "@/lib/demo/view";
 
@@ -431,14 +432,7 @@ export function analyticsSummary(
       ).length,
       archives: selected.filter((mix) => mix.archive_source !== null).length,
       current: selected.filter((mix) => mix.archive_source === null).length,
-      sources: selectedMaps.reduce(
-        (counts, map) => {
-          const source = map.stats_origin ?? map.source;
-          if (source in counts) counts[source as keyof typeof counts]++;
-          return counts;
-        },
-        { faceit: 0, popflash: 0, manual: 0, demo: 0 },
-      ),
+      sources: countMapSources(selectedMaps),
     },
     leaderboard: playerRows(leaderAcc),
     mapPerformance: [...mapGroups.values()]

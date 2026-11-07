@@ -60,6 +60,20 @@ describe("FACEIT evening candidates", () => {
     expect(result[1].lineupMismatch).toContain("a5");
   });
 
+  it("accepts a room started before voting was closed, but not before the previous mix", () => {
+    const early = [room("early", -180), room("valid", 0)];
+    expect(faceitCandidates(early, options).map((m) => m.id)).toEqual([
+      "early",
+      "valid",
+    ]);
+    expect(
+      faceitCandidates(early, {
+        ...options,
+        previousLockedAt: "2026-09-29T18:00:00Z",
+      }).map((m) => m.id),
+    ).toEqual(["valid"]);
+  });
+
   it("rejects seven players, a late room, the next evening, series and unfinished rooms; keeps queue rooms", () => {
     const result = faceitCandidates(
       [
@@ -73,7 +87,7 @@ describe("FACEIT evening candidates", () => {
         room("queue", 30, { competitionId: "club-queue" }),
         room("live", 40, { status: "ONGOING" }),
         room("series", 50, { bestOf: 3 }),
-        room("before", -120),
+        room("before", -360),
       ],
       { ...options, nextLockedAt: "2026-09-30T10:00:00Z" },
     );

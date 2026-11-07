@@ -98,6 +98,7 @@ const en = {
     title: (live: boolean) =>
       `Leetify · FACEIT, last 30 days${live ? " (live)" : ""}`,
     previewTitle: (name: string) => `Leetify · ${name} · FACEIT, last 30 days`,
+    noProfile: (name: string) => `${name} has no Leetify profile yet.`,
     notAnswering: (name: string) =>
       `Leetify is not answering for ${name} right now.`,
     privateProfile: "This Leetify profile is private.",
@@ -493,6 +494,8 @@ const en = {
         "This demo exceeds the 512 MB processing limit. Choose a smaller file.",
       malformed:
         "The demo could not be read. Choose a complete CS2 match demo and try again.",
+      incomplete:
+        "Not all ten players are in this demo for every round (a disconnect, a stand-in or a bot). Demos with a missing player cannot be attached yet.",
       lowMemory:
         "This demo is too large for this device to process. Try a smaller demo or another device.",
       file: "Choose a .dem or .dem.zst file.",
@@ -922,6 +925,7 @@ const en = {
     score: "Score",
     result: "Result",
     bestTeammates: "Best teammates",
+    noBestTeammates: "Shown after 5 maps with the same teammate.",
     empty:
       "No played mix maps yet. Results will appear after the first evening.",
     outcome: { win: "Win", loss: "Loss", draw: "Draw" },
@@ -1033,6 +1037,7 @@ const pl: Dict = {
     title: (live) =>
       `Leetify · FACEIT, ostatnie 30 dni${live ? " (na żywo)" : ""}`,
     previewTitle: (name) => `Leetify · ${name} · FACEIT, ostatnie 30 dni`,
+    noProfile: (name) => `${name} nie ma jeszcze profilu na Leetify.`,
     notAnswering: (name) => `Leetify nie odpowiada teraz dla gracza ${name}.`,
     privateProfile: "Ten profil Leetify jest prywatny.",
     noRecentFaceit: "Brak meczów FACEIT z ostatnich 30 dni.",
@@ -1384,6 +1389,8 @@ const pl: Dict = {
       tooLarge: "Demo przekracza limit 512 MB. Wybierz mniejszy plik.",
       malformed:
         "Nie udało się odczytać dema. Wybierz kompletne demo meczu CS2 i spróbuj ponownie.",
+      incomplete:
+        "W tym demie nie ma wszystkich dziesięciu graczy w każdej rundzie (rozłączenie, zastępca albo bot). Dema z brakującym graczem nie da się jeszcze dołączyć.",
       lowMemory:
         "To demo jest zbyt duże, by przetworzyć je na tym urządzeniu. Spróbuj mniejszego pliku lub innego urządzenia.",
       file: "Wybierz plik .dem lub .dem.zst.",
@@ -1808,6 +1815,7 @@ const pl: Dict = {
     score: "Wynik",
     result: "Rezultat",
     bestTeammates: "Najlepsi współgracze",
+    noBestTeammates: "Pojawią się po 5 mapach z tym samym współgraczem.",
     empty:
       "Nie ma jeszcze rozegranych map. Wyniki pojawią się po pierwszym wieczorze.",
     outcome: { win: "Wygrana", loss: "Porażka", draw: "Remis" },

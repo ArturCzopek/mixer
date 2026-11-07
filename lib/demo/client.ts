@@ -9,7 +9,13 @@ export type DemoParsedFile = {
   preview: DemoStoredData;
 };
 export type DemoParseErrorCode =
-  "unsupported" | "tooLarge" | "decode" | "invalid" | "memory" | "failed";
+  | "unsupported"
+  | "tooLarge"
+  | "decode"
+  | "invalid"
+  | "incomplete"
+  | "memory"
+  | "failed";
 export class DemoParseError extends Error {
   constructor(public readonly code: DemoParseErrorCode) {
     super(code);

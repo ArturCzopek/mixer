@@ -27,6 +27,7 @@ function parseErrorKey(error: unknown): DemoErrorKey {
     tooLarge: "tooLarge",
     decode: "malformed",
     invalid: "malformed",
+    incomplete: "incomplete",
     memory: "lowMemory",
     failed: "failed",
   };

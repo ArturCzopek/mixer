@@ -122,7 +122,12 @@ export function toLeetifyMatches(
   source: LeetifyDataSource,
 ): LeetifyMatch[] {
   const out: LeetifyMatch[] = [];
-  for (const match of z.array(matchSchema).parse(body ?? [])) {
+  // Validate per match: one odd match (another source, a null map, a missing rating) must not
+  // take the whole history down with it.
+  for (const raw of z.array(z.unknown()).parse(body ?? [])) {
+    const parsed = matchSchema.safeParse(raw);
+    if (!parsed.success) continue;
+    const match = parsed.data;
     if (match.data_source !== source) continue;
     const time = Date.parse(match.finished_at);
     if (!Number.isFinite(time)) continue;
@@ -135,7 +140,9 @@ export function toLeetifyMatches(
       (team) => team.team_number !== player.initial_team_number,
     );
     if (!ours || !theirs) continue;
-    const details = detailSchema.parse(player);
+    const detailResult = detailSchema.safeParse(player);
+    if (!detailResult.success) continue;
+    const details = detailResult.data;
     out.push({
       finishedAt: new Date(time).toISOString(),
       dataSource: source,

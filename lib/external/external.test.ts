@@ -359,6 +359,14 @@ describe("leetify client (invented sample, Leetify data is never stored)", () =>
     ]);
   });
 
+  it("skips a malformed match instead of failing the whole history", () => {
+    const good = match({});
+    const broken = { ...match({}), map_name: null, stats: "nope" };
+    const out = toLeetifyMatches([broken, good], me, "faceit");
+    expect(out).toHaveLength(1);
+    expect(out[0].map).toBe("de_nuke");
+  });
+
   it("keeps FACEIT and Premier sources separate using Leetify's matchmaking source", () => {
     const base = match({});
     const matches = [

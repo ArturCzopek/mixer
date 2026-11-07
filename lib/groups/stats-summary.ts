@@ -1,3 +1,4 @@
+import { countMapSources } from "./map-source";
 export interface GroupMapRow {
   id: string;
   mix_id: string;
@@ -110,11 +111,7 @@ export function groupStatsSummary(
 ) {
   const mapById = new Map(maps.map((map) => [map.id, map]));
   const playerById = new Map(players.map((player) => [player.id, player]));
-  const sources = { popflash: 0, faceit: 0, demo: 0, manual: 0 };
-  for (const map of maps) {
-    const source = map.stats_origin === "popflash" ? "popflash" : map.source;
-    if (source in sources) sources[source as keyof typeof sources]++;
-  }
+  const sources = countMapSources(maps);
   const rows = new Map<
     string,
     {

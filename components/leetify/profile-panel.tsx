@@ -30,6 +30,8 @@ export function LeetifyProfilePanel({
   const lang = useLang();
   const [data, setData] = useState<ProfileResponse | null>(null);
   const [failed, setFailed] = useState(false);
+  // 404 = the player has no Leetify account: an empty state, not an outage.
+  const [missing, setMissing] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -37,17 +39,21 @@ export function LeetifyProfilePanel({
       signal: controller.signal,
     })
       .then(async (response) => {
+        if (response.status === 404) {
+          setMissing(true);
+          return null;
+        }
         if (!response.ok) throw new Error("Leetify request failed");
         return (await response.json()) as ProfileResponse;
       })
-      .then(setData)
+      .then((body) => body && setData(body))
       .catch(() => {
         if (!controller.signal.aborted) setFailed(true);
       });
     return () => controller.abort();
   }, [steamId]);
 
-  const pending = data === null && !failed;
+  const pending = data === null && !failed && !missing;
   const matches =
     source === "faceit"
       ? (data?.faceitMatches ?? [])
@@ -90,11 +96,13 @@ export function LeetifyProfilePanel({
       },
     ];
   });
-  const emptyMessage = failed
-    ? t.leetify.notAnswering(name)
-    : data?.privacyMode
-      ? t.leetify.privateProfile
-      : t.profile.noLeetifyMatches;
+  const emptyMessage = missing
+    ? t.leetify.noProfile(name)
+    : failed
+      ? t.leetify.notAnswering(name)
+      : data?.privacyMode
+        ? t.leetify.privateProfile
+        : t.profile.noLeetifyMatches;
 
   return (
     <div className="mt-3">
@@ -107,7 +115,7 @@ export function LeetifyProfilePanel({
         >
           {t.loading.leetify}
         </Well>
-      ) : !data?.privacyMode && !failed ? (
+      ) : !data?.privacyMode && !failed && !missing ? (
         <ProfileStats
           items={[
             ...rankValues.map(([label, value]) => ({

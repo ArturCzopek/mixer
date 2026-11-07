@@ -20,6 +20,8 @@ export interface ProfileMap {
   teammates: { id: string; name: string; steamId: string }[];
 }
 
+export const MIN_TEAMMATE_MAPS = 5;
+
 export function profileSummary(maps: ProfileMap[]) {
   let wins = 0;
   let losses = 0;
@@ -27,6 +29,7 @@ export function profileSummary(maps: ProfileMap[]) {
   let kills = 0;
   let deaths = 0;
   let assists = 0;
+  let statMaps = 0;
   let ratedRounds = 0;
   let adrRounds = 0;
   let ratingSum = 0;
@@ -51,6 +54,7 @@ export function profileSummary(maps: ProfileMap[]) {
     }
     const s = map.stats;
     if (s) {
+      if (s.kills !== null || s.deaths !== null) statMaps++;
       kills += s.kills ?? 0;
       deaths += s.deaths ?? 0;
       assists += s.assists ?? 0;
@@ -83,6 +87,7 @@ export function profileSummary(maps: ProfileMap[]) {
     rating: ratedRounds ? ratingSum / ratedRounds : null,
     adr: adrRounds ? adrSum / adrRounds : null,
     ratedMaps: rated.length,
+    statMaps,
     trend: rated.map((map) => ({
       id: map.matchId,
       at: map.playedAt,
@@ -93,11 +98,14 @@ export function profileSummary(maps: ProfileMap[]) {
       faceitRoomUrl: map.faceitRoomUrl ?? null,
       rating: map.stats!.rating!,
     })),
-    bestTeammates: [...mates.values()].sort(
-      (a, b) =>
-        b.wins / b.maps - a.wins / a.maps ||
-        b.maps - a.maps ||
-        a.name.localeCompare(b.name),
-    ),
+    // Same 5-map floor as the group rankings: 1/1 must not outrank 30/50.
+    bestTeammates: [...mates.values()]
+      .filter((mate) => mate.maps >= MIN_TEAMMATE_MAPS)
+      .sort(
+        (a, b) =>
+          b.wins / b.maps - a.wins / a.maps ||
+          b.maps - a.maps ||
+          a.name.localeCompare(b.name),
+      ),
   };
 }

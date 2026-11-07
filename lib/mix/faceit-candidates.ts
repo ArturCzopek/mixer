@@ -38,10 +38,28 @@ export function faceitRoomId(input: string): string | null {
   }
 }
 
+/**
+ * Rooms may start before voting is closed (players start the room right away, auto-close waits an
+ * hour after the last vote, or the admin closes it after the match), so the search starts this long
+ * before the lock, but never before the previous mix's lock.
+ */
+export const PRE_LOCK_GRACE_MS = 4 * 60 * 60_000;
+
+/** Earliest room start that can belong to a mix locked at `lockedAt`. */
+export function faceitWindowStart(
+  lockedAt: string,
+  previousLockedAt?: string | null,
+): number {
+  const start = Date.parse(lockedAt) - PRE_LOCK_GRACE_MS;
+  const previous = previousLockedAt ? Date.parse(previousLockedAt) : -Infinity;
+  return Math.max(start, previous);
+}
+
 export function faceitCandidates(
   rooms: FaceitRoom[],
   options: {
     lockedAt: string;
+    previousLockedAt?: string | null;
     nextLockedAt?: string | null;
     teamA: string[];
     teamB: string[];
@@ -50,7 +68,7 @@ export function faceitCandidates(
   const teamA = new Set(options.teamA);
   const teamB = new Set(options.teamB);
   const roster = new Set([...teamA, ...teamB]);
-  const start = Date.parse(options.lockedAt);
+  const start = faceitWindowStart(options.lockedAt, options.previousLockedAt);
   const end = options.nextLockedAt
     ? Date.parse(options.nextLockedAt)
     : Infinity;

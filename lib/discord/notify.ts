@@ -45,15 +45,21 @@ export async function notifyMix(
       .single<NoticeMix>();
     if (error) throw error;
     const channel = mix.group.discord_settings?.notification_channel_id;
+    // The lineup notice is keyed by the chosen variant: after Reopen Voting a different winner is
+    // announced again, the same winner is not.
+    const flag =
+      event === "locked" && mix.chosen_variant_id
+        ? `locked:${mix.chosen_variant_id}`
+        : event;
     if (
       !mix.group.discord_guild_id ||
       !channel ||
-      mix.discord_notices.includes(event)
+      mix.discord_notices.includes(flag)
     )
       return;
 
     // ponytail: a failed post is not retried; add a retry if Discord drops messages in practice.
-    if (!(await claimMixFlag(mixId, event))) return;
+    if (!(await claimMixFlag(mixId, flag))) return;
 
     const base = (process.env.APP_URL || origin)?.replace(/\/$/, "");
     const data: Parameters<typeof mixNoticeText>[1] = {

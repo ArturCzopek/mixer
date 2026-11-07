@@ -24,10 +24,15 @@ it("counts score-only maps in wins without inventing a rating", () => {
     rating: null,
     winRate: 1,
   });
-  expect(result.bestTeammates[0]).toMatchObject({
+  // One shared map is below the 5-map floor.
+  expect(result.bestTeammates).toEqual([]);
+  const five = profileSummary(
+    Array.from({ length: 5 }, (_, i) => ({ ...base, matchId: `m${i}` })),
+  );
+  expect(five.bestTeammates[0]).toMatchObject({
     id: "mate",
-    maps: 1,
-    wins: 1,
+    maps: 5,
+    wins: 5,
   });
   expect(profileSummary([])).toMatchObject({
     mapCount: 0,

@@ -12,9 +12,12 @@ import {
   faceitCandidates,
   type FaceitCandidate,
   type FaceitRoom,
+  faceitWindowStart,
 } from "./faceit-candidates";
 import { faceitImportMap } from "./faceit-import";
 import { mixVariantPage } from "./queries";
+
+const ROOM_FETCH_CONCURRENCY = 5;
 
 /** Find plausible rooms. The admin still confirms every import. */
 export async function findMixFaceitCandidates(
@@ -44,6 +47,7 @@ export async function findMixFaceitCandidates(
   const [
     { data: group, error: groupError },
     { data: nextMix, error: nextError },
+    { data: previousMix, error: previousError },
     { data: players, error: playerError },
   ] = await Promise.all([
     adminDb()
@@ -60,6 +64,14 @@ export async function findMixFaceitCandidates(
       .limit(1)
       .maybeSingle(),
     adminDb()
+      .from("mixes")
+      .select("locked_at")
+      .eq("group_id", mix.group_id)
+      .lt("locked_at", mix.locked_at)
+      .order("locked_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    adminDb()
       .from("players")
       .select("id, steam_id, faceit_player_id")
       .in(
@@ -69,8 +81,11 @@ export async function findMixFaceitCandidates(
   ]);
   if (groupError) throw groupError;
   if (nextError) throw nextError;
+  if (previousError) throw previousError;
   if (playerError) throw playerError;
-  const from = new Date(mix.locked_at);
+  const from = new Date(
+    faceitWindowStart(mix.locked_at, previousMix?.locked_at),
+  );
   const to = nextMix?.locked_at ? new Date(nextMix.locked_at) : new Date();
   let clubIds: string[] = [];
   if (group.faceit_club_id) {
@@ -96,29 +111,38 @@ export async function findMixFaceitCandidates(
   );
   const historyIds = histories.flat();
   const ids = [...new Set([...clubIds, ...historyIds, ...extraIds])];
+  // Fetch rooms a few at a time and skip any that fail: one broken room must not hide the rest,
+  // and a long history must not run past the function timeout one request at a time.
   const rooms: FaceitRoom[] = [];
-  for (const id of ids) {
-    const room = await getFaceitRoom(id);
-    rooms.push({
-      id: room.match_id,
-      startedAt: new Date(room.started_at * 1000).toISOString(),
-      status: room.status,
-      competitionId: room.competition_id ?? null,
-      bestOf: room.best_of,
-      faction1: room.teams.faction1.roster.flatMap((player) =>
-        player.game_player_id ? [player.game_player_id] : [],
-      ),
-      faction2: room.teams.faction2.roster.flatMap((player) =>
-        player.game_player_id ? [player.game_player_id] : [],
-      ),
-      map: null,
-      score1: room.results?.score?.faction1 ?? null,
-      score2: room.results?.score?.faction2 ?? null,
-      roomUrl: `https://www.faceit.com/en/cs2/room/${encodeURIComponent(id)}`,
-    });
+  for (let i = 0; i < ids.length; i += ROOM_FETCH_CONCURRENCY) {
+    const batch = await Promise.allSettled(
+      ids.slice(i, i + ROOM_FETCH_CONCURRENCY).map((id) => getFaceitRoom(id)),
+    );
+    for (const result of batch) {
+      if (result.status !== "fulfilled") continue;
+      const room = result.value;
+      rooms.push({
+        id: room.match_id,
+        startedAt: new Date(room.started_at * 1000).toISOString(),
+        status: room.status,
+        competitionId: room.competition_id ?? null,
+        bestOf: room.best_of,
+        faction1: room.teams.faction1.roster.flatMap((player) =>
+          player.game_player_id ? [player.game_player_id] : [],
+        ),
+        faction2: room.teams.faction2.roster.flatMap((player) =>
+          player.game_player_id ? [player.game_player_id] : [],
+        ),
+        map: null,
+        score1: room.results?.score?.faction1 ?? null,
+        score2: room.results?.score?.faction2 ?? null,
+        roomUrl: `https://www.faceit.com/en/cs2/room/${encodeURIComponent(room.match_id)}`,
+      });
+    }
   }
   const candidates = faceitCandidates(rooms, {
     lockedAt: mix.locked_at,
+    previousLockedAt: previousMix?.locked_at,
     nextLockedAt: nextMix?.locked_at,
     teamA: chosen.teamA.map((player) => player.steamId),
     teamB: chosen.teamB.map((player) => player.steamId),

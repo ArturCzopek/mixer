@@ -20,6 +20,8 @@ export function LeetifyPreviewCard({
   const t = useT();
   const [preview, setPreview] = useState<Preview | null>(null);
   const [failed, setFailed] = useState(false);
+  // 404 = the player has no Leetify account: an empty state, not an outage.
+  const [missing, setMissing] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -27,17 +29,21 @@ export function LeetifyPreviewCard({
       signal: controller.signal,
     })
       .then(async (response) => {
+        if (response.status === 404) {
+          setMissing(true);
+          return null;
+        }
         if (!response.ok) throw new Error("Leetify request failed");
         return (await response.json()) as Preview;
       })
-      .then(setPreview)
+      .then((body) => body && setPreview(body))
       .catch(() => {
         if (!controller.signal.aborted) setFailed(true);
       });
     return () => controller.abort();
   }, [player.steamId]);
 
-  const pending = preview === null && !failed;
+  const pending = preview === null && !failed && !missing;
   const matches = preview?.matches ?? [];
   const shownMatches = matches.slice(0, 8);
   const ratingAverage = averageLeetifyRating(shownMatches, shownMatches.length);
@@ -50,13 +56,15 @@ export function LeetifyPreviewCard({
   const draws = matches.length - wins - losses;
   const message = pending
     ? t.loading.leetify
-    : failed
-      ? t.leetify.notAnswering(player.name)
-      : preview?.privacyMode
-        ? t.leetify.privateProfile
-        : matches.length === 0
-          ? t.leetify.noRecentFaceit
-          : t.leetify.wl(wins, losses, draws);
+    : missing
+      ? t.leetify.noProfile(player.name)
+      : failed
+        ? t.leetify.notAnswering(player.name)
+        : preview?.privacyMode
+          ? t.leetify.privateProfile
+          : matches.length === 0
+            ? t.leetify.noRecentFaceit
+            : t.leetify.wl(wins, losses, draws);
 
   return (
     <Window title={t.leetify.previewTitle(player.name)} className="mt-2.5">

@@ -1,10 +1,15 @@
 import "server-only";
 
+import { cache } from "react";
 import { adminDb } from "@/lib/db/admin";
 import { getPlayerBySteamId } from "@/lib/external/faceit";
-import { profileSummary, type ProfileMap } from "./summary";
+import { profileLines } from "./lines";
+import { profileSummary } from "./summary";
 
-export async function groupPlayerProfile(groupId: string, steamId: string) {
+// Deduplicated per request: generateMetadata and the page both build the profile.
+export const groupPlayerProfile = cache(groupPlayerProfileUncached);
+
+async function groupPlayerProfileUncached(groupId: string, steamId: string) {
   const { data: player, error: playerError } = await adminDb()
     .from("players")
     .select("id, steam_id, display_name, avatar_url")
@@ -41,6 +46,8 @@ export async function groupPlayerProfile(groupId: string, steamId: string) {
           playedMixes.map((mix) => mix.id),
         )
         .order("played_at", { ascending: false })
+        // Manual results share one played_at per evening; keep the map order stable.
+        .order("map_number", { ascending: false })
     : { data: [], error: null };
   if (matchResult.error) throw matchResult.error;
   const matches = matchResult.data ?? [];
@@ -53,7 +60,26 @@ export async function groupPlayerProfile(groupId: string, steamId: string) {
     : { data: [], error: null };
   if (variantResult.error) throw variantResult.error;
   const variantPlayers = variantResult.data ?? [];
-  const teammateIds = [...new Set(variantPlayers.map((row) => row.player_id))];
+  // Every player's stats on these maps: the recorded side decides the team and the teammates.
+  const statsResult = matches.length
+    ? await adminDb()
+        .from("match_player_stats")
+        .select(
+          "match_id, player_id, team, kills, deaths, assists, adr, rounds, rating",
+        )
+        .in(
+          "match_id",
+          matches.map((match) => match.id),
+        )
+    : { data: [], error: null };
+  if (statsResult.error) throw statsResult.error;
+  const stats = statsResult.data ?? [];
+  const teammateIds = [
+    ...new Set([
+      ...variantPlayers.map((row) => row.player_id),
+      ...stats.map((row) => row.player_id),
+    ]),
+  ];
   const teammateResult = teammateIds.length
     ? await adminDb()
         .from("players")
@@ -61,7 +87,7 @@ export async function groupPlayerProfile(groupId: string, steamId: string) {
         .in("id", teammateIds)
     : { data: [], error: null };
   if (teammateResult.error) throw teammateResult.error;
-  const teammateNames = new Map(
+  const mates = new Map(
     (teammateResult.data ?? []).map((mate) => [
       mate.id,
       {
@@ -71,65 +97,13 @@ export async function groupPlayerProfile(groupId: string, steamId: string) {
       },
     ]),
   );
-  const statsResult = matches.length
-    ? await adminDb()
-        .from("match_player_stats")
-        .select("match_id, kills, deaths, assists, adr, rounds, rating")
-        .eq("player_id", player.id)
-        .in(
-          "match_id",
-          matches.map((match) => match.id),
-        )
-    : { data: [], error: null };
-  if (statsResult.error) throw statsResult.error;
-  const statsByMatch = new Map(
-    (statsResult.data ?? []).map((stats) => [stats.match_id, stats]),
-  );
-  const mixById = new Map(playedMixes.map((mix) => [mix.id, mix]));
-  const lines: ProfileMap[] = matches.flatMap((match) => {
-    const mix = mixById.get(match.mix_id);
-    const teamRow = variantPlayers.find(
-      (row) =>
-        row.variant_id === mix?.chosen_variant_id &&
-        row.player_id === player.id,
-    );
-    if (!mix || !teamRow || (teamRow.team !== "A" && teamRow.team !== "B"))
-      return [];
-    const ownStats = statsByMatch.get(match.id);
-    return [
-      {
-        matchId: match.id,
-        mixId: mix.id,
-        mixTitle: mix.title,
-        mapNumber: match.map_number,
-        mapName: match.map_name,
-        playedAt: match.played_at,
-        scoreA: match.score_a,
-        scoreB: match.score_b,
-        faceitRoomUrl: match.faceit_match_id
-          ? `https://www.faceit.com/en/cs2/room/${encodeURIComponent(match.faceit_match_id)}`
-          : null,
-        team: teamRow.team as "A" | "B",
-        stats: ownStats
-          ? {
-              kills: ownStats.kills,
-              deaths: ownStats.deaths,
-              assists: ownStats.assists,
-              adr: ownStats.adr === null ? null : Number(ownStats.adr),
-              rounds: ownStats.rounds,
-              rating: ownStats.rating === null ? null : Number(ownStats.rating),
-            }
-          : null,
-        teammates: variantPlayers.flatMap((row) =>
-          row.variant_id === mix.chosen_variant_id &&
-          row.team === teamRow.team &&
-          row.player_id !== player.id &&
-          teammateNames.has(row.player_id)
-            ? [teammateNames.get(row.player_id)!]
-            : [],
-        ),
-      },
-    ];
+  const lines = profileLines({
+    playerId: player.id,
+    mixes: playedMixes,
+    matches,
+    variantPlayers,
+    stats,
+    mates,
   });
   const faceit = await getPlayerBySteamId(steamId).catch(() => null);
   return {

@@ -2,6 +2,7 @@ import "server-only";
 
 // Group reads for server components. Groups and members are public (D2, D18).
 
+import { cache } from "react";
 import { adminDb } from "@/lib/db/admin";
 import type { GroupRole } from "@/lib/auth/roles";
 
@@ -75,7 +76,10 @@ export async function myGroups(playerId: string): Promise<GroupLink[]> {
   return data.map((r) => r.group).sort((a, b) => a.name.localeCompare(b.name));
 }
 
-export async function groupBySlug(slug: string): Promise<GroupPage | null> {
+// Deduplicated per request: generateMetadata and the page both read the group.
+export const groupBySlug = cache(groupBySlugUncached);
+
+async function groupBySlugUncached(slug: string): Promise<GroupPage | null> {
   const { data, error } = await adminDb()
     .from("groups")
     .select(
